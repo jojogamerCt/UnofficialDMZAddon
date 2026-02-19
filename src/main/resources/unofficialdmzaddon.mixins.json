@@ -2,11 +2,19 @@
   "required": true,
   "minVersion": "0.8",
   "package": "org.unofficial.unofficialdmzaddon.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "unofficialdmzaddon.refmap.json",
   "mixins": [
+    "FormModeHandlerMixin",
+    "StatsDataMixin",
+    "SuperformMenuSlotMixin",
+    "TransformationsHelperMixin",
+    "accessor.SkillsAccessor"
   ],
   "client": [
+    "SkillsMenuScreenMixin",
+    "DMZSkinLayerMixin",
+    "DMZRenderHandMixin"
   ],
   "injectors": {
     "defaultRequire": 1

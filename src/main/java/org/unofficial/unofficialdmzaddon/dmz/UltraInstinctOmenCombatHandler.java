@@ -2,6 +2,7 @@ package org.unofficial.unofficialdmzaddon.dmz;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -21,11 +22,7 @@ import java.util.UUID;
 
 public final class UltraInstinctOmenCombatHandler {
 
-    private static final int OMEN_DODGE_MESSAGE_CD = 30;
-    private static final float BASE_DODGE_CHANCE = 0.20f;
-    private static final float MAX_DODGE_CHANCE = 0.45f;
-    private static final float BASE_STRIKE_CHANCE = 0.12f;
-    private static final float MAX_STRIKE_CHANCE = 0.22f;
+    private static final int DODGE_MESSAGE_CD = 30;
     private static final String DRAGONMINEZ_EVASION_SOUND = "dragonminez:evasion1";
 
     private final Map<UUID, Integer> dodgeMessageCooldown = new HashMap<>();
@@ -37,12 +34,12 @@ public final class UltraInstinctOmenCombatHandler {
             return;
         }
 
-        applyOmenStrikeBoost(event);
+        applyUltraInstinctStrikeBoost(event);
         if (event.isCanceled() || event.getAmount() <= 0.0f) {
             return;
         }
 
-        applyOmenAutoDodge(event);
+        applyUltraInstinctAutoDodge(event);
     }
 
     @SubscribeEvent
@@ -50,7 +47,7 @@ public final class UltraInstinctOmenCombatHandler {
         dodgeMessageCooldown.remove(event.getEntity().getUUID());
     }
 
-    private void applyOmenStrikeBoost(LivingHurtEvent event) {
+    private void applyUltraInstinctStrikeBoost(LivingHurtEvent event) {
         if (!(event.getSource().getEntity() instanceof ServerPlayer attacker)) {
             return;
         }
@@ -59,28 +56,34 @@ public final class UltraInstinctOmenCombatHandler {
             return;
         }
 
-        DMZRuntimeAccess.getOmenState(attacker).ifPresent(state -> {
+        DMZRuntimeAccess.getUltraInstinctState(attacker).ifPresent(state -> {
             double masteryRatio = masteryRatio(state.mastery());
-            float procChance = lerp(BASE_STRIKE_CHANCE, MAX_STRIKE_CHANCE, masteryRatio);
+            double tierRatio = tierRatio(state.tier());
+
+            float procChance = lerp(
+                    lerp(0.10, 0.20, tierRatio),
+                    lerp(0.22, 0.35, tierRatio),
+                    masteryRatio
+            );
             if (attacker.getRandom().nextFloat() > procChance) {
                 return;
             }
 
-            int kiCost = Math.max(1, (int) Math.ceil(state.maxEnergy() * 0.01));
-            if (!state.consumeEnergy(kiCost)) {
-                return;
-            }
-
-            float damageBoost = (float) lerp(1.12, 1.30, masteryRatio);
+            float damageBoost = lerp(
+                    lerp(1.12, 1.28, tierRatio),
+                    lerp(1.30, 1.55, tierRatio),
+                    masteryRatio
+            );
             event.setAmount(event.getAmount() * damageBoost);
 
             if (attacker.level() instanceof ServerLevel level) {
+                int critParticles = (int) Math.round(12 + (8 * tierRatio));
                 level.sendParticles(
                         ParticleTypes.CRIT,
                         victim.getX(),
                         victim.getY() + (victim.getBbHeight() * 0.5),
                         victim.getZ(),
-                        12,
+                        critParticles,
                         0.2,
                         0.25,
                         0.2,
@@ -91,7 +94,7 @@ public final class UltraInstinctOmenCombatHandler {
         });
     }
 
-    private void applyOmenAutoDodge(LivingHurtEvent event) {
+    private void applyUltraInstinctAutoDodge(LivingHurtEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer victim)) {
             return;
         }
@@ -102,14 +105,21 @@ public final class UltraInstinctOmenCombatHandler {
             return;
         }
 
-        DMZRuntimeAccess.getOmenState(victim).ifPresent(state -> {
+        DMZRuntimeAccess.getUltraInstinctState(victim).ifPresent(state -> {
             double masteryRatio = masteryRatio(state.mastery());
-            float dodgeChance = lerp(BASE_DODGE_CHANCE, MAX_DODGE_CHANCE, masteryRatio);
+            double tierRatio = tierRatio(state.tier());
+
+            float dodgeChance = lerp(
+                    lerp(0.20, 0.34, tierRatio),
+                    lerp(0.45, 0.68, tierRatio),
+                    masteryRatio
+            );
             if (victim.getRandom().nextFloat() > dodgeChance) {
                 return;
             }
 
-            int kiCost = Math.max(2, (int) Math.ceil(state.maxEnergy() * 0.02));
+            double kiCostRatio = lerp(0.020, 0.032, tierRatio);
+            int kiCost = Math.max(2, (int) Math.ceil(state.maxEnergy() * kiCostRatio));
             if (!state.consumeEnergy(kiCost)) {
                 return;
             }
@@ -123,17 +133,23 @@ public final class UltraInstinctOmenCombatHandler {
             }
             direction = direction.normalize();
 
-            double push = lerp(0.45, 0.70, masteryRatio);
+            double push = lerp(
+                    lerp(0.45, 0.70, tierRatio),
+                    lerp(0.70, 0.95, tierRatio),
+                    masteryRatio
+            );
             victim.push(direction.x * push, 0.12, direction.z * push);
             victim.hurtMarked = true;
 
             if (victim.level() instanceof ServerLevel level) {
+                int endRodCount = (int) Math.round(16 + (10 * tierRatio));
+                int cloudCount = (int) Math.round(8 + (6 * tierRatio));
                 level.sendParticles(
                         ParticleTypes.END_ROD,
                         victim.getX(),
                         victim.getY() + (victim.getBbHeight() * 0.5),
                         victim.getZ(),
-                        16,
+                        endRodCount,
                         0.35,
                         0.45,
                         0.35,
@@ -144,14 +160,14 @@ public final class UltraInstinctOmenCombatHandler {
                         victim.getX(),
                         victim.getY() + 0.1,
                         victim.getZ(),
-                        8,
+                        cloudCount,
                         0.15,
                         0.02,
                         0.15,
                         0.03
                 );
 
-                SoundEvent evasionSound = ForgeRegistries.SOUND_EVENTS.getValue(net.minecraft.resources.ResourceLocation.tryParse(DRAGONMINEZ_EVASION_SOUND));
+                SoundEvent evasionSound = ForgeRegistries.SOUND_EVENTS.getValue(ResourceLocation.tryParse(DRAGONMINEZ_EVASION_SOUND));
                 level.playSound(
                         null,
                         victim.getX(),
@@ -174,8 +190,8 @@ public final class UltraInstinctOmenCombatHandler {
             return;
         }
 
-        victim.displayClientMessage(Component.translatable("message.unofficialdmzaddon.ultra_instinct_omen.dodge"), true);
-        dodgeMessageCooldown.put(victim.getUUID(), victim.tickCount + OMEN_DODGE_MESSAGE_CD);
+        victim.displayClientMessage(Component.translatable("message.unofficialdmzaddon.ultra_instinct.dodge"), true);
+        dodgeMessageCooldown.put(victim.getUUID(), victim.tickCount + DODGE_MESSAGE_CD);
     }
 
     private static float lerp(double min, double max, double ratio) {
@@ -184,5 +200,9 @@ public final class UltraInstinctOmenCombatHandler {
 
     private static double masteryRatio(double mastery) {
         return Math.max(0.0, Math.min(1.0, mastery / 100.0));
+    }
+
+    private static double tierRatio(int tier) {
+        return Math.max(0.0, Math.min(1.0, (tier - 1) / 3.0));
     }
 }

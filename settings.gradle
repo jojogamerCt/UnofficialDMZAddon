@@ -5,6 +5,10 @@ pluginManagement {
             name = 'MinecraftForge'
             url = 'https://maven.minecraftforge.net/'
         }
+        maven {
+            name = 'ParchmentMC'
+            url = 'https://maven.parchmentmc.org/'
+        }
     }
 }
 
@@ -13,3 +17,6 @@ plugins {
 }
 
 rootProject.name = 'unofficialdmzaddon'
+
+include 'dragonminez'
+project(':dragonminez').projectDir = file('dragonminez')

@@ -1,4 +1,20 @@
 {
-  "race.dragonminez.saiyan.form.supersaiyan.ultrainstinctomen": "Ultra Instinct Omen",
-  "message.unofficialdmzaddon.ultra_instinct_omen.dodge": "Ultra Instinct Omen: Auto Dodge"
+  "race.dragonminez.saiyan.group.ultrainstinct": "Ultra Instinct",
+  "race.dragonminez.saiyan.form.ultrainstinct.ultrainstinctsign": "Ultra Instinct Sign",
+  "race.dragonminez.saiyan.form.ultrainstinct.masteredultrainstinct": "Mastered Ultra Instinct",
+  "race.dragonminez.saiyan.form.ultrainstinct.ultrainstinctautonomous": "Ultra Instinct (Autonomous)",
+  "race.dragonminez.saiyan.form.ultrainstinct.trueultrainstinct": "True Ultra Instinct",
+  "race.dragonminez.saiyan.form.supersaiyan.beast": "Beast Form",
+  "race.dragonminez.namekian.form.superforms.orange": "Orange Form",
+  "race.dragonminez.frostdemon.form.evolutionforms.black": "Black Form",
+  "skill.dragonminez.ultrainstinct": "Ultra Instinct",
+  "skill.dragonminez.ultrainstinct.desc": "Progressive Ultra Instinct route: Sign, Mastered, Autonomous (manga), and True (manga).",
+  "message.unofficialdmzaddon.ultra_instinct.dodge": "Ultra Instinct: Auto Dodge",
+  "message.unofficialdmzaddon.ultra_instinct.sign.low_health_required": "Ultra Instinct Sign requires very low health to awaken.",
+  "message.unofficialdmzaddon.ultra_instinct.mastered.requirements": "Mastered Ultra Instinct requires Sign active, enough Sign mastery, and lower health.",
+  "message.unofficialdmzaddon.ultra_instinct.autonomous.requirements": "Ultra Instinct (Autonomous) requires Mastered UI active, enough Mastered mastery, and lower health.",
+  "message.unofficialdmzaddon.ultra_instinct.true.requirements": "True Ultra Instinct requires Autonomous UI active, enough Autonomous mastery, and near-critical health.",
+  "message.unofficialdmzaddon.special_form.beast.requirements": "Beast Form needs SSJ3 active, high SSJ3 mastery, and battle-damage rage.",
+  "message.unofficialdmzaddon.special_form.orange.requirements": "Orange Form needs Super Namekian mastery and very high Ki reserves.",
+  "message.unofficialdmzaddon.special_form.black.requirements": "Black Form needs Fifth Form mastery and heavy battle pressure."
 }

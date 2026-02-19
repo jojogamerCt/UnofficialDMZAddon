@@ -6,6 +6,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctOmenActivationHandler;
 import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctOmenCombatHandler;
 import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctOmenInstaller;
 
@@ -19,6 +20,7 @@ public final class UnofficialDMZAddon {
         var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::onCommonSetup);
 
+        MinecraftForge.EVENT_BUS.register(new UltraInstinctOmenActivationHandler());
         MinecraftForge.EVENT_BUS.register(new UltraInstinctOmenCombatHandler());
     }
 
