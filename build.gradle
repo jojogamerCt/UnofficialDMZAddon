@@ -134,6 +134,12 @@ repositories {
     // Put repositories for dependencies here
     // ForgeGradle automatically adds the Forge maven and Maven Central for you
 
+    // GeckoLib — needed at compile time for the BoneVisibilityHandler mixin
+    maven {
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content { includeGroupByRegex("software\\.bernie.*") }
+    }
+
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
     // flatDir {
@@ -150,6 +156,9 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(':dragonminez')
     runtimeOnly project(':dragonminez')
+    // GeckoLib — compile-only so the mixin on BoneVisibilityHandler can reference its types.
+    // At runtime GeckoLib is already on the classpath via DragonMineZ.
+    compileOnly fg.deobf("software.bernie.geckolib:geckolib-forge-1.20.1:4.8.3")
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

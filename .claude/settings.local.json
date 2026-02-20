@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_serena_serena__check_onboarding_performed",
+      "mcp__plugin_serena_serena__list_dir",
+      "mcp__plugin_serena_serena__activate_project",
+      "mcp__plugin_serena_serena__search_for_pattern",
+      "mcp__plugin_serena_serena__onboarding",
+      "mcp__plugin_serena_serena__read_file",
+      "mcp__plugin_serena_serena__replace_symbol_body",
+      "mcp__plugin_serena_serena__replace_content",
+      "mcp__plugin_serena_serena__write_memory",
+      "mcp__plugin_serena_serena__execute_shell_command",
+      "Bash(dir:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(wmic datafile:*)",
+      "Bash($script)",
+      "Bash(Out-File -FilePath \"C:\\\\Users\\\\giuse\\\\Desktop\\\\Minecraft Mod Projects\\\\UnofficialDMZAddon\\\\temp_analyze2.py\" -Encoding utf8)",
+      "Bash(Write-Host \"Script saved.\")",
+      "Bash(/d/Python3913/python.exe:*)",
+      "Bash(del \"C:\\\\Users\\\\giuse\\\\Desktop\\\\Minecraft Mod Projects\\\\UnofficialDMZAddon\\\\gen_alien_textures.py\")",
+      "mcp__plugin_serena_serena__find_file",
+      "mcp__plugin_serena_serena__create_text_file",
+      "Bash(gradlew compileJava:*)",
+      "mcp__plugin_serena_serena__list_memories",
+      "mcp__plugin_serena_serena__read_memory",
+      "mcp__plugin_serena_serena__get_symbols_overview",
+      "mcp__plugin_serena_serena__find_symbol",
+      "Bash(cmd /c:*)",
+      "Bash(./gradlew.bat compileJava:*)",
+      "Bash(./gradlew build:*)"
+    ]
+  }
+}

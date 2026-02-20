@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Four-star Dragon Ball icon">
+  <defs>
+    <radialGradient id="ballGradient" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffd68a"/>
+      <stop offset="50%" stop-color="#f5a434"/>
+      <stop offset="100%" stop-color="#d56f18"/>
+    </radialGradient>
+    <radialGradient id="shineGradient" cx="25%" cy="22%" r="55%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+    <path id="star" d="M0 -28L8.23 -11.33L26.63 -8.65L13.31 4.32L16.45 22.65L0 14L-16.45 22.65L-13.31 4.32L-26.63 -8.65L-8.23 -11.33Z"/>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <circle cx="256" cy="256" r="220" fill="url(#ballGradient)"/>
+    <circle cx="256" cy="256" r="220" fill="none" stroke="#b4550c" stroke-width="14"/>
+    <circle cx="256" cy="256" r="190" fill="none" stroke="#ffcf7a" stroke-opacity="0.35" stroke-width="10"/>
+    <circle cx="256" cy="256" r="205" fill="url(#shineGradient)"/>
+
+    <g fill="#c31312" transform="translate(256 256)">
+      <use href="#star" x="0" y="-92"/>
+      <use href="#star" x="92" y="0"/>
+      <use href="#star" x="0" y="92"/>
+      <use href="#star" x="-92" y="0"/>
+    </g>
+  </g>
+</svg>

@@ -1,20 +1,10 @@
 package org.unofficial.unofficialdmzaddon.dmz;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public final class UltraInstinctOmenActivationHandler {
-
-    private static final int MESSAGE_COOLDOWN_TICKS = 30;
-
-    private final Map<UUID, Integer> messageCooldown = new HashMap<>();
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -45,11 +35,6 @@ public final class UltraInstinctOmenActivationHandler {
             state.stopActionCharging();
             sendMessage(serverPlayer, failureKey);
         });
-    }
-
-    @SubscribeEvent
-    public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        messageCooldown.remove(event.getEntity().getUUID());
     }
 
     private static String validateRequirements(DMZRuntimeAccess.TransformChargeState state,
@@ -181,12 +166,6 @@ public final class UltraInstinctOmenActivationHandler {
     }
 
     private void sendMessage(ServerPlayer player, String key) {
-        int nextAllowedTick = messageCooldown.getOrDefault(player.getUUID(), 0);
-        if (player.tickCount < nextAllowedTick) {
-            return;
-        }
-
-        player.displayClientMessage(Component.translatable(key), true);
-        messageCooldown.put(player.getUUID(), player.tickCount + MESSAGE_COOLDOWN_TICKS);
+        // Action bar feedback intentionally removed – requirements are visible in the UI.
     }
 }

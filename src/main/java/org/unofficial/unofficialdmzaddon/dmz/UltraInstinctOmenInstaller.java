@@ -30,6 +30,7 @@ public final class UltraInstinctOmenInstaller {
     private static final int[] SAIYAN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 40000, 60000, 80000, 100000, 120000, 140000, 160000};
     private static final int[] NAMEKIAN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
     private static final int[] FROST_DEMON_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000, 200000, 240000};
+    private static final int[] ALIEN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
 
     private static final List<String> UI_FORM_KEYS = List.of(
             UltraInstinctDefinitions.LEGACY_FORM_OMEN,
@@ -72,13 +73,13 @@ public final class UltraInstinctOmenInstaller {
         }
 
         if (specialRuntimeOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Installed Beast, Orange and Black forms into runtime form registries.");
+            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Installed Beast, Orange, Black and Full Power forms into runtime form registries.");
         } else {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not install one or more special race forms in runtime.");
         }
 
         if (specialFilesOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Persisted Beast, Orange and Black form config files.");
+            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Persisted Beast, Orange, Black and Full Power form config files.");
         } else {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not persist one or more special race form config files.");
         }
@@ -353,7 +354,8 @@ public final class UltraInstinctOmenInstaller {
         boolean beast = injectSaiyanBeastFormRuntime();
         boolean orange = injectNamekianOrangeFormRuntime();
         boolean black = injectFrostDemonBlackFormRuntime();
-        return beast && orange && black;
+        boolean fullPower = injectAlienFullPowerFormRuntime();
+        return beast && orange && black && fullPower;
     }
 
     private static boolean injectSaiyanBeastFormRuntime() {
@@ -515,6 +517,59 @@ public final class UltraInstinctOmenInstaller {
         }
     }
 
+    private static boolean injectAlienFullPowerFormRuntime() {
+        try {
+            Map<String, FormConfig> raceForms = ConfigManager.getAllFormsForRace(SpecialRaceFormsDefinitions.ALIEN_RACE);
+            if (raceForms == null) {
+                return false;
+            }
+
+            FormConfig group = raceForms.computeIfAbsent(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS, key -> {
+                FormConfig cfg = new FormConfig();
+                cfg.setGroupName(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS);
+                cfg.setFormType(FORM_TYPE_SUPER);
+                cfg.setForms(new LinkedHashMap<>());
+                return cfg;
+            });
+
+            if (group.getForms() == null) {
+                group.setForms(new LinkedHashMap<>());
+            }
+
+            FormConfig.FormData fullPower = group.getFormByKey(SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER);
+            if (fullPower == null) {
+                fullPower = new FormConfig.FormData();
+            }
+
+            applySpecialFormValues(
+                    fullPower,
+                    SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER,
+                    SpecialRaceFormsDefinitions.ALIEN_FULL_POWER_UNLOCK_LEVEL,
+                    "#E67E7E",
+                    "#C85F5F",
+                    "#A94545",
+                    "base",
+                    "",
+                    "#A80F0F",
+                    "#F11212",
+                    "#FF6E3A",
+                    new float[]{1.22f, 1.22f, 1.22f},
+                    5.00, 5.20, 2.10, 3.80, 1.55, 5.80, 1.80, 1.45,
+                    0.28, 1.55, 1.24,
+                    0.030, 0.018, 0.0032,
+                    true, 2.4
+            );
+
+            group.getForms().put(SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER, fullPower);
+            group.setGroupName(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS);
+            group.setFormType(FORM_TYPE_SUPER);
+            return true;
+        } catch (Exception | LinkageError e) {
+            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Alien Full Power runtime injection failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
     private static void applySpecialFormValues(FormConfig.FormData formData,
                                                String formName,
                                                int unlockLevel,
@@ -634,7 +689,25 @@ public final class UltraInstinctOmenInstaller {
                 )
         );
 
-        return beast && orange && black;
+        boolean fullPower = persistFormInGroupFile(
+                SpecialRaceFormsDefinitions.ALIEN_RACE,
+                SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS,
+                FORM_TYPE_SUPER,
+                SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER,
+                createSpecialFormJson(
+                        SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER,
+                        SpecialRaceFormsDefinitions.ALIEN_FULL_POWER_UNLOCK_LEVEL,
+                        "#E67E7E", "#C85F5F", "#A94545", "base",
+                        "", "#A80F0F", "#F11212", "#FF6E3A",
+                        new float[]{1.22f, 1.22f, 1.22f},
+                        5.00, 5.20, 2.10, 3.80, 1.55, 5.80, 1.80, 1.45,
+                        0.28, 1.55, 1.24,
+                        0.030, 0.018, 0.0032,
+                        true, 2.4
+                )
+        );
+
+        return beast && orange && black && fullPower;
     }
 
     private static boolean persistFormInGroupFile(String race,
@@ -762,7 +835,12 @@ public final class UltraInstinctOmenInstaller {
                 SpecialRaceFormsDefinitions.FROST_DEMON_BLACK_UNLOCK_LEVEL,
                 FROST_DEMON_SUPERFORM_DEFAULT_COSTS
         );
-        return saiyan && namekian && frostDemon;
+        boolean alien = ensureSuperformLevelCapacity(
+                SpecialRaceFormsDefinitions.ALIEN_RACE,
+                SpecialRaceFormsDefinitions.ALIEN_MAX_SUPERFORM_LEVEL,
+                ALIEN_SUPERFORM_DEFAULT_COSTS
+        );
+        return saiyan && namekian && frostDemon && alien;
     }
 
     private static boolean ensureSuperformLevelCapacity(String race,

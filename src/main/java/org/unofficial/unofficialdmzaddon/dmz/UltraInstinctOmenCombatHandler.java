@@ -1,7 +1,6 @@
 package org.unofficial.unofficialdmzaddon.dmz;
 
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,91 +9,29 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public final class UltraInstinctOmenCombatHandler {
 
-    private static final int DODGE_MESSAGE_CD = 30;
     private static final String DRAGONMINEZ_EVASION_SOUND = "dragonminez:evasion1";
 
-    private final Map<UUID, Integer> dodgeMessageCooldown = new HashMap<>();
     private final SoundEvent fallbackEvasionSound = SoundEvents.ENDERMAN_TELEPORT;
 
+    /**
+     * Intercepts the attack before any hurt logic runs (no hurt animation, no invulnerability
+     * frames, no damage numbers).  This mirrors how DMZ cancels hits for Ki Barriers via
+     * {@code LivingAttackEvent}.
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onLivingHurt(LivingHurtEvent event) {
-        if (event.isCanceled() || event.getAmount() <= 0.0f) {
+    public void onLivingAttack(LivingAttackEvent event) {
+        if (event.isCanceled()) {
             return;
         }
 
-        applyUltraInstinctStrikeBoost(event);
-        if (event.isCanceled() || event.getAmount() <= 0.0f) {
-            return;
-        }
-
-        applyUltraInstinctAutoDodge(event);
-    }
-
-    @SubscribeEvent
-    public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        dodgeMessageCooldown.remove(event.getEntity().getUUID());
-    }
-
-    private void applyUltraInstinctStrikeBoost(LivingHurtEvent event) {
-        if (!(event.getSource().getEntity() instanceof ServerPlayer attacker)) {
-            return;
-        }
-        LivingEntity victim = event.getEntity();
-        if (victim == attacker) {
-            return;
-        }
-
-        DMZRuntimeAccess.getUltraInstinctState(attacker).ifPresent(state -> {
-            double masteryRatio = masteryRatio(state.mastery());
-            double tierRatio = tierRatio(state.tier());
-
-            float procChance = lerp(
-                    lerp(0.10, 0.20, tierRatio),
-                    lerp(0.22, 0.35, tierRatio),
-                    masteryRatio
-            );
-            if (attacker.getRandom().nextFloat() > procChance) {
-                return;
-            }
-
-            float damageBoost = lerp(
-                    lerp(1.12, 1.28, tierRatio),
-                    lerp(1.30, 1.55, tierRatio),
-                    masteryRatio
-            );
-            event.setAmount(event.getAmount() * damageBoost);
-
-            if (attacker.level() instanceof ServerLevel level) {
-                int critParticles = (int) Math.round(12 + (8 * tierRatio));
-                level.sendParticles(
-                        ParticleTypes.CRIT,
-                        victim.getX(),
-                        victim.getY() + (victim.getBbHeight() * 0.5),
-                        victim.getZ(),
-                        critParticles,
-                        0.2,
-                        0.25,
-                        0.2,
-                        0.02
-                );
-                level.playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 0.9f, 1.1f);
-            }
-        });
-    }
-
-    private void applyUltraInstinctAutoDodge(LivingHurtEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer victim)) {
             return;
         }
@@ -124,8 +61,8 @@ public final class UltraInstinctOmenCombatHandler {
                 return;
             }
 
+            // Cancel the entire attack – no hurt animation, no invulnerability, no damage.
             event.setCanceled(true);
-            event.setAmount(0.0f);
 
             Vec3 direction = victim.position().subtract(attacker.position());
             if (direction.lengthSqr() < 1.0E-4) {
@@ -180,18 +117,63 @@ public final class UltraInstinctOmenCombatHandler {
                 );
             }
 
-            maybeSendDodgeMessage(victim);
         });
     }
 
-    private void maybeSendDodgeMessage(ServerPlayer victim) {
-        int nextAllowedTick = dodgeMessageCooldown.getOrDefault(victim.getUUID(), 0);
-        if (victim.tickCount < nextAllowedTick) {
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onLivingHurt(LivingHurtEvent event) {
+        if (event.isCanceled() || event.getAmount() <= 0.0f) {
             return;
         }
 
-        victim.displayClientMessage(Component.translatable("message.unofficialdmzaddon.ultra_instinct.dodge"), true);
-        dodgeMessageCooldown.put(victim.getUUID(), victim.tickCount + DODGE_MESSAGE_CD);
+        applyUltraInstinctStrikeBoost(event);
+    }
+
+    private void applyUltraInstinctStrikeBoost(LivingHurtEvent event) {
+        if (!(event.getSource().getEntity() instanceof ServerPlayer attacker)) {
+            return;
+        }
+        LivingEntity victim = event.getEntity();
+        if (victim == attacker) {
+            return;
+        }
+
+        DMZRuntimeAccess.getUltraInstinctState(attacker).ifPresent(state -> {
+            double masteryRatio = masteryRatio(state.mastery());
+            double tierRatio = tierRatio(state.tier());
+
+            float procChance = lerp(
+                    lerp(0.10, 0.20, tierRatio),
+                    lerp(0.22, 0.35, tierRatio),
+                    masteryRatio
+            );
+            if (attacker.getRandom().nextFloat() > procChance) {
+                return;
+            }
+
+            float damageBoost = lerp(
+                    lerp(1.12, 1.28, tierRatio),
+                    lerp(1.30, 1.55, tierRatio),
+                    masteryRatio
+            );
+            event.setAmount(event.getAmount() * damageBoost);
+
+            if (attacker.level() instanceof ServerLevel level) {
+                int critParticles = (int) Math.round(12 + (8 * tierRatio));
+                level.sendParticles(
+                        ParticleTypes.CRIT,
+                        victim.getX(),
+                        victim.getY() + (victim.getBbHeight() * 0.5),
+                        victim.getZ(),
+                        critParticles,
+                        0.2,
+                        0.25,
+                        0.2,
+                        0.02
+                );
+                level.playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 0.9f, 1.1f);
+            }
+        });
     }
 
     private static float lerp(double min, double max, double ratio) {
