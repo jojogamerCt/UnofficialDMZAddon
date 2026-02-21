@@ -7,6 +7,7 @@
   "mixins": [
     "CharacterSafetyMixin",
     "FormModeHandlerMixin",
+    "AlienFullPowerScalingMixin",
     "StatsDataMixin",
     "SuperformMenuSlotMixin",
     "TransformationsHelperMixin",
@@ -17,8 +18,7 @@
     "SkillsMenuScreenMixin",
     "DMZSkinLayerMixin",
     "DMZRenderHandMixin",
-    "BoneVisibilityHandlerMixin",
-    "accessor.DMZSkinLayerAccessor"
+    "BoneVisibilityHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -30,19 +30,19 @@ public abstract class DMZSkinLayerMixin extends GeoRenderLayer {
         super(renderer);
     }
 
-    // ── Frost Demon Black form ────────────────────────────────────────────────
+    // ── Frost Demon Super Forms 2 (Black / Golden): render as Final Form ──────
 
     @ModifyVariable(method = "renderSpecializedRace", at = @At("HEAD"), ordinal = 1, argsOnly = true)
-    private String unofficialdmzaddon$renderBlackAsFinalInSkinLayers(String formName) {
-        if ("black".equalsIgnoreCase(formName)) {
+    private String unofficialdmzaddon$renderSuperForms2AsFinalInSkinLayers(String formName) {
+        if ("black".equalsIgnoreCase(formName) || "golden".equalsIgnoreCase(formName)) {
             return FrostDemonForms.FINAL_FORM;
         }
         return formName;
     }
 
     @ModifyVariable(method = "renderFaceLayers", at = @At("HEAD"), ordinal = 1, argsOnly = true)
-    private String unofficialdmzaddon$renderBlackAsFinalInFaceLayers(String formName) {
-        if ("black".equalsIgnoreCase(formName)) {
+    private String unofficialdmzaddon$renderSuperForms2AsFinalInFaceLayers(String formName) {
+        if ("black".equalsIgnoreCase(formName) || "golden".equalsIgnoreCase(formName)) {
             return FrostDemonForms.FINAL_FORM;
         }
         return formName;

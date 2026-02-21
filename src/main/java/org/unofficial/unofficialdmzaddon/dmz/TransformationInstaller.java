@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class UltraInstinctOmenInstaller {
+public final class TransformationInstaller {
 
     private static final String GROUP_ULTRA_INSTINCT = UltraInstinctDefinitions.GROUP_NAME;
     private static final String GROUP_LEGACY_SUPER_SAIYAN = "supersaiyan";
@@ -29,7 +29,7 @@ public final class UltraInstinctOmenInstaller {
 
     private static final int[] SAIYAN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 40000, 60000, 80000, 100000, 120000, 140000, 160000};
     private static final int[] NAMEKIAN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
-    private static final int[] FROST_DEMON_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000, 200000, 240000};
+    private static final int[] FROST_DEMON_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000, 200000, 240000, 280000};
     private static final int[] ALIEN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
 
     private static final List<String> UI_FORM_KEYS = List.of(
@@ -42,7 +42,7 @@ public final class UltraInstinctOmenInstaller {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    private UltraInstinctOmenInstaller() {
+    private TransformationInstaller() {
     }
 
     public static void install() {
@@ -73,13 +73,13 @@ public final class UltraInstinctOmenInstaller {
         }
 
         if (specialRuntimeOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Installed Beast, Orange, Black and Full Power forms into runtime form registries.");
+            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Installed Beast, Orange, Black, Golden and Full Power forms into runtime form registries.");
         } else {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not install one or more special race forms in runtime.");
         }
 
         if (specialFilesOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Persisted Beast, Orange, Black and Full Power form config files.");
+            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Persisted Beast, Orange, Black, Golden and Full Power form config files.");
         } else {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not persist one or more special race form config files.");
         }
@@ -353,9 +353,11 @@ public final class UltraInstinctOmenInstaller {
     private static boolean injectSpecialRaceFormsIntoRuntimeFormRegistry() {
         boolean beast = injectSaiyanBeastFormRuntime();
         boolean orange = injectNamekianOrangeFormRuntime();
+        boolean golden = injectFrostDemonGoldenFormRuntime();
         boolean black = injectFrostDemonBlackFormRuntime();
         boolean fullPower = injectAlienFullPowerFormRuntime();
-        return beast && orange && black && fullPower;
+        cleanupFrostDemonBlackFromEvolutionFormsRuntime();
+        return beast && orange && golden && black && fullPower;
     }
 
     private static boolean injectSaiyanBeastFormRuntime() {
@@ -471,9 +473,9 @@ public final class UltraInstinctOmenInstaller {
                 return false;
             }
 
-            FormConfig group = raceForms.computeIfAbsent(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_EVOLUTION, key -> {
+            FormConfig group = raceForms.computeIfAbsent(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2, key -> {
                 FormConfig cfg = new FormConfig();
-                cfg.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_EVOLUTION);
+                cfg.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2);
                 cfg.setFormType(FORM_TYPE_SUPER);
                 cfg.setForms(new LinkedHashMap<>());
                 return cfg;
@@ -508,12 +510,81 @@ public final class UltraInstinctOmenInstaller {
             );
 
             group.getForms().put(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK, black);
-            group.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_EVOLUTION);
+            group.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2);
             group.setFormType(FORM_TYPE_SUPER);
             return true;
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Frost Demon Black runtime injection failed: {}", e.getMessage());
             return false;
+        }
+    }
+
+    private static boolean injectFrostDemonGoldenFormRuntime() {
+        try {
+            Map<String, FormConfig> raceForms = ConfigManager.getAllFormsForRace(SpecialRaceFormsDefinitions.FROST_DEMON_RACE);
+            if (raceForms == null) {
+                return false;
+            }
+
+            FormConfig group = raceForms.computeIfAbsent(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2, key -> {
+                FormConfig cfg = new FormConfig();
+                cfg.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2);
+                cfg.setFormType(FORM_TYPE_SUPER);
+                cfg.setForms(new LinkedHashMap<>());
+                return cfg;
+            });
+
+            if (group.getForms() == null) {
+                group.setForms(new LinkedHashMap<>());
+            }
+
+            FormConfig.FormData golden = group.getFormByKey(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN);
+            if (golden == null) {
+                golden = new FormConfig.FormData();
+            }
+
+            applySpecialFormValues(
+                    golden,
+                    SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN,
+                    SpecialRaceFormsDefinitions.FROST_DEMON_GOLDEN_UNLOCK_LEVEL,
+                    "#FFD700",
+                    "#E6B800",
+                    "#C99A00",
+                    "base",
+                    "",
+                    "#D90B0B",
+                    "#FFD700",
+                    "#FFE566",
+                    new float[]{1.02f, 1.02f, 1.02f},
+                    5.20, 5.50, 1.60, 2.60, 1.20, 6.50, 1.30, 1.55,
+                    0.50, 1.50, 1.28,
+                    0.032, 0.020, 0.0034,
+                    true, 2.0
+            );
+
+            group.getForms().put(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN, golden);
+            group.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2);
+            group.setFormType(FORM_TYPE_SUPER);
+            return true;
+        } catch (Exception | LinkageError e) {
+            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Frost Demon Golden runtime injection failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private static void cleanupFrostDemonBlackFromEvolutionFormsRuntime() {
+        try {
+            Map<String, FormConfig> raceForms = ConfigManager.getAllFormsForRace(SpecialRaceFormsDefinitions.FROST_DEMON_RACE);
+            if (raceForms == null) {
+                return;
+            }
+            FormConfig evolutionGroup = raceForms.get(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_EVOLUTION);
+            if (evolutionGroup == null || evolutionGroup.getForms() == null) {
+                return;
+            }
+            evolutionGroup.getForms().remove(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK);
+        } catch (Exception | LinkageError e) {
+            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not clean up Black Form from evolutionforms runtime: {}", e.getMessage());
         }
     }
 
@@ -671,9 +742,27 @@ public final class UltraInstinctOmenInstaller {
                 )
         );
 
+        boolean golden = persistFormInGroupFile(
+                SpecialRaceFormsDefinitions.FROST_DEMON_RACE,
+                SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2,
+                FORM_TYPE_SUPER,
+                SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN,
+                createSpecialFormJson(
+                        SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN,
+                        SpecialRaceFormsDefinitions.FROST_DEMON_GOLDEN_UNLOCK_LEVEL,
+                        "#FFD700", "#E6B800", "#C99A00", "base",
+                        "", "#D90B0B", "#FFD700", "#FFE566",
+                        new float[]{1.02f, 1.02f, 1.02f},
+                        5.20, 5.50, 1.60, 2.60, 1.20, 6.50, 1.30, 1.55,
+                        0.50, 1.50, 1.28,
+                        0.032, 0.020, 0.0034,
+                        true, 2.0
+                )
+        );
+
         boolean black = persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.FROST_DEMON_RACE,
-                SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_EVOLUTION,
+                SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2,
                 FORM_TYPE_SUPER,
                 SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK,
                 createSpecialFormJson(
@@ -688,6 +777,8 @@ public final class UltraInstinctOmenInstaller {
                         true, 2.0
                 )
         );
+
+        cleanupFrostDemonBlackFromEvolutionFormsFile();
 
         boolean fullPower = persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.ALIEN_RACE,
@@ -707,7 +798,43 @@ public final class UltraInstinctOmenInstaller {
                 )
         );
 
-        return beast && orange && black && fullPower;
+        return beast && orange && black && golden && fullPower;
+    }
+
+    private static void cleanupFrostDemonBlackFromEvolutionFormsFile() {
+        Path formsFile = FMLPaths.CONFIGDIR.get()
+                .resolve("dragonminez")
+                .resolve("races")
+                .resolve(SpecialRaceFormsDefinitions.FROST_DEMON_RACE)
+                .resolve("forms")
+                .resolve(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_EVOLUTION + ".json");
+
+        if (!Files.exists(formsFile)) {
+            return;
+        }
+
+        try {
+            JsonObject root;
+            try (Reader reader = Files.newBufferedReader(formsFile, StandardCharsets.UTF_8)) {
+                root = JsonParser.parseReader(reader).getAsJsonObject();
+            }
+
+            if (!root.has("forms") || !root.get("forms").isJsonObject()) {
+                return;
+            }
+
+            JsonObject forms = root.getAsJsonObject("forms");
+            if (forms.remove(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK) == null) {
+                return;
+            }
+
+            root.add("forms", forms);
+            try (Writer writer = Files.newBufferedWriter(formsFile, StandardCharsets.UTF_8)) {
+                GSON.toJson(root, writer);
+            }
+        } catch (IOException | IllegalStateException e) {
+            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not clean up Black Form from '{}': {}", formsFile, e.getMessage());
+        }
     }
 
     private static boolean persistFormInGroupFile(String race,

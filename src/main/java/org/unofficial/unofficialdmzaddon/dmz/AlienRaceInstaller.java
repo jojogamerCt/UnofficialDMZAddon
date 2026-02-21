@@ -39,7 +39,7 @@ import java.nio.file.Path;
 public final class AlienRaceInstaller {
 
     static final String ALIEN_RACE = SpecialRaceFormsDefinitions.ALIEN_RACE;
-    static final String ALIEN_DEFAULT_EYE_COLOR = "#0E1011";
+    static final String ALIEN_DEFAULT_EYE_COLOR = "#FFFFFF";
 
     private static final int[] ALIEN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
 

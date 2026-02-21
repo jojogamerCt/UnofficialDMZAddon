@@ -15,7 +15,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public final class UltraInstinctOmenCombatHandler {
+public final class UltraInstinctCombatHandler {
 
     private static final String DRAGONMINEZ_EVASION_SOUND = "dragonminez:evasion1";
 
