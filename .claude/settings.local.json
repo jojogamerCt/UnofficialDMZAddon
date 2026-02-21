@@ -29,7 +29,10 @@
       "mcp__plugin_serena_serena__find_symbol",
       "Bash(cmd /c:*)",
       "Bash(./gradlew.bat compileJava:*)",
-      "Bash(./gradlew build:*)"
+      "Bash(./gradlew build:*)",
+      "Bash(xargs -I{} sh -c 'jar tf \"\"{}\"\" 2>/dev/null | grep -l \"\"FirstPersonManager\"\" && echo \"\"{}\"\"')",
+      "Bash(jar tf:*)",
+      "Bash(./gradlew compileJava:*)"
     ]
   }
 }

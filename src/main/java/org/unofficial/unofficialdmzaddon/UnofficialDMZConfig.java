@@ -22,8 +22,21 @@ public final class UnofficialDMZConfig {
     // ── Alien extra forms ─────────────────────────────────────────────────────
     public static final ForgeConfigSpec.BooleanValue ALIEN_FULL_POWER_FORM;
 
+    // ── Rendering ─────────────────────────────────────────────────────────────
+    public static final ForgeConfigSpec.BooleanValue FIRST_PERSON_RACE_MODEL;
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+
+        builder.comment("Unofficial DMZ Addon — rendering options").push("rendering");
+        FIRST_PERSON_RACE_MODEL = builder
+                .comment("Show your race model and active transformation in first person.",
+                         "The full body (with race skin + form visuals) appears in front of you,",
+                         "the head bone is hidden so you don't clip into it, and the model is",
+                         "translated so its head aligns with your camera. Replaces vanilla hand",
+                         "rendering while in first-person camera mode.")
+                .define("first_person_race_model", true);
+        builder.pop(); // rendering
 
         builder.comment("Unofficial DMZ Addon — toggle individual transformations and form groups")
                .push("transformations");

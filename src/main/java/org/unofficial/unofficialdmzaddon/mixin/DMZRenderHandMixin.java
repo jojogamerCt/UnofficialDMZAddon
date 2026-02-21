@@ -22,11 +22,11 @@ import org.unofficial.unofficialdmzaddon.dmz.SpecialRaceFormsDefinitions;
 @Mixin(value = DMZRenderHand.class, remap = false)
 public abstract class DMZRenderHandMixin {
 
-    // ── Frost Demon Black form redirect ─────────────────────────────────────
+    // ── Frost Demon Super Forms 2 (Black / Golden): render as Final Form ────────
 
     @ModifyVariable(method = "renderRaceLayers", at = @At("HEAD"), ordinal = 1, argsOnly = true)
-    private String unofficialdmzaddon$renderBlackAsFinalInFirstPerson(String formName) {
-        if ("black".equalsIgnoreCase(formName)) {
+    private String unofficialdmzaddon$renderSuperForms2AsFinalInFirstPerson(String formName) {
+        if ("black".equalsIgnoreCase(formName) || "golden".equalsIgnoreCase(formName)) {
             return FrostDemonForms.FINAL_FORM;
         }
         return formName;

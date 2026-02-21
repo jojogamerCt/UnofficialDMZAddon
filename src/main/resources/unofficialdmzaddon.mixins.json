@@ -18,7 +18,8 @@
     "SkillsMenuScreenMixin",
     "DMZSkinLayerMixin",
     "DMZRenderHandMixin",
-    "BoneVisibilityHandlerMixin"
+    "BoneVisibilityHandlerMixin",
+    "FirstPersonManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
