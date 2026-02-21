@@ -2,7 +2,9 @@ package org.unofficial.unofficialdmzaddon;
 
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
@@ -22,9 +24,14 @@ public final class UnofficialDMZAddon {
         var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::onCommonSetup);
 
+        // Register the config before anything else reads it
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UnofficialDMZConfig.SPEC,
+                MODID + "-common.toml");
+
         MinecraftForge.EVENT_BUS.register(new TransformationActivationHandler());
         MinecraftForge.EVENT_BUS.register(new UltraInstinctCombatHandler());
         MinecraftForge.EVENT_BUS.register(new AlienCharacterSanitizer());
+        // PlayerHudRenderer auto-registers via @Mod.EventBusSubscriber(value = Dist.CLIENT)
     }
 
     private void onCommonSetup(final FMLCommonSetupEvent event) {

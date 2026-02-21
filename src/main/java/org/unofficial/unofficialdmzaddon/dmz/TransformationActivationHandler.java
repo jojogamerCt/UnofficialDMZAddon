@@ -3,6 +3,7 @@ package org.unofficial.unofficialdmzaddon.dmz;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import org.unofficial.unofficialdmzaddon.UnofficialDMZConfig;
 
 public final class TransformationActivationHandler {
 
@@ -42,7 +43,8 @@ public final class TransformationActivationHandler {
                                                String targetGroup,
                                                String targetForm) {
         if (UltraInstinctDefinitions.GROUP_NAME.equalsIgnoreCase(targetGroup)
-                && UltraInstinctDefinitions.isUltraInstinctForm(targetForm)) {
+                && UltraInstinctDefinitions.isUltraInstinctForm(targetForm)
+                && UnofficialDMZConfig.ULTRA_INSTINCT_ENABLED.get()) {
             return validateUltraInstinctRequirements(state, player, targetForm);
         }
 

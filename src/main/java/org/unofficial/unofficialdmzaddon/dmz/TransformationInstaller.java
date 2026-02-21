@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraftforge.fml.loading.FMLPaths;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;
+import org.unofficial.unofficialdmzaddon.UnofficialDMZConfig;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -46,9 +47,10 @@ public final class TransformationInstaller {
     }
 
     public static void install() {
-        boolean uiRuntimeOk = injectUltraInstinctIntoRuntimeFormRegistry();
-        boolean uiFileOk = persistUltraInstinctFormFile();
-        boolean uiCleanupOk = cleanupLegacySuperSaiyanUltraInstinct();
+        boolean uiEnabled    = UnofficialDMZConfig.ULTRA_INSTINCT_ENABLED.get();
+        boolean uiRuntimeOk  = !uiEnabled || injectUltraInstinctIntoRuntimeFormRegistry();
+        boolean uiFileOk     = !uiEnabled || persistUltraInstinctFormFile();
+        boolean uiCleanupOk  = cleanupLegacySuperSaiyanUltraInstinct(); // always clean legacy entries
 
         boolean specialRuntimeOk = injectSpecialRaceFormsIntoRuntimeFormRegistry();
         boolean specialFilesOk = persistSpecialRaceFormFiles();
@@ -351,12 +353,12 @@ public final class TransformationInstaller {
     }
 
     private static boolean injectSpecialRaceFormsIntoRuntimeFormRegistry() {
-        boolean beast = injectSaiyanBeastFormRuntime();
-        boolean orange = injectNamekianOrangeFormRuntime();
-        boolean golden = injectFrostDemonGoldenFormRuntime();
-        boolean black = injectFrostDemonBlackFormRuntime();
-        boolean fullPower = injectAlienFullPowerFormRuntime();
-        cleanupFrostDemonBlackFromEvolutionFormsRuntime();
+        boolean beast     = !UnofficialDMZConfig.SAIYAN_BEAST_FORM.get()      || injectSaiyanBeastFormRuntime();
+        boolean orange    = !UnofficialDMZConfig.NAMEKIAN_ORANGE_FORM.get()    || injectNamekianOrangeFormRuntime();
+        boolean golden    = !UnofficialDMZConfig.FROST_DEMON_GOLDEN_FORM.get() || injectFrostDemonGoldenFormRuntime();
+        boolean black     = !UnofficialDMZConfig.FROST_DEMON_BLACK_FORM.get()  || injectFrostDemonBlackFormRuntime();
+        boolean fullPower = !UnofficialDMZConfig.ALIEN_FULL_POWER_FORM.get()   || injectAlienFullPowerFormRuntime();
+        cleanupFrostDemonBlackFromEvolutionFormsRuntime(); // always remove old slot
         return beast && orange && golden && black && fullPower;
     }
 
@@ -503,9 +505,9 @@ public final class TransformationInstaller {
                     "#7A0CFF",
                     "#FF2E9C",
                     new float[]{1.18f, 1.18f, 1.18f},
-                    4.40, 4.60, 1.80, 3.00, 1.25, 5.10, 1.50, 1.35,
-                    0.26, 1.40, 1.18,
-                    0.028, 0.018, 0.0030,
+                    5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
+                    0.35, 1.40, 1.35,
+                    0.038, 0.025, 0.0040,
                     true, 2.0
             );
 
@@ -556,9 +558,9 @@ public final class TransformationInstaller {
                     "#FFD700",
                     "#FFE566",
                     new float[]{1.02f, 1.02f, 1.02f},
-                    5.20, 5.50, 1.60, 2.60, 1.20, 6.50, 1.30, 1.55,
-                    0.50, 1.50, 1.28,
-                    0.032, 0.020, 0.0034,
+                    4.80, 5.00, 1.65, 2.80, 1.22, 5.90, 1.35, 1.50,
+                    0.50, 1.50, 1.26,
+                    0.030, 0.019, 0.0032,
                     true, 2.0
             );
 
@@ -706,7 +708,7 @@ public final class TransformationInstaller {
     }
 
     private static boolean persistSpecialRaceFormFiles() {
-        boolean beast = persistFormInGroupFile(
+        boolean beast = !UnofficialDMZConfig.SAIYAN_BEAST_FORM.get() || persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.SAIYAN_RACE,
                 SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN,
                 FORM_TYPE_SUPER,
@@ -724,7 +726,7 @@ public final class TransformationInstaller {
                 )
         );
 
-        boolean orange = persistFormInGroupFile(
+        boolean orange = !UnofficialDMZConfig.NAMEKIAN_ORANGE_FORM.get() || persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.NAMEKIAN_RACE,
                 SpecialRaceFormsDefinitions.NAMEKIAN_GROUP_SUPERFORMS,
                 FORM_TYPE_SUPER,
@@ -742,7 +744,7 @@ public final class TransformationInstaller {
                 )
         );
 
-        boolean golden = persistFormInGroupFile(
+        boolean golden = !UnofficialDMZConfig.FROST_DEMON_GOLDEN_FORM.get() || persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.FROST_DEMON_RACE,
                 SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2,
                 FORM_TYPE_SUPER,
@@ -753,14 +755,14 @@ public final class TransformationInstaller {
                         "#FFD700", "#E6B800", "#C99A00", "base",
                         "", "#D90B0B", "#FFD700", "#FFE566",
                         new float[]{1.02f, 1.02f, 1.02f},
-                        5.20, 5.50, 1.60, 2.60, 1.20, 6.50, 1.30, 1.55,
-                        0.50, 1.50, 1.28,
-                        0.032, 0.020, 0.0034,
+                        4.80, 5.00, 1.65, 2.80, 1.22, 5.90, 1.35, 1.50,
+                        0.50, 1.50, 1.26,
+                        0.030, 0.019, 0.0032,
                         true, 2.0
                 )
         );
 
-        boolean black = persistFormInGroupFile(
+        boolean black = !UnofficialDMZConfig.FROST_DEMON_BLACK_FORM.get() || persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.FROST_DEMON_RACE,
                 SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2,
                 FORM_TYPE_SUPER,
@@ -771,16 +773,16 @@ public final class TransformationInstaller {
                         "#0E0E12", "#4F0F26", "#1A1A24", "base",
                         "", "#D90B0B", "#7A0CFF", "#FF2E9C",
                         new float[]{1.18f, 1.18f, 1.18f},
-                        4.40, 4.60, 1.80, 3.00, 1.25, 5.10, 1.50, 1.35,
-                        0.26, 1.40, 1.18,
-                        0.028, 0.018, 0.0030,
+                        5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
+                        0.35, 1.40, 1.35,
+                        0.038, 0.025, 0.0040,
                         true, 2.0
                 )
         );
 
         cleanupFrostDemonBlackFromEvolutionFormsFile();
 
-        boolean fullPower = persistFormInGroupFile(
+        boolean fullPower = !UnofficialDMZConfig.ALIEN_FULL_POWER_FORM.get() || persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.ALIEN_RACE,
                 SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS,
                 FORM_TYPE_SUPER,
