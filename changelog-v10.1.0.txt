@@ -1,0 +1,4 @@
+- Removed action bar texts for most things in the addon
+- Made UI user do not get hurt when in autododge state
+- Added Alien race
+- Added Full Power form for Alien race

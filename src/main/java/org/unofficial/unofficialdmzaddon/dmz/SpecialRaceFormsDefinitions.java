@@ -8,6 +8,7 @@ public final class SpecialRaceFormsDefinitions {
     public static final String ALIEN_RACE = "alien";
 
     public static final String SAIYAN_GROUP_SUPERSAIYAN = "supersaiyan";
+    public static final String SAIYAN_GROUP_BEAST = "beastforms";
     public static final String NAMEKIAN_GROUP_SUPERFORMS = "superforms";
     public static final String FROST_DEMON_GROUP_EVOLUTION = "evolutionforms";
     public static final String FROST_DEMON_GROUP_SUPERFORMS2 = "superforms2";
@@ -19,7 +20,7 @@ public final class SpecialRaceFormsDefinitions {
     public static final String FROST_DEMON_FORM_BLACK = "black";
     public static final String ALIEN_FORM_FULL_POWER = "fullpower";
 
-    public static final int SAIYAN_BEAST_UNLOCK_LEVEL = 8;
+    public static final int SAIYAN_BEAST_UNLOCK_LEVEL = 9;
     public static final int NAMEKIAN_ORANGE_UNLOCK_LEVEL = 4;
     public static final int FROST_DEMON_GOLDEN_UNLOCK_LEVEL = 6;
     public static final int FROST_DEMON_BLACK_UNLOCK_LEVEL = 7;

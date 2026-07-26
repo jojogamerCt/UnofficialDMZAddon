@@ -54,7 +54,7 @@ public abstract class FirstPersonManagerMixin {
 
         // Only enable for players that actually have a DMZ character
         boolean hasCharacter = StatsProvider.get(StatsCapability.INSTANCE, player)
-                .map(data -> data.getStatus().hasCreatedCharacter())
+                .map(data -> data.getStatus().isHasCreatedCharacter())
                 .orElse(false);
         if (!hasCharacter) return;
 

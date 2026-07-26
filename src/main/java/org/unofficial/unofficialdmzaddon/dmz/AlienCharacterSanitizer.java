@@ -1,8 +1,8 @@
 package org.unofficial.unofficialdmzaddon.dmz;
 
-import com.dragonminez.common.stats.Character;
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
+import com.dragonminez.common.stats.character.Character;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;

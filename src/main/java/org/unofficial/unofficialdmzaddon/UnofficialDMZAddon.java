@@ -10,7 +10,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.unofficial.unofficialdmzaddon.dmz.AlienCharacterSanitizer;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRaceInstaller;
-import org.unofficial.unofficialdmzaddon.dmz.TransformationActivationHandler;
 import org.unofficial.unofficialdmzaddon.dmz.TransformationInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctCombatHandler;
 
@@ -28,7 +27,6 @@ public final class UnofficialDMZAddon {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UnofficialDMZConfig.SPEC,
                 MODID + "-common.toml");
 
-        MinecraftForge.EVENT_BUS.register(new TransformationActivationHandler());
         MinecraftForge.EVENT_BUS.register(new UltraInstinctCombatHandler());
         MinecraftForge.EVENT_BUS.register(new AlienCharacterSanitizer());
         // PlayerHudRenderer auto-registers via @Mod.EventBusSubscriber(value = Dist.CLIENT)

@@ -1,0 +1,7 @@
+Addon is being released in beta with the following features:
+- UI Sign for Saiyans
+- MUI for Saiyans
+- UI (Autonomous) for Saiyans
+- TUI for Saiyans
+- Orange Form for Namekians
+- Black Form for Frost Demons

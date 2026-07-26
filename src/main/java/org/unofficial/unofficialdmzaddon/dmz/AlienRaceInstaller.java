@@ -48,6 +48,14 @@ public final class AlienRaceInstaller {
     private AlienRaceInstaller() {
     }
 
+    private static Integer[] boxCosts(int[] costs) {
+        Integer[] boxed = new Integer[costs.length];
+        for (int i = 0; i < costs.length; i++) {
+            boxed[i] = costs[i];
+        }
+        return boxed;
+    }
+
     public static void install() {
         boolean characterOk = ensureAlienCharacterConfig();
         boolean statsOk     = ensureAlienStatsConfig();
@@ -79,7 +87,7 @@ public final class AlienRaceInstaller {
         try {
             Files.createDirectories(file.getParent());
 
-            // Always overwrite so DMZ's default config (canUseHair=true) cannot persist.
+            // Always overwrite so an older config cannot re-enable hair through its head bones.
             JsonObject root = buildCharacterJson();
             try (Writer w = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
                 GSON.toJson(root, w);
@@ -94,11 +102,12 @@ public final class AlienRaceInstaller {
     private static JsonObject buildCharacterJson() {
         JsonObject root = new JsonObject();
 
-        root.addProperty("canUseHair",       false);
         root.addProperty("defaultHairType",  0);     // preset 0 = no hair (bald)
+        root.add("headBones", new JsonArray());      // hair is enabled only by a "hair" head bone
         root.addProperty("hasGender",        false);
         root.addProperty("useVanillaSkin",   false);
-        root.addProperty("customModel",      "");
+        root.addProperty("customModel",      ALIEN_RACE);
+        root.addProperty("isLayered",        true);
 
         root.addProperty("defaultBodyType",  0);
         root.addProperty("defaultEyesType",  0);
@@ -118,7 +127,9 @@ public final class AlienRaceInstaller {
         for (int cost : ALIEN_SUPERFORM_DEFAULT_COSTS) {
             costs.add(cost);
         }
-        root.add("superformTpCost", costs);
+        JsonObject formSkillsCosts = new JsonObject();
+        formSkillsCosts.add(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS, costs);
+        root.add("formSkillsCosts", formSkillsCosts);
 
         return root;
     }
@@ -181,16 +192,18 @@ public final class AlienRaceInstaller {
 
             // Enforce the no-hair / no-gender / correct-colour constraints at
             // runtime in case an older character.json was loaded with wrong defaults.
-            raceConfig.setCanUseHair(false);
+            raceConfig.setHeadBones(new String[0]);
             raceConfig.setDefaultHairType(0);     // preset 0 = no hair (bald)
             raceConfig.setHasGender(false);
+            raceConfig.setCustomModel(ALIEN_RACE);
+            raceConfig.setIsLayered(true);
             raceConfig.setDefaultEye1Color(ALIEN_DEFAULT_EYE_COLOR);
             raceConfig.setDefaultEye2Color(ALIEN_DEFAULT_EYE_COLOR);
             raceConfig.setDefaultBodyColor("#D4CECC");
 
-            int[] costs = raceConfig.getSuperformTpCost();
+            Integer[] costs = raceConfig.getFormSkillTpCosts(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS);
             if (costs == null || costs.length < ALIEN_SUPERFORM_DEFAULT_COSTS.length) {
-                raceConfig.setSuperformTpCost(ALIEN_SUPERFORM_DEFAULT_COSTS);
+                raceConfig.setFormSkillTpCosts(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS, boxCosts(ALIEN_SUPERFORM_DEFAULT_COSTS));
             }
 
             return true;

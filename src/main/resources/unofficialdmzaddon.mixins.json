@@ -6,18 +6,10 @@
   "refmap": "unofficialdmzaddon.refmap.json",
   "mixins": [
     "CharacterSafetyMixin",
-    "FormModeHandlerMixin",
-    "AlienFullPowerScalingMixin",
-    "StatsDataMixin",
-    "SuperformMenuSlotMixin",
-    "TransformationsHelperMixin",
-    "accessor.SkillsAccessor"
+    "DivineFormSelectionMixin",
+    "AlienFullPowerScalingMixin"
   ],
   "client": [
-    "CharacterCustomizationScreenMixin",
-    "SkillsMenuScreenMixin",
-    "DMZSkinLayerMixin",
-    "DMZRenderHandMixin",
     "BoneVisibilityHandlerMixin",
     "FirstPersonManagerMixin"
   ],

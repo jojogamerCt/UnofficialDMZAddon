@@ -1,0 +1,12 @@
+- Integrated Ultra Instinct and Ultra Ego as independent Saiyan transformations instead of stack forms
+- Added Ultra Instinct and Ultra Ego to the native form skill trees and X-key transformation wheel
+- Goku now teaches Ultra Instinct and Vegeta now teaches Ultra Ego with purchasable TP costs
+- Reused DragonMineZ's original Ultra Instinct and Ultra Ego forms and icons while preserving config substitution support
+- Added Autonomous Ultra Instinct and True Ultra Instinct progression with native mastery prerequisites
+- Integrated Beast, Orange, Golden, Black, and Alien Full Power into their appropriate native race progression trees
+- Made every addon transformation exclusive so it cannot be selected or activated alongside a conflicting transformation
+- Added migration for existing UI and UE skill levels, selections, active states, mastery, and configuration files
+- Fixed missing transformation skill icons and normal-form translation labels
+- Added the Alien race and Full Power transformation with native scaling and customization support
+- Fixed world-loading crashes, character data safety issues, first-person rendering, race assets, and structure generation compatibility
+- Updated the CurseForge description with the current addon features and progression details

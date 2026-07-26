@@ -8,6 +8,7 @@ public final class UnofficialDMZConfig {
 
     // ── Ultra Instinct (Saiyan) ───────────────────────────────────────────────
     public static final ForgeConfigSpec.BooleanValue ULTRA_INSTINCT_ENABLED;
+    public static final ForgeConfigSpec.BooleanValue ULTRA_EGO_ENABLED;
 
     // ── Saiyan extra forms ────────────────────────────────────────────────────
     public static final ForgeConfigSpec.BooleanValue SAIYAN_BEAST_FORM;
@@ -52,6 +53,12 @@ public final class UnofficialDMZConfig {
                 .comment("Enable Beast Form for Saiyans")
                 .define("beast_form", true);
         builder.pop();
+        builder.comment("Ultra Ego progression (Saiyan race)").push("ultra_ego");
+        ULTRA_EGO_ENABLED = builder
+                .comment("Enable the Ultra Ego form chain taught by Vegeta")
+                .define("enabled", true);
+        builder.pop();
+
 
         builder.comment("Namekian extra forms").push("namekian");
         NAMEKIAN_ORANGE_FORM = builder

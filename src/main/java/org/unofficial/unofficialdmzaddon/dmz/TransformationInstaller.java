@@ -3,8 +3,10 @@ package org.unofficial.unofficialdmzaddon.dmz;
 import com.dragonminez.common.config.ConfigManager;
 import com.dragonminez.common.config.FormConfig;
 import com.dragonminez.common.config.RaceCharacterConfig;
+import com.dragonminez.common.util.lists.StackForms;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -24,19 +26,18 @@ import java.util.Map;
 
 public final class TransformationInstaller {
 
-    private static final String GROUP_ULTRA_INSTINCT = UltraInstinctDefinitions.GROUP_NAME;
     private static final String GROUP_LEGACY_SUPER_SAIYAN = "supersaiyan";
-    private static final String FORM_TYPE_SUPER = "super";
+    private static final String FORM_TYPE_SUPER = "superforms";
 
-    private static final int[] SAIYAN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 40000, 60000, 80000, 100000, 120000, 140000, 160000};
+    private static final int[] SAIYAN_SUPERFORM_DEFAULT_COSTS = new int[]{13000, 21000, 31000, 42000, 52000, 65000, 78000, 104000, 130000};
     private static final int[] NAMEKIAN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
     private static final int[] FROST_DEMON_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000, 200000, 240000, 280000};
     private static final int[] ALIEN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
 
     private static final List<String> UI_FORM_KEYS = List.of(
             UltraInstinctDefinitions.LEGACY_FORM_OMEN,
-            UltraInstinctDefinitions.FORM_SIGN,
-            UltraInstinctDefinitions.FORM_MASTERED,
+            StackForms.ULTRAINSTINCT_SIGN,
+            StackForms.ULTRAINSTINCT_MASTERED,
             UltraInstinctDefinitions.FORM_AUTONOMOUS,
             UltraInstinctDefinitions.FORM_TRUE
     );
@@ -46,265 +47,52 @@ public final class TransformationInstaller {
     private TransformationInstaller() {
     }
 
-    public static void install() {
-        boolean uiEnabled    = UnofficialDMZConfig.ULTRA_INSTINCT_ENABLED.get();
-        boolean uiRuntimeOk  = !uiEnabled || injectUltraInstinctIntoRuntimeFormRegistry();
-        boolean uiFileOk     = !uiEnabled || persistUltraInstinctFormFile();
-        boolean uiCleanupOk  = cleanupLegacySuperSaiyanUltraInstinct(); // always clean legacy entries
+    private static Float[] boxScaling(float[] values) {
+        Float[] boxed = new Float[values.length];
+        for (int i = 0; i < values.length; i++) {
+            boxed[i] = values[i];
+        }
+        return boxed;
+    }
 
+    private static Integer[] boxCosts(int[] values) {
+        Integer[] boxed = new Integer[values.length];
+        for (int i = 0; i < values.length; i++) {
+            boxed[i] = values[i];
+        }
+        return boxed;
+    }
+
+    private static double masteryStatsMultiplier(double bonusPerPoint) {
+        return 1.0 + (100.0 * bonusPerPoint);
+    }
+
+    private static double masteryCostMultiplier(double decreasePerPoint) {
+        return 1.0 / (1.0 + (100.0 * decreasePerPoint));
+    }
+
+    public static void install() {
+        boolean divineOk = DivineProgressionInstaller.install();
+        boolean uiCleanupOk = cleanupLegacySuperSaiyanUltraInstinct();
         boolean specialRuntimeOk = injectSpecialRaceFormsIntoRuntimeFormRegistry();
         boolean specialFilesOk = persistSpecialRaceFormFiles();
         boolean raceCapacityOk = ensureSpecialRaceProgressionCapacities();
 
-        if (uiRuntimeOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Installed progressive Ultra Instinct forms in DMZ runtime registry.");
-        } else {
-            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not inject Ultra Instinct forms in DMZ runtime registry.");
+        if (!divineOk) {
+            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not fully install native divine progression.");
         }
-
-        if (uiFileOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Persisted Ultra Instinct forms at dragonminez/races/saiyan/forms/ultrainstinct.json.");
-        } else {
-            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not persist Ultra Instinct form file.");
-        }
-
-        if (uiCleanupOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Removed legacy Ultra Instinct entries from supersaiyan group.");
-        } else {
+        if (!uiCleanupOk) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not clean legacy Ultra Instinct entries from supersaiyan group.");
         }
-
-        if (specialRuntimeOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Installed Beast, Orange, Black, Golden and Full Power forms into runtime form registries.");
+        if (specialRuntimeOk && specialFilesOk && raceCapacityOk) {
+            UnofficialDMZAddon.LOGGER.info(
+                    "[Unofficial DMZ Addon] Special race forms now use native superform skill levels and mastery prerequisites."
+            );
         } else {
-            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not install one or more special race forms in runtime.");
+            UnofficialDMZAddon.LOGGER.warn(
+                    "[Unofficial DMZ Addon] Could not fully integrate one or more special race forms into native progression."
+            );
         }
-
-        if (specialFilesOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Persisted Beast, Orange, Black, Golden and Full Power form config files.");
-        } else {
-            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not persist one or more special race form config files.");
-        }
-
-        if (raceCapacityOk) {
-            UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Verified transformation level capacities for special race forms.");
-        } else {
-            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not ensure transformation level capacities for one or more races.");
-        }
-    }
-
-    private static boolean injectUltraInstinctIntoRuntimeFormRegistry() {
-        try {
-            Map<String, FormConfig> raceForms = ConfigManager.getAllFormsForRace(SpecialRaceFormsDefinitions.SAIYAN_RACE);
-            if (raceForms == null) {
-                return false;
-            }
-
-            FormConfig ultraInstinct = raceForms.computeIfAbsent(GROUP_ULTRA_INSTINCT, key -> {
-                FormConfig cfg = new FormConfig();
-                cfg.setGroupName(GROUP_ULTRA_INSTINCT);
-                cfg.setFormType(UltraInstinctDefinitions.FORM_TYPE);
-                cfg.setForms(new LinkedHashMap<>());
-                return cfg;
-            });
-
-            Map<String, FormConfig.FormData> newOrderedForms = new LinkedHashMap<>();
-            upsertUltraInstinctForm(newOrderedForms, ultraInstinct, UltraInstinctDefinitions.FORM_SIGN, 1,
-                    "#161922", "#D6E7FF", "#E8F9FF", "#F5FFFF",
-                    3.35, 3.65, 1.35, 2.70, 1.20, 3.90, 1.35, 1.45,
-                    0.0, 1.25, 1.18, 0.022, 0.015, 0.0025);
-            upsertUltraInstinctForm(newOrderedForms, ultraInstinct, UltraInstinctDefinitions.FORM_MASTERED, 2,
-                    "#F2F5FF", "#EEF3FF", "#F7FCFF", "#FFFFFF",
-                    3.80, 4.10, 1.55, 3.05, 1.30, 4.35, 1.50, 1.58,
-                    0.0, 1.35, 1.22, 0.024, 0.016, 0.0030);
-            upsertUltraInstinctForm(newOrderedForms, ultraInstinct, UltraInstinctDefinitions.FORM_AUTONOMOUS, 3,
-                    "#E7EEFF", "#E3ECFF", "#FCFEFF", "#FFFFFF",
-                    4.20, 4.55, 1.70, 3.35, 1.38, 4.85, 1.62, 1.70,
-                    0.0, 1.48, 1.27, 0.026, 0.018, 0.0034);
-            upsertUltraInstinctForm(newOrderedForms, ultraInstinct, UltraInstinctDefinitions.FORM_TRUE, 4,
-                    "#1C1B2B", "#D8CCFF", "#C3B0FF", "#E8DAFF",
-                    4.65, 5.05, 1.90, 3.70, 1.50, 5.40, 1.80, 1.82,
-                    0.0, 1.62, 1.32, 0.030, 0.020, 0.0038);
-
-            ultraInstinct.setGroupName(GROUP_ULTRA_INSTINCT);
-            ultraInstinct.setFormType(UltraInstinctDefinitions.FORM_TYPE);
-            ultraInstinct.setForms(newOrderedForms);
-
-            FormConfig legacyGroup = raceForms.get(GROUP_LEGACY_SUPER_SAIYAN);
-            if (legacyGroup != null && legacyGroup.getForms() != null) {
-                removeLegacyUltraInstinctEntries(legacyGroup.getForms());
-            }
-
-            return true;
-        } catch (Exception | LinkageError e) {
-            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Runtime Ultra Instinct injection failed: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    private static void upsertUltraInstinctForm(Map<String, FormConfig.FormData> target,
-                                                FormConfig sourceConfig,
-                                                String formName,
-                                                int unlockLevel,
-                                                String hairColor,
-                                                String eyeColor,
-                                                String auraColor,
-                                                String lightningColor,
-                                                double str,
-                                                double skp,
-                                                double stm,
-                                                double def,
-                                                double vit,
-                                                double pwr,
-                                                double ene,
-                                                double speed,
-                                                double energyDrain,
-                                                double staminaDrain,
-                                                double attackSpeed,
-                                                double statMultPerMastery,
-                                                double costDecreasePerMastery,
-                                                double passiveMasteryGain) {
-        FormConfig.FormData formData = sourceConfig.getFormByKey(formName);
-        if (formData == null) {
-            formData = new FormConfig.FormData();
-        }
-
-        applyUltraInstinctFormValues(
-                formData,
-                formName,
-                unlockLevel,
-                hairColor,
-                eyeColor,
-                auraColor,
-                lightningColor,
-                str,
-                skp,
-                stm,
-                def,
-                vit,
-                pwr,
-                ene,
-                speed,
-                energyDrain,
-                staminaDrain,
-                attackSpeed,
-                statMultPerMastery,
-                costDecreasePerMastery,
-                passiveMasteryGain
-        );
-
-        target.put(formName, formData);
-    }
-
-    private static boolean persistUltraInstinctFormFile() {
-        Path formsFile = FMLPaths.CONFIGDIR.get()
-                .resolve("dragonminez")
-                .resolve("races")
-                .resolve(SpecialRaceFormsDefinitions.SAIYAN_RACE)
-                .resolve("forms")
-                .resolve(GROUP_ULTRA_INSTINCT + ".json");
-
-        try {
-            Files.createDirectories(formsFile.getParent());
-
-            JsonObject root;
-            if (Files.exists(formsFile)) {
-                try (Reader reader = Files.newBufferedReader(formsFile, StandardCharsets.UTF_8)) {
-                    root = JsonParser.parseReader(reader).getAsJsonObject();
-                }
-            } else {
-                root = new JsonObject();
-            }
-
-            root.addProperty("groupName", GROUP_ULTRA_INSTINCT);
-            root.addProperty("formType", UltraInstinctDefinitions.FORM_TYPE);
-
-            JsonObject forms = new JsonObject();
-            forms.add(UltraInstinctDefinitions.FORM_SIGN, createUltraInstinctFormJson(UltraInstinctDefinitions.FORM_SIGN, 1,
-                    "#161922", "#D6E7FF", "#E8F9FF", "#F5FFFF",
-                    3.35, 3.65, 1.35, 2.70, 1.20, 3.90, 1.35, 1.45,
-                    0.0, 1.25, 1.18, 0.022, 0.015, 0.0025));
-            forms.add(UltraInstinctDefinitions.FORM_MASTERED, createUltraInstinctFormJson(UltraInstinctDefinitions.FORM_MASTERED, 2,
-                    "#F2F5FF", "#EEF3FF", "#F7FCFF", "#FFFFFF",
-                    3.80, 4.10, 1.55, 3.05, 1.30, 4.35, 1.50, 1.58,
-                    0.0, 1.35, 1.22, 0.024, 0.016, 0.0030));
-            forms.add(UltraInstinctDefinitions.FORM_AUTONOMOUS, createUltraInstinctFormJson(UltraInstinctDefinitions.FORM_AUTONOMOUS, 3,
-                    "#E7EEFF", "#E3ECFF", "#FCFEFF", "#FFFFFF",
-                    4.20, 4.55, 1.70, 3.35, 1.38, 4.85, 1.62, 1.70,
-                    0.0, 1.48, 1.27, 0.026, 0.018, 0.0034));
-            forms.add(UltraInstinctDefinitions.FORM_TRUE, createUltraInstinctFormJson(UltraInstinctDefinitions.FORM_TRUE, 4,
-                    "#1C1B2B", "#D8CCFF", "#C3B0FF", "#E8DAFF",
-                    4.65, 5.05, 1.90, 3.70, 1.50, 5.40, 1.80, 1.82,
-                    0.0, 1.62, 1.32, 0.030, 0.020, 0.0038));
-
-            root.add("forms", forms);
-
-            try (Writer writer = Files.newBufferedWriter(formsFile, StandardCharsets.UTF_8)) {
-                GSON.toJson(root, writer);
-            }
-            return true;
-        } catch (IOException | IllegalStateException e) {
-            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Failed writing Ultra Instinct form file '{}': {}", formsFile, e.getMessage());
-            return false;
-        }
-    }
-
-    private static JsonObject createUltraInstinctFormJson(String formName,
-                                                           int unlockLevel,
-                                                           String hairColor,
-                                                           String eyeColor,
-                                                           String auraColor,
-                                                           String lightningColor,
-                                                           double str,
-                                                           double skp,
-                                                           double stm,
-                                                           double def,
-                                                           double vit,
-                                                           double pwr,
-                                                           double ene,
-                                                           double speed,
-                                                           double energyDrain,
-                                                           double staminaDrain,
-                                                           double attackSpeed,
-                                                           double statMultPerMastery,
-                                                           double costDecreasePerMastery,
-                                                           double passiveMasteryGain) {
-        JsonObject form = new JsonObject();
-        form.addProperty("name", formName);
-        form.addProperty("unlockOnSkillLevel", unlockLevel);
-        form.addProperty("customModel", "");
-        form.addProperty("bodyColor1", "");
-        form.addProperty("bodyColor2", "");
-        form.addProperty("bodyColor3", "");
-        form.addProperty("hairType", "base");
-        form.addProperty("forcedHairCode", "");
-        form.addProperty("hairColor", hairColor);
-        form.addProperty("eye1Color", eyeColor);
-        form.addProperty("eye2Color", eyeColor);
-        form.addProperty("auraColor", auraColor);
-        form.addProperty("hasLightnings", true);
-        form.addProperty("lightningColor", lightningColor);
-        form.add("modelScaling", GSON.toJsonTree(new float[]{0.96f, 0.96f, 0.96f}));
-        form.addProperty("strMultiplier", str);
-        form.addProperty("skpMultiplier", skp);
-        form.addProperty("stmMultiplier", stm);
-        form.addProperty("defMultiplier", def);
-        form.addProperty("vitMultiplier", vit);
-        form.addProperty("pwrMultiplier", pwr);
-        form.addProperty("eneMultiplier", ene);
-        form.addProperty("speedMultiplier", speed);
-        form.addProperty("energyDrain", energyDrain);
-        form.addProperty("staminaDrain", staminaDrain);
-        form.addProperty("attackSpeed", attackSpeed);
-        form.addProperty("maxMastery", 100.0);
-        form.addProperty("masteryPerHit", 0.08);
-        form.addProperty("masteryPerDamageReceived", 0.08);
-        form.addProperty("statMultPerMasteryPoint", statMultPerMastery);
-        form.addProperty("costDecreasePerMasteryPoint", costDecreasePerMastery);
-        form.addProperty("passiveMasteryGainEveryFiveSeconds", passiveMasteryGain);
-        form.addProperty("kaiokenStackable", false);
-        form.addProperty("kaiokenDrainMultiplier", 3.0);
-        return form;
     }
 
     private static boolean cleanupLegacySuperSaiyanUltraInstinct() {
@@ -345,14 +133,8 @@ public final class TransformationInstaller {
         }
     }
 
-    private static void removeLegacyUltraInstinctEntries(Map<String, FormConfig.FormData> forms) {
-        for (String formKey : UI_FORM_KEYS) {
-            forms.remove(formKey);
-            forms.entrySet().removeIf(entry -> formKey.equalsIgnoreCase(entry.getValue().getName()));
-        }
-    }
-
     private static boolean injectSpecialRaceFormsIntoRuntimeFormRegistry() {
+        cleanupSaiyanBeastFromSuperSaiyanRuntime();
         boolean beast     = !UnofficialDMZConfig.SAIYAN_BEAST_FORM.get()      || injectSaiyanBeastFormRuntime();
         boolean orange    = !UnofficialDMZConfig.NAMEKIAN_ORANGE_FORM.get()    || injectNamekianOrangeFormRuntime();
         boolean golden    = !UnofficialDMZConfig.FROST_DEMON_GOLDEN_FORM.get() || injectFrostDemonGoldenFormRuntime();
@@ -369,9 +151,9 @@ public final class TransformationInstaller {
                 return false;
             }
 
-            FormConfig group = raceForms.computeIfAbsent(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN, key -> {
+            FormConfig group = raceForms.computeIfAbsent(SpecialRaceFormsDefinitions.SAIYAN_GROUP_BEAST, key -> {
                 FormConfig cfg = new FormConfig();
-                cfg.setGroupName(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN);
+                cfg.setGroupName(SpecialRaceFormsDefinitions.SAIYAN_GROUP_BEAST);
                 cfg.setFormType(FORM_TYPE_SUPER);
                 cfg.setForms(new LinkedHashMap<>());
                 return cfg;
@@ -382,9 +164,12 @@ public final class TransformationInstaller {
             }
 
             FormConfig.FormData beast = group.getFormByKey(SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST);
-            if (beast == null) {
-                beast = new FormConfig.FormData();
+            if (beast != null) {
+                beast.setFormStackable(false);
+                beast.setStackDrainMultiplier(1.0);
+                return true;
             }
+            beast = new FormConfig.FormData();
 
             applySpecialFormValues(
                     beast,
@@ -406,8 +191,6 @@ public final class TransformationInstaller {
             );
 
             group.getForms().put(SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST, beast);
-            group.setGroupName(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN);
-            group.setFormType(FORM_TYPE_SUPER);
             return true;
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Saiyan Beast runtime injection failed: {}", e.getMessage());
@@ -435,9 +218,12 @@ public final class TransformationInstaller {
             }
 
             FormConfig.FormData orange = group.getFormByKey(SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE);
-            if (orange == null) {
-                orange = new FormConfig.FormData();
+            if (orange != null) {
+                orange.setFormStackable(false);
+                orange.setStackDrainMultiplier(1.0);
+                return true;
             }
+            orange = new FormConfig.FormData();
 
             applySpecialFormValues(
                     orange,
@@ -455,12 +241,10 @@ public final class TransformationInstaller {
                     4.10, 4.00, 2.20, 3.90, 1.70, 3.80, 1.35, 1.05,
                     0.20, 1.20, 1.05,
                     0.028, 0.017, 0.0030,
-                    true, 2.0
+                    false, 1.0
             );
 
             group.getForms().put(SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE, orange);
-            group.setGroupName(SpecialRaceFormsDefinitions.NAMEKIAN_GROUP_SUPERFORMS);
-            group.setFormType(FORM_TYPE_SUPER);
             return true;
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Namekian Orange runtime injection failed: {}", e.getMessage());
@@ -488,9 +272,12 @@ public final class TransformationInstaller {
             }
 
             FormConfig.FormData black = group.getFormByKey(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK);
-            if (black == null) {
-                black = new FormConfig.FormData();
+            if (black != null) {
+                black.setFormStackable(false);
+                black.setStackDrainMultiplier(1.0);
+                return true;
             }
+            black = new FormConfig.FormData();
 
             applySpecialFormValues(
                     black,
@@ -508,12 +295,10 @@ public final class TransformationInstaller {
                     5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
                     0.35, 1.40, 1.35,
                     0.038, 0.025, 0.0040,
-                    true, 2.0
+                    false, 1.0
             );
 
             group.getForms().put(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK, black);
-            group.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2);
-            group.setFormType(FORM_TYPE_SUPER);
             return true;
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Frost Demon Black runtime injection failed: {}", e.getMessage());
@@ -541,9 +326,12 @@ public final class TransformationInstaller {
             }
 
             FormConfig.FormData golden = group.getFormByKey(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN);
-            if (golden == null) {
-                golden = new FormConfig.FormData();
+            if (golden != null) {
+                golden.setFormStackable(false);
+                golden.setStackDrainMultiplier(1.0);
+                return true;
             }
+            golden = new FormConfig.FormData();
 
             applySpecialFormValues(
                     golden,
@@ -561,12 +349,10 @@ public final class TransformationInstaller {
                     4.80, 5.00, 1.65, 2.80, 1.22, 5.90, 1.35, 1.50,
                     0.50, 1.50, 1.26,
                     0.030, 0.019, 0.0032,
-                    true, 2.0
+                    false, 1.0
             );
 
             group.getForms().put(SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN, golden);
-            group.setGroupName(SpecialRaceFormsDefinitions.FROST_DEMON_GROUP_SUPERFORMS2);
-            group.setFormType(FORM_TYPE_SUPER);
             return true;
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Frost Demon Golden runtime injection failed: {}", e.getMessage());
@@ -574,6 +360,20 @@ public final class TransformationInstaller {
         }
     }
 
+    private static void cleanupSaiyanBeastFromSuperSaiyanRuntime() {
+        try {
+            Map<String, FormConfig> raceForms = ConfigManager.getAllFormsForRace(SpecialRaceFormsDefinitions.SAIYAN_RACE);
+            if (raceForms == null) {
+                return;
+            }
+            FormConfig oldGroup = raceForms.get(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN);
+            if (oldGroup != null && oldGroup.getForms() != null) {
+                oldGroup.getForms().remove(SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST);
+            }
+        } catch (Exception | LinkageError e) {
+            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not migrate Beast out of supersaiyan runtime: {}", e.getMessage());
+        }
+    }
     private static void cleanupFrostDemonBlackFromEvolutionFormsRuntime() {
         try {
             Map<String, FormConfig> raceForms = ConfigManager.getAllFormsForRace(SpecialRaceFormsDefinitions.FROST_DEMON_RACE);
@@ -610,9 +410,12 @@ public final class TransformationInstaller {
             }
 
             FormConfig.FormData fullPower = group.getFormByKey(SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER);
-            if (fullPower == null) {
-                fullPower = new FormConfig.FormData();
+            if (fullPower != null) {
+                fullPower.setFormStackable(false);
+                fullPower.setStackDrainMultiplier(1.0);
+                return true;
             }
+            fullPower = new FormConfig.FormData();
 
             applySpecialFormValues(
                     fullPower,
@@ -630,12 +433,10 @@ public final class TransformationInstaller {
                     5.00, 5.20, 2.10, 3.80, 1.55, 5.80, 1.80, 1.45,
                     0.28, 1.55, 1.24,
                     0.030, 0.018, 0.0032,
-                    true, 2.4
+                    false, 1.0
             );
 
             group.getForms().put(SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER, fullPower);
-            group.setGroupName(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS);
-            group.setFormType(FORM_TYPE_SUPER);
             return true;
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Alien Full Power runtime injection failed: {}", e.getMessage());
@@ -673,7 +474,7 @@ public final class TransformationInstaller {
                                                double kaiokenDrainMultiplier) {
         formData.setName(formName);
         formData.setUnlockOnSkillLevel(unlockLevel);
-        formData.setCustomModel("");
+        formData.setCustomModel(usesFrostDemonFinalModel(formName) ? "frostdemon_final" : "");
         formData.setBodyColor1(bodyColor1);
         formData.setBodyColor2(bodyColor2);
         formData.setBodyColor3(bodyColor3);
@@ -685,7 +486,7 @@ public final class TransformationInstaller {
         formData.setAuraColor(auraColor);
         formData.setHasLightnings(true);
         formData.setLightningColor(lightningColor);
-        formData.setModelScaling(modelScaling);
+        formData.setModelScaling(boxScaling(modelScaling));
         formData.setStrMultiplier(str);
         formData.setSkpMultiplier(skp);
         formData.setStmMultiplier(stm);
@@ -698,19 +499,37 @@ public final class TransformationInstaller {
         formData.setStaminaDrain(staminaDrain);
         formData.setAttackSpeed(attackSpeed);
         formData.setMaxMastery(100.0);
-        formData.setMasteryPerHit(0.08);
-        formData.setMasteryPerDamageReceived(0.08);
-        formData.setStatMultPerMasteryPoint(statMultPerMastery);
-        formData.setCostDecreasePerMasteryPoint(costDecreasePerMastery);
-        // Passive mastery is persisted in JSON to avoid runtime signature mismatches on some DMZ builds.
-        formData.setKaiokenStackable(kaiokenStackable);
-        formData.setKaiokenDrainMultiplier(kaiokenDrainMultiplier);
+        formData.setMasteryPerHitDealt(0.08);
+        formData.setMasteryPerHitReceived(0.08);
+        formData.setMaxStatsMultiplier(masteryStatsMultiplier(statMultPerMastery));
+        formData.setMaxCostMultiplier(masteryCostMultiplier(costDecreasePerMastery));
+        formData.setPassiveMasteryEveryFiveSeconds(passiveMasteryGain);
+        formData.setFormStackable(kaiokenStackable);
+        formData.setStackDrainMultiplier(kaiokenDrainMultiplier);
+        formData.setFormRequisite(nativeRequisiteForSpecialForm(formName));
+        formData.setFormRequisiteType("all");
+        formData.setUnlockOnMastery(nativeRequisiteMasteryForSpecialForm(formName));
+    }
+
+    private static String nativeRequisiteForSpecialForm(String formName) {
+        return switch (formName) {
+            case SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST -> "supersaiyan.supersaiyan4";
+            case SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE -> "superforms.supernamekian";
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN -> "evolutionforms.fifth";
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK -> "superforms2.golden";
+            default -> "";
+        };
+    }
+
+    private static double nativeRequisiteMasteryForSpecialForm(String formName) {
+        return nativeRequisiteForSpecialForm(formName).isEmpty() ? 0.0 : 50.0;
     }
 
     private static boolean persistSpecialRaceFormFiles() {
+        cleanupSaiyanBeastFromSuperSaiyanFile();
         boolean beast = !UnofficialDMZConfig.SAIYAN_BEAST_FORM.get() || persistFormInGroupFile(
                 SpecialRaceFormsDefinitions.SAIYAN_RACE,
-                SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN,
+                SpecialRaceFormsDefinitions.SAIYAN_GROUP_BEAST,
                 FORM_TYPE_SUPER,
                 SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST,
                 createSpecialFormJson(
@@ -740,7 +559,7 @@ public final class TransformationInstaller {
                         4.10, 4.00, 2.20, 3.90, 1.70, 3.80, 1.35, 1.05,
                         0.20, 1.20, 1.05,
                         0.028, 0.017, 0.0030,
-                        true, 2.0
+                        false, 1.0
                 )
         );
 
@@ -758,7 +577,7 @@ public final class TransformationInstaller {
                         4.80, 5.00, 1.65, 2.80, 1.22, 5.90, 1.35, 1.50,
                         0.50, 1.50, 1.26,
                         0.030, 0.019, 0.0032,
-                        true, 2.0
+                        false, 1.0
                 )
         );
 
@@ -776,7 +595,7 @@ public final class TransformationInstaller {
                         5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
                         0.35, 1.40, 1.35,
                         0.038, 0.025, 0.0040,
-                        true, 2.0
+                        false, 1.0
                 )
         );
 
@@ -796,13 +615,49 @@ public final class TransformationInstaller {
                         5.00, 5.20, 2.10, 3.80, 1.55, 5.80, 1.80, 1.45,
                         0.28, 1.55, 1.24,
                         0.030, 0.018, 0.0032,
-                        true, 2.4
+                        false, 1.0
                 )
         );
 
         return beast && orange && black && golden && fullPower;
     }
 
+    private static void cleanupSaiyanBeastFromSuperSaiyanFile() {
+        Path formsFile = FMLPaths.CONFIGDIR.get()
+                .resolve("dragonminez")
+                .resolve("races")
+                .resolve(SpecialRaceFormsDefinitions.SAIYAN_RACE)
+                .resolve("forms")
+                .resolve(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN + ".json");
+        removeFormFromFile(formsFile, SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST,
+                "Could not migrate Beast out of");
+    }
+    private static void removeFormFromFile(Path formsFile, String formKey, String warningPrefix) {
+        if (!Files.exists(formsFile)) {
+            return;
+        }
+
+        try {
+            JsonObject root;
+            try (Reader reader = Files.newBufferedReader(formsFile, StandardCharsets.UTF_8)) {
+                root = JsonParser.parseReader(reader).getAsJsonObject();
+            }
+            if (!root.has("forms") || !root.get("forms").isJsonObject()) {
+                return;
+            }
+
+            JsonObject forms = root.getAsJsonObject("forms");
+            if (forms.remove(formKey) == null) {
+                return;
+            }
+            root.add("forms", forms);
+            try (Writer writer = Files.newBufferedWriter(formsFile, StandardCharsets.UTF_8)) {
+                GSON.toJson(root, writer);
+            }
+        } catch (IOException | IllegalStateException e) {
+            UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] {} '{}': {}", warningPrefix, formsFile, e.getMessage());
+        }
+    }
     private static void cleanupFrostDemonBlackFromEvolutionFormsFile() {
         Path formsFile = FMLPaths.CONFIGDIR.get()
                 .resolve("dragonminez")
@@ -863,13 +718,19 @@ public final class TransformationInstaller {
                 root = new JsonObject();
             }
 
-            root.addProperty("groupName", group);
-            root.addProperty("formType", formType);
-
             JsonObject forms = root.has("forms") && root.get("forms").isJsonObject()
                     ? root.getAsJsonObject("forms")
                     : new JsonObject();
-            forms.add(formKey, formJson);
+            if (forms.has(formKey) && forms.get(formKey).isJsonObject()) {
+                JsonObject existing = forms.getAsJsonObject(formKey);
+                existing.addProperty("formStackable", false);
+                existing.addProperty("stackDrainMultiplier", 1.0);
+            } else {
+                forms.add(formKey, formJson);
+            }
+
+            if (!root.has("groupName")) root.addProperty("groupName", group);
+            if (!root.has("formType")) root.addProperty("formType", formType);
             root.add("forms", forms);
 
             try (Writer writer = Files.newBufferedWriter(formsFile, StandardCharsets.UTF_8)) {
@@ -881,6 +742,11 @@ public final class TransformationInstaller {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Failed writing form '{}' to '{}': {}", formKey, formsFile, e.getMessage());
             return false;
         }
+    }
+
+    private static boolean usesFrostDemonFinalModel(String formName) {
+        return SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK.equals(formName)
+                || SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN.equals(formName);
     }
 
     private static JsonObject createSpecialFormJson(String formName,
@@ -913,7 +779,7 @@ public final class TransformationInstaller {
         JsonObject form = new JsonObject();
         form.addProperty("name", formName);
         form.addProperty("unlockOnSkillLevel", unlockLevel);
-        form.addProperty("customModel", "");
+        form.addProperty("customModel", usesFrostDemonFinalModel(formName) ? "frostdemon_final" : "");
         form.addProperty("bodyColor1", bodyColor1);
         form.addProperty("bodyColor2", bodyColor2);
         form.addProperty("bodyColor3", bodyColor3);
@@ -938,13 +804,16 @@ public final class TransformationInstaller {
         form.addProperty("staminaDrain", staminaDrain);
         form.addProperty("attackSpeed", attackSpeed);
         form.addProperty("maxMastery", 100.0);
-        form.addProperty("masteryPerHit", 0.08);
-        form.addProperty("masteryPerDamageReceived", 0.08);
-        form.addProperty("statMultPerMasteryPoint", statMultPerMastery);
-        form.addProperty("costDecreasePerMasteryPoint", costDecreasePerMastery);
-        form.addProperty("passiveMasteryGainEveryFiveSeconds", passiveMasteryGain);
-        form.addProperty("kaiokenStackable", kaiokenStackable);
-        form.addProperty("kaiokenDrainMultiplier", kaiokenDrainMultiplier);
+        form.addProperty("masteryPerHitDealt", 0.08);
+        form.addProperty("masteryPerHitReceived", 0.08);
+        form.addProperty("maxStatsMultiplier", masteryStatsMultiplier(statMultPerMastery));
+        form.addProperty("maxCostMultiplier", masteryCostMultiplier(costDecreasePerMastery));
+        form.addProperty("passiveMasteryEveryFiveSeconds", passiveMasteryGain);
+        form.addProperty("formStackable", kaiokenStackable);
+        form.addProperty("stackDrainMultiplier", kaiokenDrainMultiplier);
+        form.addProperty("formRequisite", nativeRequisiteForSpecialForm(formName));
+        form.addProperty("formRequisiteType", "all");
+        form.addProperty("unlockOnMastery", nativeRequisiteMasteryForSpecialForm(formName));
         return form;
     }
 
@@ -981,31 +850,74 @@ public final class TransformationInstaller {
                 return false;
             }
 
-            int[] costs = raceCharacter.getSuperformTpCost();
+            Integer[] costs = raceCharacter.getFormSkillTpCosts("superforms");
             if (costs != null && costs.length >= requiredLevel) {
                 return true;
             }
 
-            raceCharacter.setSuperformTpCost(buildUpgradedCosts(costs, requiredLevel, defaultCosts));
-            return true;
+            Integer[] upgraded = buildUpgradedCosts(costs, requiredLevel, defaultCosts);
+            raceCharacter.setFormSkillTpCosts("superforms", upgraded);
+            return persistSuperformLevelCapacity(race, upgraded);
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not update superform capacity for race '{}': {}", race, e.getMessage());
             return false;
         }
     }
 
-    private static int[] buildUpgradedCosts(int[] existing,
+    private static boolean persistSuperformLevelCapacity(String race, Integer[] costs) {
+        Path file = FMLPaths.CONFIGDIR.get()
+                .resolve("dragonminez")
+                .resolve("races")
+                .resolve(race)
+                .resolve("character.json");
+        try {
+            if (!Files.exists(file)) {
+                return false;
+            }
+            JsonObject root;
+            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                root = JsonParser.parseReader(reader).getAsJsonObject();
+            }
+            JsonObject formSkills = root.has("formSkillsCosts") && root.get("formSkillsCosts").isJsonObject()
+                    ? root.getAsJsonObject("formSkillsCosts")
+                    : new JsonObject();
+            JsonArray prices = GSON.toJsonTree(costs).getAsJsonArray();
+
+            if (formSkills.has("superforms") && formSkills.get("superforms").isJsonObject()) {
+                formSkills.getAsJsonObject("superforms").add("prices", prices);
+            } else if (formSkills.has("superforms") && formSkills.get("superforms").isJsonArray()) {
+                formSkills.add("superforms", prices);
+            } else {
+                JsonObject skill = new JsonObject();
+                skill.addProperty("buyFromMaster", false);
+                skill.add("prices", prices);
+                formSkills.add("superforms", skill);
+            }
+
+            root.add("formSkillsCosts", formSkills);
+            try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
+                GSON.toJson(root, writer);
+            }
+            return true;
+        } catch (IOException | IllegalStateException e) {
+            UnofficialDMZAddon.LOGGER.warn(
+                    "[Unofficial DMZ Addon] Could not persist superform capacity for race '{}' in '{}': {}",
+                    race, file, e.getMessage());
+            return false;
+        }
+    }
+    private static Integer[] buildUpgradedCosts(Integer[] existing,
                                             int minimumLength,
                                             int[] defaults) {
         if (existing == null || existing.length == 0) {
-            return defaults.length >= minimumLength ? defaults : Arrays.copyOf(defaults, minimumLength);
+            return boxCosts(defaults.length >= minimumLength ? defaults : Arrays.copyOf(defaults, minimumLength));
         }
 
         if (existing.length >= minimumLength) {
             return existing;
         }
 
-        int[] upgraded = Arrays.copyOf(existing, minimumLength);
+        Integer[] upgraded = Arrays.copyOf(existing, minimumLength);
         int step = existing.length >= 2 ? upgraded[existing.length - 1] - upgraded[existing.length - 2] : 40000;
         if (step <= 0) {
             step = 40000;
@@ -1019,60 +931,4 @@ public final class TransformationInstaller {
         return upgraded;
     }
 
-    private static void applyUltraInstinctFormValues(FormConfig.FormData formData,
-                                                     String formName,
-                                                     int unlockLevel,
-                                                     String hairColor,
-                                                     String eyeColor,
-                                                     String auraColor,
-                                                     String lightningColor,
-                                                     double str,
-                                                     double skp,
-                                                     double stm,
-                                                     double def,
-                                                     double vit,
-                                                     double pwr,
-                                                     double ene,
-                                                     double speed,
-                                                     double energyDrain,
-                                                     double staminaDrain,
-                                                     double attackSpeed,
-                                                     double statMultPerMastery,
-                                                     double costDecreasePerMastery,
-                                                     double passiveMasteryGain) {
-        formData.setName(formName);
-        formData.setUnlockOnSkillLevel(unlockLevel);
-        formData.setCustomModel("");
-        formData.setBodyColor1("");
-        formData.setBodyColor2("");
-        formData.setBodyColor3("");
-        formData.setHairType("base");
-        formData.setForcedHairCode("");
-        formData.setHairColor(hairColor);
-        formData.setEye1Color(eyeColor);
-        formData.setEye2Color(eyeColor);
-        formData.setAuraColor(auraColor);
-        formData.setHasLightnings(true);
-        formData.setLightningColor(lightningColor);
-        formData.setModelScaling(new float[]{0.96f, 0.96f, 0.96f});
-        formData.setStrMultiplier(str);
-        formData.setSkpMultiplier(skp);
-        formData.setStmMultiplier(stm);
-        formData.setDefMultiplier(def);
-        formData.setVitMultiplier(vit);
-        formData.setPwrMultiplier(pwr);
-        formData.setEneMultiplier(ene);
-        formData.setSpeedMultiplier(speed);
-        formData.setEnergyDrain(energyDrain);
-        formData.setStaminaDrain(staminaDrain);
-        formData.setAttackSpeed(attackSpeed);
-        formData.setMaxMastery(100.0);
-        formData.setMasteryPerHit(0.08);
-        formData.setMasteryPerDamageReceived(0.08);
-        formData.setStatMultPerMasteryPoint(statMultPerMastery);
-        formData.setCostDecreasePerMasteryPoint(costDecreasePerMastery);
-        // Passive mastery is persisted in JSON to avoid hard dependency on DMZ runtime setter signatures.
-        formData.setKaiokenStackable(false);
-        formData.setKaiokenDrainMultiplier(3.0);
-    }
 }

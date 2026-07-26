@@ -1,0 +1,37 @@
+**![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_ADDON_Header.webp)**
+
+**![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Description.webp)**
+
+**Unofficial DMZ Addon** expands **DragonMine Z 2.1.3** for **Minecraft Forge 1.20.1** with new race progression, transformations, visuals, and mechanics designed to use DragonMineZ's native systems.
+
+### Current features
+
+* **Alien race**, including native character customization and the **Full Power** transformation.
+* **Ultra Instinct progression**: Sign, Mastered Ultra Instinct, Autonomous Ultra Instinct, and True Ultra Instinct.
+* **Ultra Ego progression**: Sign and Mastered Ultra Ego.
+* **Saiyan Beast**, **Namekian Orange**, and **Frost Demon Golden and Black** transformations.
+* Transformation unlocks integrated into the appropriate native race skill trees, TP costs, mastery requirements, and prerequisite forms.
+* Ultra Instinct is taught by **Goku** and Ultra Ego is taught by **Vegeta**.
+* Every addon transformation is selectable through DragonMineZ's native **X-key transformation wheel**.
+* Ultra Instinct, Ultra Ego, Beast, Orange, Golden, Black, and Alien Full Power are independent transformations and cannot be selected or activated while a conflicting transformation is active.
+* Existing DragonMineZ Ultra Instinct and Ultra Ego tiers are reused instead of duplicated. Their original values remain replaceable through DragonMineZ configuration files, while the addon supplies its additional tiers and progression integration.
+* Native DragonMineZ transformation icons are reused throughout the skill menus and wheel.
+* Compatibility and safety fixes for world loading, character data, first-person rendering, race assets, and DragonMineZ structure generation.
+
+DragonMineZ is required. Configuration files are generated under the normal DragonMineZ and Unofficial DMZ Addon config directories, allowing pack authors and server owners to tune progression and form values.
+
+![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Socials.webp)
+
+Click **SPOILER** to find PROFAKE's socials. Thank you to everyone who follows and supports the project!
+
+<div class="spoiler"><p>Discord:&nbsp;<a href="https://discord.gg/ghNhPG3rX6" target="_blank" rel="nofollow">https://discord.gg/ghNhPG3rX6</a></p><p>YouTube:&nbsp;<a href="https://www.youtube.com/@PRO_FAKE" target="_blank" rel="nofollow">https://www.youtube.com/@PRO_FAKE</a></p><p>TikTok:&nbsp;<a href="https://www.curseforge.com/linkout?remoteUrl=https://www.tiktok.com/@pro__fake" target="_blank" rel="nofollow">https://www.tiktok.com/@profake</a></p><p>Instagram:&nbsp;<a href="https://www.curseforge.com/linkout?remoteUrl=https://www.instagram.com/pro__fake/" target="_blank" rel="nofollow">https://www.instagram.com/pro__fake/</a></p><p>Website:&nbsp;<a href="https://profake.netlify.app/" target="_blank" rel="nofollow">https://profake.netlify.app/</a></p><p>Blog Site:&nbsp;<a href="https://profakeblog.netlify.app/" target="_blank" rel="nofollow">https://profakeblog.netlify.app/</a></p></div>
+
+Click **SPOILER** to find **Sh4d0wJ0J0's** socials.
+
+<div class="spoiler"><p>YouTube: <a href="https://www.youtube.com/@sh4d0wj0j0" target="_blank" rel="nofollow">https://www.youtube.com/@sh4d0wj0j0</a></p></div>
+
+![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Collaborations.webp)
+
+<p style="text-align:left">[![](https://media.forgecdn.net/attachments/description/1466486/description_1ee5aca5-51d4-4641-9d36-d1ca283bc328.png)](https://www.curseforge.com/members/sh4d0wj0j0/projects) [![Orion8TV Project Page](https://media.forgecdn.net/attachments/description/1466486/description_aa1249cd-4afc-4855-b3f7-28f17764a827.png)](https://www.curseforge.com/members/orion8tv/projects) [![](https://media.forgecdn.net/attachments/description/1466486/description_e74d65ed-000a-4cff-bac6-be0d253e2e4a.png)](https://www.curseforge.com/members/profake/projects)</p>
+
+[![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Promo.webp)](https://bisecthosting.com/PROFAKE)

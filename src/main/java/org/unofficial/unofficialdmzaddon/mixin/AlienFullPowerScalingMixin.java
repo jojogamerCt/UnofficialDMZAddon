@@ -30,7 +30,7 @@ public abstract class AlienFullPowerScalingMixin {
             return;
         }
 
-        int level = self.getSkills().getSkillLevel("superform");
+        int level = self.getSkills().getSkillLevel("superforms");
         if (level <= 1) {
             return;
         }

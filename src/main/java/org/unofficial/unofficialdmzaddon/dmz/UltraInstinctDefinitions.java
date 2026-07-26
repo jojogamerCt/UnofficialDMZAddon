@@ -1,33 +1,25 @@
 package org.unofficial.unofficialdmzaddon.dmz;
 
+import com.dragonminez.common.util.lists.StackForms;
+
 import java.util.List;
 import java.util.Locale;
 
+/** Addon-only Ultra Instinct extensions layered on DragonMineZ's native forms. */
 public final class UltraInstinctDefinitions {
 
-    public static final String SKILL_ID = "ultrainstinct";
-    public static final String FORM_TYPE = "ultrainstinct";
-    public static final String GROUP_NAME = "ultrainstinct";
-
-    public static final String FORM_SIGN = "ultrainstinctsign";
-    public static final String FORM_MASTERED = "masteredultrainstinct";
-    public static final String FORM_AUTONOMOUS = "ultrainstinctautonomous";
-    public static final String FORM_TRUE = "trueultrainstinct";
+    public static final String FORM_AUTONOMOUS = "autonomous";
+    public static final String FORM_TRUE = "true";
     public static final String LEGACY_FORM_OMEN = "ultrainstinctomen";
 
-    public static final int[] SKILL_TP_COSTS = new int[]{120000, 180000, 260000, 360000};
     public static final List<String> FORM_ORDER = List.of(
-            FORM_SIGN,
-            FORM_MASTERED,
+            StackForms.ULTRAINSTINCT_SIGN,
+            StackForms.ULTRAINSTINCT_MASTERED,
             FORM_AUTONOMOUS,
             FORM_TRUE
     );
 
     private UltraInstinctDefinitions() {
-    }
-
-    public static int maxSkillLevel() {
-        return SKILL_TP_COSTS.length;
     }
 
     public static boolean isUltraInstinctForm(String formName) {
@@ -54,18 +46,17 @@ public final class UltraInstinctDefinitions {
     }
 
     public static int requiredSkillLevel(String formName) {
-        int tier = tierForForm(formName);
-        return Math.max(1, tier);
+        return Math.max(1, tierForForm(formName));
     }
 
     public static String nextForm(String activeForm) {
         if (activeForm == null || activeForm.isEmpty()) {
-            return FORM_SIGN;
+            return StackForms.ULTRAINSTINCT_SIGN;
         }
 
         String normalized = activeForm.toLowerCase(Locale.ROOT);
         if (LEGACY_FORM_OMEN.equals(normalized)) {
-            return FORM_MASTERED;
+            return StackForms.ULTRAINSTINCT_MASTERED;
         }
 
         int index = FORM_ORDER.indexOf(normalized);
@@ -77,8 +68,8 @@ public final class UltraInstinctDefinitions {
 
     public static float requiredHealthRatioForTarget(String targetForm) {
         return switch (normalize(targetForm)) {
-            case FORM_SIGN -> 0.50f;
-            case FORM_MASTERED -> 0.43f;
+            case StackForms.ULTRAINSTINCT_SIGN -> 0.50f;
+            case StackForms.ULTRAINSTINCT_MASTERED -> 0.43f;
             case FORM_AUTONOMOUS -> 0.36f;
             case FORM_TRUE -> 0.30f;
             default -> 1.0f;
@@ -87,7 +78,7 @@ public final class UltraInstinctDefinitions {
 
     public static double requiredMasteryForTarget(String targetForm) {
         return switch (normalize(targetForm)) {
-            case FORM_MASTERED -> 35.0;
+            case StackForms.ULTRAINSTINCT_MASTERED -> 35.0;
             case FORM_AUTONOMOUS -> 55.0;
             case FORM_TRUE -> 75.0;
             default -> 0.0;
@@ -96,8 +87,8 @@ public final class UltraInstinctDefinitions {
 
     public static String requiredPreviousFormForTarget(String targetForm) {
         return switch (normalize(targetForm)) {
-            case FORM_MASTERED -> FORM_SIGN;
-            case FORM_AUTONOMOUS -> FORM_MASTERED;
+            case StackForms.ULTRAINSTINCT_MASTERED -> StackForms.ULTRAINSTINCT_SIGN;
+            case FORM_AUTONOMOUS -> StackForms.ULTRAINSTINCT_MASTERED;
             case FORM_TRUE -> FORM_AUTONOMOUS;
             default -> "";
         };

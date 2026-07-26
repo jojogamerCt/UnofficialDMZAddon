@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.unofficial.unofficialdmzaddon.dmz.SpecialRaceFormsDefinitions;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
+import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
@@ -25,6 +26,7 @@ public abstract class BoneVisibilityHandlerMixin {
     private static void unofficialdmzaddon$hideAlienTail(
             BakedGeoModel model,
             AbstractClientPlayer player,
+            GeoRenderLayer<?> renderLayer,
             CallbackInfo ci) {
 
         StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(stats -> {
