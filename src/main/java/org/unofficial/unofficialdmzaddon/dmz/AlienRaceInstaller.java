@@ -40,6 +40,7 @@ public final class AlienRaceInstaller {
 
     static final String ALIEN_RACE = SpecialRaceFormsDefinitions.ALIEN_RACE;
     static final String ALIEN_DEFAULT_EYE_COLOR = "#FFFFFF";
+    private static final String ALIEN_DEFAULT_AURA_COLOR = "#FFFFFF";
 
     private static final int[] ALIEN_SUPERFORM_DEFAULT_COSTS = new int[]{20000, 80000, 120000, 160000};
 
@@ -121,6 +122,7 @@ public final class AlienRaceInstaller {
         root.addProperty("defaultHairColor",  "#000000");
         root.addProperty("defaultEye1Color",  ALIEN_DEFAULT_EYE_COLOR);  // lighter black
         root.addProperty("defaultEye2Color",  ALIEN_DEFAULT_EYE_COLOR);  // lighter black
+        root.addProperty("defaultAuraColor",  ALIEN_DEFAULT_AURA_COLOR);
 
         // Superform TP costs – same count as Namekian (4 levels).
         JsonArray costs = new JsonArray();
@@ -199,6 +201,7 @@ public final class AlienRaceInstaller {
             raceConfig.setIsLayered(true);
             raceConfig.setDefaultEye1Color(ALIEN_DEFAULT_EYE_COLOR);
             raceConfig.setDefaultEye2Color(ALIEN_DEFAULT_EYE_COLOR);
+            raceConfig.setDefaultAuraColor(ALIEN_DEFAULT_AURA_COLOR);
             raceConfig.setDefaultBodyColor("#D4CECC");
 
             Integer[] costs = raceConfig.getFormSkillTpCosts(SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS);
