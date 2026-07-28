@@ -7,10 +7,14 @@ import com.dragonminez.common.config.SkillsConfig;
 import com.dragonminez.common.util.lists.StackForms;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraftforge.fml.loading.FMLPaths;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;
 
 import java.io.Writer;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,12 +56,14 @@ public final class UniversalDivineAndSaiyanInstaller {
                 registry.put(StackForms.GROUP_ULTRAEGO, ue);
                 if (character != null) {
                     character.getFormSkillsCosts().put(StackForms.GROUP_ULTRAINSTINCT,
-                            new RaceCharacterConfig.FormSkillCost(true, new ArrayList<>(UI_COSTS)));
+                            new RaceCharacterConfig.FormSkillCost(false, new ArrayList<>(UI_COSTS)));
                     character.getFormSkillsCosts().put(StackForms.GROUP_ULTRAEGO,
-                            new RaceCharacterConfig.FormSkillCost(true, new ArrayList<>(UE_COSTS)));
+                            new RaceCharacterConfig.FormSkillCost(false, new ArrayList<>(UE_COSTS)));
                 }
                 persist(race, ui); persist(race, ue);
+                persistRaceSkillCosts(race);
             }
+            persistUniversalSkillAccess(races);
             installSaiyanForms(saiyan);
             persist("saiyan", saiyan.get(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN));
             UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Universal UI/UE access and Saiyan God branches installed for {} races.", races.size());
@@ -111,6 +117,51 @@ public final class UniversalDivineAndSaiyanInstaller {
     }
 
     private static FormConfig copy(FormConfig source) { return GSON.fromJson(GSON.toJson(source), FormConfig.class); }
+
+    private static void persistUniversalSkillAccess(List<String> races) throws Exception {
+        Path file = FMLPaths.CONFIGDIR.get().resolve("dragonminez").resolve("skills.json");
+        JsonObject root;
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            root = JsonParser.parseReader(reader).getAsJsonObject();
+        }
+        JsonObject skills = root.getAsJsonObject("skills");
+        for (String id : List.of(StackForms.GROUP_ULTRAINSTINCT, StackForms.GROUP_ULTRAEGO)) {
+            JsonObject skill = skills.getAsJsonObject(id);
+            if (skill == null) continue;
+            JsonArray allowed = new JsonArray();
+            races.forEach(allowed::add);
+            skill.add("allowedRaces", allowed);
+        }
+        try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
+            GSON.toJson(root, writer);
+        }
+    }
+
+    private static void persistRaceSkillCosts(String race) throws Exception {
+        Path file = FMLPaths.CONFIGDIR.get().resolve("dragonminez/races").resolve(race).resolve("character.json");
+        JsonObject root;
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            root = JsonParser.parseReader(reader).getAsJsonObject();
+        }
+        JsonObject costs = root.has("formSkillsCosts") && root.get("formSkillsCosts").isJsonObject()
+                ? root.getAsJsonObject("formSkillsCosts") : new JsonObject();
+        costs.add(StackForms.GROUP_ULTRAINSTINCT, formSkillCost(UI_COSTS));
+        costs.add(StackForms.GROUP_ULTRAEGO, formSkillCost(UE_COSTS));
+        root.add("formSkillsCosts", costs);
+        try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
+            GSON.toJson(root, writer);
+        }
+    }
+
+    private static JsonObject formSkillCost(List<Integer> prices) {
+        JsonObject entry = new JsonObject();
+        entry.addProperty("buyFromMaster", false);
+        JsonArray values = new JsonArray();
+        prices.forEach(values::add);
+        entry.add("prices", values);
+        return entry;
+    }
+
     private static void persist(String race, FormConfig group) throws Exception {
         if (group == null) return; Path file = FMLPaths.CONFIGDIR.get().resolve("dragonminez/races").resolve(race).resolve("forms").resolve(group.getGroupName().toLowerCase()+".json");
         Files.createDirectories(file.getParent()); try (Writer w=Files.newBufferedWriter(file, StandardCharsets.UTF_8)) { GSON.toJson(group,w); }

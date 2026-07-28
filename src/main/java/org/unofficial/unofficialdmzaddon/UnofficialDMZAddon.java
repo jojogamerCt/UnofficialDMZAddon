@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.unofficial.unofficialdmzaddon.dmz.AlienCharacterSanitizer;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRacialPassiveHandler;
 import org.unofficial.unofficialdmzaddon.dmz.FormSpecialBuffHandler;
+import org.unofficial.unofficialdmzaddon.dmz.LegacyRaceCleanup;
 import org.unofficial.unofficialdmzaddon.dmz.UniversalDivineAndSaiyanInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRaceInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.TransformationInstaller;
@@ -38,6 +39,7 @@ public final class UnofficialDMZAddon {
     }
 
     private void onCommonSetup(final FMLCommonSetupEvent event) {
+        event.enqueueWork(LegacyRaceCleanup::removeLegacyConfigs);
         event.enqueueWork(AlienRaceInstaller::install);
         event.enqueueWork(TransformationInstaller::install);
         event.enqueueWork(UniversalDivineAndSaiyanInstaller::install);
