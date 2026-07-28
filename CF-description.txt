@@ -9,13 +9,18 @@
 * **Alien race**, including native character customization and the **Full Power** transformation.
 * **Ultra Instinct progression**: Sign, Mastered Ultra Instinct, Autonomous Ultra Instinct, and True Ultra Instinct.
 * **Ultra Ego progression**: Sign and Mastered Ultra Ego.
-* **Saiyan Beast**, **Namekian Orange**, and **Frost Demon Golden and Black** transformations.
+* **Saiyan transformations**: Super Saiyan God, Super Saiyan Blue, Super Saiyan Rosé, Super Saiyan Rage, and Beast.
+* **Namekian Orange** and **Frost Demon Golden and Black** transformations.
 * Transformation unlocks integrated into the appropriate native race skill trees, TP costs, mastery requirements, and prerequisite forms.
-* Ultra Instinct is taught by **Goku** and Ultra Ego is taught by **Vegeta**.
-* Every addon transformation is selectable through DragonMineZ's native **X-key transformation wheel**.
+* Every DragonMineZ and addon race can unlock and use the complete Ultra Instinct and Ultra Ego progressions. Hairless races receive the divine form colors through their body instead of hair.
+* Every addon transformation is selectable through DragonMineZ's native **X-key transformation wheel**, including dedicated Ultra Instinct and Ultra Ego sections.
 * Ultra Instinct, Ultra Ego, Beast, Orange, Golden, Black, and Alien Full Power are independent transformations and cannot be selected or activated while a conflicting transformation is active.
-* Existing DragonMineZ Ultra Instinct and Ultra Ego tiers are reused instead of duplicated. Their original values remain replaceable through DragonMineZ configuration files, while the addon supplies its additional tiers and progression integration.
+* Super Saiyan Blue supports DragonMineZ's stackable **Kaioken** mechanic.
+* Every active form receives combat benefits, with specialized effects for Ultra Instinct, Ultra Ego, God, Blue, Rosé, Rage, giant, metallic, Golden, Black, Legendary, and Full Power transformations. Buff information appears in the skill descriptions and when activating a form.
+* The Alien race's **Blood-Fueled Ki** passive refunds part of spent Ki by consuming health, then adds the sacrificed health as damage to the next attack.
+* Existing DragonMineZ Ultra Instinct and Ultra Ego tiers are reused instead of duplicated. Their original values remain replaceable through DragonMineZ configuration files, while the addon supplies universal race access and additional progression integration.
 * Native DragonMineZ transformation icons are reused throughout the skill menus and wheel.
+* Correct divine-form eye, hair, and body colors for both haired and hairless races, plus a DragonMineZ panorama for the Alien creation screen.
 * Compatibility and safety fixes for world loading, character data, first-person rendering, race assets, and DragonMineZ structure generation.
 
 DragonMineZ is required. Configuration files are generated under the normal DragonMineZ and Unofficial DMZ Addon config directories, allowing pack authors and server owners to tune progression and form values.

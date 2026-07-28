@@ -1,0 +1,11 @@
+- Made Ultra Instinct and Ultra Ego unlockable and usable by every DragonMineZ and addon race
+- Added race-specific Ultra Instinct and Ultra Ego form groups to the native skill trees and X-key transformation wheel
+- Added hairless-race support that applies Ultra Instinct and Ultra Ego colors to the body instead of nonexistent hair
+- Corrected Ultra Ego Sign hair and eye colors, Mastered Ultra Ego eye colors, and Mastered Ultra Instinct eye colors
+- Added Super Saiyan God, Super Saiyan Blue, Super Saiyan Rosé, and Super Saiyan Rage to the native Saiyan transformation tree
+- Made Super Saiyan Blue compatible with the Kaioken stack transformation
+- Added universal combat bonuses and specialized buffs for Ultra Instinct, Ultra Ego, God, Blue, Rosé, Rage, giant, metallic, Golden, Black, Legendary, and Full Power forms
+- Added form-buff descriptions to the native skill information and an in-game message when a form becomes active
+- Implemented the Alien race's Blood-Fueled Ki passive, which trades health for Ki refunds and bonus attack damage
+- Replaced the Alien race-selection background with a suitable panorama from DragonMineZ
+- Added complete Ultra Instinct and Ultra Ego names and descriptions for every supported race
