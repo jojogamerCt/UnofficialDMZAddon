@@ -61,8 +61,10 @@ public abstract class DivineFormSelectionMixin {
                     && (SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN.equalsIgnoreCase(form)
                     || SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK.equalsIgnoreCase(form));
         }
-        return SpecialRaceFormsDefinitions.ALIEN_RACE.equalsIgnoreCase(race)
-                && SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS.equalsIgnoreCase(group)
-                && SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER.equalsIgnoreCase(form);
+        if (SpecialRaceFormsDefinitions.ALIEN_RACE.equalsIgnoreCase(race)) {
+            return SpecialRaceFormsDefinitions.ALIEN_GROUP_SUPERFORMS.equalsIgnoreCase(group)
+                    && SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER.equalsIgnoreCase(form);
+        }
+        return false;
     }
 }

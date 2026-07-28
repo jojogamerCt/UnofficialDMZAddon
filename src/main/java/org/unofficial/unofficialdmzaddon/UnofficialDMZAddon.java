@@ -9,6 +9,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.unofficial.unofficialdmzaddon.dmz.AlienCharacterSanitizer;
+import org.unofficial.unofficialdmzaddon.dmz.AlienRacialPassiveHandler;
+import org.unofficial.unofficialdmzaddon.dmz.FormSpecialBuffHandler;
+import org.unofficial.unofficialdmzaddon.dmz.UniversalDivineAndSaiyanInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRaceInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.TransformationInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctCombatHandler;
@@ -29,11 +32,14 @@ public final class UnofficialDMZAddon {
 
         MinecraftForge.EVENT_BUS.register(new UltraInstinctCombatHandler());
         MinecraftForge.EVENT_BUS.register(new AlienCharacterSanitizer());
+        MinecraftForge.EVENT_BUS.register(new AlienRacialPassiveHandler());
+        MinecraftForge.EVENT_BUS.register(new FormSpecialBuffHandler());
         // PlayerHudRenderer auto-registers via @Mod.EventBusSubscriber(value = Dist.CLIENT)
     }
 
     private void onCommonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(AlienRaceInstaller::install);
         event.enqueueWork(TransformationInstaller::install);
+        event.enqueueWork(UniversalDivineAndSaiyanInstaller::install);
     }
 }
