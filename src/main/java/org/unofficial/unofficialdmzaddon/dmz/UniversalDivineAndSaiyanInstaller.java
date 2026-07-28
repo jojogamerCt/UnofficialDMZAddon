@@ -49,7 +49,7 @@ public final class UniversalDivineAndSaiyanInstaller {
             for (String race : races) {
                 Map<String, FormConfig> registry = all.computeIfAbsent(race.toLowerCase(), ignored -> new LinkedHashMap<>());
                 RaceCharacterConfig character = ConfigManager.getRaceCharacter(race);
-                boolean hairless = character == null || character.getHeadBones() == null || character.getHeadBones().length == 0;
+                boolean hairless = !hasHairBone(character);
                 FormConfig ui = copy(uiTemplate); FormConfig ue = copy(ueTemplate);
                 correctDivineColors(ui, true, hairless); correctDivineColors(ue, false, hairless);
                 registry.put(StackForms.GROUP_ULTRAINSTINCT, ui);
@@ -81,20 +81,40 @@ public final class UniversalDivineAndSaiyanInstaller {
         if (group == null || group.getForms() == null) return;
         for (Map.Entry<String, FormConfig.FormData> entry : group.getForms().entrySet()) {
             String key = entry.getKey().toLowerCase(); FormConfig.FormData form = entry.getValue();
+            if (hairless) form.setKeepBaseFormHeadBones(true);
             if (ui) {
                 form.setEye1Color("#DDF7FF"); form.setEye2Color("#AEEBFF");
                 if (key.contains("mastered")) form.setHairColor("#E8F2FF");
-                if (hairless) { form.setHairType(""); form.setBodyColor1(key.contains("mastered") ? "#E8F2FF" : "#B8CAD8"); form.setBodyColor2("#DDF7FF"); }
+                if (hairless) {
+                    String bodyColor = key.contains("mastered") ? "#E8F2FF" : "#B8CAD8";
+                    form.setHairType("");
+                    form.setBodyColor1(bodyColor);
+                    form.setBodyColor2("#DDF7FF");
+                    form.setBodyColor3(bodyColor);
+                }
             } else {
                 form.setEye1Color("#D889FF"); form.setEye2Color("#8C24B8");
                 form.setHairColor("#8E2AAA");
                 if (key.contains("sign") && !hairless) form.setHairType("ssj2");
-                if (hairless) { form.setHairType(""); form.setBodyColor1(key.contains("mastered") ? "#76208F" : "#9C42B5"); form.setBodyColor2("#D889FF"); }
+                if (hairless) {
+                    String bodyColor = key.contains("mastered") ? "#76208F" : "#9C42B5";
+                    form.setHairType("");
+                    form.setBodyColor1(bodyColor);
+                    form.setBodyColor2("#D889FF");
+                    form.setBodyColor3(bodyColor);
+                }
             }
             form.setFormStackable(false); form.setIncompatibleWith(List.of());
         }
     }
 
+    private static boolean hasHairBone(RaceCharacterConfig character) {
+        if (character == null || character.getHeadBones() == null) return false;
+        for (String bone : character.getHeadBones()) {
+            if (bone != null && bone.toLowerCase().contains("hair")) return true;
+        }
+        return false;
+    }
     private static void installSaiyanForms(Map<String, FormConfig> saiyan) {
         FormConfig group = saiyan.get(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN);
         if (group == null) return;
