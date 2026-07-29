@@ -19,9 +19,7 @@ public final class SpacePlanetSystem {
     public static final List<SpacePlanetDefinition> PLANETS = List.of(
             planet("earth", "Earth", "minecraft:overworld", 12.0D),
             planet("namek", "Namek", "dragonminez:namek", 9.0D),
-            planet("otherworld", "Otherworld", "dragonminez:otherworld", 10.5D),
-            planet("sacred_kai", "Sacred Kai's Planet", "dragonminez:sacredkaiplanet", 6.0D),
-            planet("time_chamber", "Time Chamber", "dragonminez:time_chamber", 7.5D)
+            planet("sacred_kai", "Sacred Kai's Planet", "dragonminez:sacredkaiplanet", 6.0D)
     );
 
     private SpacePlanetSystem() {

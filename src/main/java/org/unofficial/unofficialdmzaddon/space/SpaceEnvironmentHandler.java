@@ -8,11 +8,13 @@ import com.dragonminez.common.stats.StatsProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
@@ -37,6 +39,7 @@ public final class SpaceEnvironmentHandler {
     private final Map<UUID, FlightAbilities> previousFlightAbilities = new HashMap<>();
     private final Map<UUID, long[]> destroyedPlanets = new HashMap<>();
     private final Map<UUID, Long> lastTravel = new HashMap<>();
+    private final Map<UUID, ResourceLocation> pendingSpaceEntries = new HashMap<>();
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -53,6 +56,7 @@ public final class SpaceEnvironmentHandler {
 
         UUID playerId = player.getUUID();
         if (player.level().dimension().equals(SpaceDimension.KEY)) {
+            positionNearSourcePlanet(player);
             weightlessPlayers.add(playerId);
             previousFlightAbilities.putIfAbsent(playerId,
                     new FlightAbilities(player.getAbilities().mayfly, player.getAbilities().flying));
@@ -96,11 +100,51 @@ public final class SpaceEnvironmentHandler {
             }
         }
 
-        for (ServerPlayer player : level.players()) {
+        for (ServerPlayer player : List.copyOf(level.players())) {
             processPlanets(level, player, projectiles, gameTime);
         }
     }
 
+    @SubscribeEvent
+    public void onDimensionChanged(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player && event.getTo().equals(SpaceDimension.KEY)) {
+            pendingSpaceEntries.put(player.getUUID(), event.getFrom().location());
+        }
+    }
+
+    private void positionNearSourcePlanet(ServerPlayer player) {
+        ResourceLocation sourceDimension = pendingSpaceEntries.remove(player.getUUID());
+        if (sourceDimension == null) return;
+
+        SpacePlanetSystem.PlanetPlacement sourcePlanet = SpacePlanetSystem.layout(player.getUUID(), player.position())
+                .stream()
+                .filter(placement -> placement.definition().dimension().equals(sourceDimension))
+                .findFirst()
+                .orElse(null);
+
+        Vec3 entryPosition = player.position();
+        if (sourcePlanet != null) {
+            Vec3 inward = player.position().subtract(sourcePlanet.position());
+            if (inward.lengthSqr() < 1.0E-6D) inward = new Vec3(1.0D, 0.0D, 0.0D);
+            entryPosition = sourcePlanet.position()
+                    .add(inward.normalize().scale(sourcePlanet.definition().radius() + 10.0D));
+        }
+        entryPosition = new Vec3(entryPosition.x, Math.max(SPACE_FLOOR_Y, entryPosition.y), entryPosition.z);
+
+        Entity vehicle = player.getVehicle();
+        SpacePodEntity pod;
+        if (vehicle instanceof SpacePodEntity existingPod) {
+            pod = existingPod;
+        } else {
+            pod = new SpacePodEntity(MainEntities.SPACE_POD.get(), player.serverLevel());
+            if (!player.serverLevel().addFreshEntity(pod)) return;
+        }
+        pod.setPos(entryPosition.x, entryPosition.y, entryPosition.z);
+        pod.setDeltaMovement(Vec3.ZERO);
+        player.teleportTo(entryPosition.x, entryPosition.y, entryPosition.z);
+        player.setDeltaMovement(Vec3.ZERO);
+        if (!player.isPassenger()) player.startRiding(pod);
+    }
     private void processPlanets(ServerLevel space, ServerPlayer player, List<AbstractKiProjectile> projectiles,
                                 long gameTime) {
         UUID playerId = player.getUUID();
@@ -156,11 +200,29 @@ public final class SpaceEnvironmentHandler {
     }
 
     private Vec3 resolveArrival(ServerLevel target, String planetId) {
-        if ("otherworld".equals(planetId)) return new Vec3(54.0D, 210.0D, 1082.0D);
-        if ("time_chamber".equals(planetId)) return new Vec3(0.5D, 130.0D, 0.5D);
         BlockPos spawn = target.getSharedSpawnPos();
-        int y = target.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spawn.getX(), spawn.getZ()) + 1;
-        return new Vec3(spawn.getX() + 0.5D, Math.max(y, target.getMinBuildHeight() + 2), spawn.getZ() + 0.5D);
+        int baseX = spawn.getX();
+        int baseZ = spawn.getZ();
+        for (int radius = 0; radius <= 32; radius += 2) {
+            int step = Math.max(1, radius);
+            for (int dx = -radius; dx <= radius; dx += step) {
+                for (int dz = -radius; dz <= radius; dz += step) {
+                    int x = baseX + dx;
+                    int z = baseZ + dz;
+                    int y = target.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+                    BlockPos feet = new BlockPos(x, Math.max(y, target.getMinBuildHeight() + 2), z);
+                    var floor = target.getBlockState(feet.below());
+                    if (floor.isCollisionShapeFullBlock(target, feet.below()) && !floor.is(Blocks.MAGMA_BLOCK)
+                            && target.getBlockState(feet).getCollisionShape(target, feet).isEmpty()
+                            && target.getBlockState(feet.above()).getCollisionShape(target, feet.above()).isEmpty()
+                            && target.getFluidState(feet).isEmpty() && target.getFluidState(feet.below()).isEmpty()) {
+                        return new Vec3(feet.getX() + 0.5D, feet.getY(), feet.getZ() + 0.5D);
+                    }
+                }
+            }
+        }
+        int fallbackY = target.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, baseX, baseZ);
+        return new Vec3(baseX + 0.5D, Math.max(fallbackY, target.getMinBuildHeight() + 2), baseZ + 0.5D);
     }
 
     @SubscribeEvent
@@ -169,6 +231,7 @@ public final class SpaceEnvironmentHandler {
         if (weightlessPlayers.remove(playerId)) restorePlayer(event.getEntity());
         destroyedPlanets.remove(playerId);
         lastTravel.remove(playerId);
+        pendingSpaceEntries.remove(playerId);
     }
 
     private void restorePlayer(Player player) {

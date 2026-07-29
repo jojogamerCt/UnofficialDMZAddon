@@ -48,9 +48,7 @@ function WritePlanet([string]$name, [int]$seed, [int[]]$base, [int[]]$feature, [
 
 WritePlanet 'earth' 11 @(20,74,160) @(42,126,61) @(218,205,139) 0.08
 WritePlanet 'namek' 23 @(55,168,193) @(75,190,72) @(175,224,76) -0.02
-WritePlanet 'otherworld' 37 @(242,189,72) @(250,228,151) @(255,250,225) 0.03
 WritePlanet 'sacred_kai' 41 @(104,69,153) @(197,112,191) @(245,180,217) -0.05
-WritePlanet 'time_chamber' 53 @(215,205,184) @(245,239,220) @(171,153,119) 0.10
 
 $explosion = [System.Drawing.Bitmap]::new($width, $height, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 try {

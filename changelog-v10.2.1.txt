@@ -9,10 +9,15 @@
 - Added a programmatically drawn pixel-art Space icon matching the native destination menu
 - Updated the addon version to 10.2.1
 - Updated the CurseForge description with the current space-system information
-- Added procedural planets for Earth, Namek, Otherworld, Sacred Kai's Planet, and the Time Chamber
+- Added procedural planets for Earth, Namek, and Sacred Kai's Planet
 - Scaled every space planet differently to reflect its Dragon Ball canon role and relative size
 - Added deterministic randomized planet placement that keeps all planets near each player while preventing overlap
 - Added proximity travel: approaching a planet transfers the player and their space pod into its dimension
 - Made space planets destructible by the player's ki attacks
 - Added a programmatically generated explosion texture, destruction fade, five-minute respawn timer, and respawn fade
 - Added a reusable PowerShell generator for all procedural planet and explosion textures
+- Removed the non-planet Otherworld and Time Chamber bodies from Space
+- Space travel now remembers the source dimension and spawns the player with their pod beside its matching planet
+- Fixed a server crash caused by modifying Space's live player list during proximity travel
+- Every Space entry now guarantees a space pod, even when the player did not arrive through the pod menu
+- Fixed planet arrivals occasionally placing players underground by scanning for a solid, dry surface with two blocks of headroom
