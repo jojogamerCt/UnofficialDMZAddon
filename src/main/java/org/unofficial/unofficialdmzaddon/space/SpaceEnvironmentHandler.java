@@ -100,6 +100,7 @@ public final class SpaceEnvironmentHandler {
             if (entity instanceof SpacePodEntity pod) {
                 keepPodAboveFloor(pod);
                 if (pod.getControllingPassenger() instanceof Player) {
+                    pod.setOpenNave(false);
                     Vec3 bonusMovement = pod.getDeltaMovement().scale(SPACE_POD_SPEED_MULTIPLIER - 1.0D);
                     if (bonusMovement.lengthSqr() > 1.0E-7D) pod.move(MoverType.SELF, bonusMovement);
                     // The speed boost runs after the pod's normal movement, so enforce the floor again afterwards.
@@ -149,6 +150,7 @@ public final class SpaceEnvironmentHandler {
             pod = new SpacePodEntity(MainEntities.SPACE_POD.get(), player.serverLevel());
             if (!player.serverLevel().addFreshEntity(pod)) return;
         }
+        pod.setOpenNave(false);
         pod.setPos(entryPosition.x, entryPosition.y, entryPosition.z);
         pod.setDeltaMovement(Vec3.ZERO);
         player.teleportTo(entryPosition.x, entryPosition.y, entryPosition.z);
@@ -205,6 +207,7 @@ public final class SpaceEnvironmentHandler {
 
         Vec3 targetPosition = resolveArrival(target, planet.id());
         Entity vehicle = player.getVehicle();
+        boolean travellingWithPod = vehicle instanceof SpacePodEntity;
         if (vehicle instanceof SpacePodEntity ownPod) {
             ownPod.ejectPassengers();
             ownPod.remove(Entity.RemovalReason.DISCARDED);
@@ -217,11 +220,14 @@ public final class SpaceEnvironmentHandler {
         player.teleportTo(target, targetPosition.x, targetPosition.y, targetPosition.z,
                 player.getYRot(), player.getXRot());
 
-        SpacePodEntity newPod = new SpacePodEntity(MainEntities.SPACE_POD.get(), target);
-        newPod.setPos(targetPosition.x, targetPosition.y, targetPosition.z);
-        newPod.setYRot(player.getYRot());
-        newPod.setDeltaMovement(Vec3.ZERO);
-        if (target.addFreshEntity(newPod)) player.startRiding(newPod);
+        if (travellingWithPod) {
+            SpacePodEntity newPod = new SpacePodEntity(MainEntities.SPACE_POD.get(), target);
+            newPod.setOpenNave(false);
+            newPod.setPos(targetPosition.x, targetPosition.y, targetPosition.z);
+            newPod.setYRot(player.getYRot());
+            newPod.setDeltaMovement(Vec3.ZERO);
+            if (target.addFreshEntity(newPod)) player.startRiding(newPod);
+        }
     }
 
     private Vec3 resolveArrival(ServerLevel target, String planetId) {

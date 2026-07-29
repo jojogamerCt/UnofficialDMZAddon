@@ -16,6 +16,7 @@ import org.unofficial.unofficialdmzaddon.dmz.UniversalDivineAndSaiyanInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRaceInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.TransformationInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctCombatHandler;
+import org.unofficial.unofficialdmzaddon.network.AddonNetwork;
 import org.unofficial.unofficialdmzaddon.space.SpaceEnvironmentHandler;
 
 @Mod(UnofficialDMZAddon.MODID)
@@ -41,6 +42,7 @@ public final class UnofficialDMZAddon {
     }
 
     private void onCommonSetup(final FMLCommonSetupEvent event) {
+        event.enqueueWork(AddonNetwork::register);
         event.enqueueWork(LegacyRaceCleanup::removeLegacyConfigs);
         event.enqueueWork(AlienRaceInstaller::install);
         event.enqueueWork(TransformationInstaller::install);

@@ -14,6 +14,7 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.unofficial.unofficialdmzaddon.network.AddonNetwork;
 
 public final class UltraInstinctCombatHandler {
 
@@ -77,6 +78,9 @@ public final class UltraInstinctCombatHandler {
             );
             victim.push(direction.x * push, 0.12, direction.z * push);
             victim.hurtMarked = true;
+            boolean leanRight = victim.getPersistentData().getBoolean("unofficialdmzaddon:ui_dodge_side");
+            victim.getPersistentData().putBoolean("unofficialdmzaddon:ui_dodge_side", !leanRight);
+            AddonNetwork.sendDodge(victim, leanRight);
 
             if (victim.level() instanceof ServerLevel level) {
                 int endRodCount = (int) Math.round(16 + (10 * tierRatio));

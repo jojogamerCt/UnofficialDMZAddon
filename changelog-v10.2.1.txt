@@ -27,3 +27,9 @@
 
 - Guaranteed that the source Space pod is removed before planet travel so only the destination pod remains
 - Fixed the Space safety floor for both players and boosted space pods, including downward movement after the speed boost
+
+- Added a brief alternating 45-degree body lean when Ultra Instinct successfully dodges an attack
+
+- Traveling into a planet without a space pod now leaves the player without a pod on arrival
+- Unoccupied space pods left behind in Space now remain saved there when players travel to planets
+- Space pod doors now close when the pod enters or travels through Space
