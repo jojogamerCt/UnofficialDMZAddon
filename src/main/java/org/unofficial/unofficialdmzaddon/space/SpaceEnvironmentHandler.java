@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -34,6 +35,7 @@ public final class SpaceEnvironmentHandler {
     public static final String FLY_UNLOCK_TAG = "unofficialdmzaddon_has_fly";
     private static final double SPACE_FLOOR_Y = 128.0D;
     private static final long TRAVEL_COOLDOWN_TICKS = 60L;
+    private static final double SPACE_POD_SPEED_MULTIPLIER = 3.0D;
 
     private final Set<UUID> weightlessPlayers = new HashSet<>();
     private final Map<UUID, FlightAbilities> previousFlightAbilities = new HashMap<>();
@@ -69,8 +71,13 @@ public final class SpaceEnvironmentHandler {
             player.setOnGround(false);
             player.fallDistance = 0.0F;
 
-            if (player.getY() < SPACE_FLOOR_Y) {
-                player.teleportTo(player.getX(), SPACE_FLOOR_Y, player.getZ());
+            if (player.getVehicle() instanceof SpacePodEntity ridingPod) {
+                keepPodAboveFloor(ridingPod);
+                if (player.getY() < SPACE_FLOOR_Y) {
+                    player.setPos(ridingPod.getX(), Math.max(SPACE_FLOOR_Y, ridingPod.getY()) + 0.4D, ridingPod.getZ());
+                }
+            } else if (player.getY() <= SPACE_FLOOR_Y) {
+                if (player.getY() < SPACE_FLOOR_Y) player.teleportTo(player.getX(), SPACE_FLOOR_Y, player.getZ());
                 Vec3 movement = player.getDeltaMovement();
                 player.setDeltaMovement(movement.x, Math.max(0.0D, movement.y), movement.z);
             }
@@ -90,11 +97,14 @@ public final class SpaceEnvironmentHandler {
         long gameTime = level.getGameTime();
         List<AbstractKiProjectile> projectiles = new ArrayList<>();
         for (Entity entity : level.getAllEntities()) {
-            if (entity instanceof SpacePodEntity pod && pod.getY() < SPACE_FLOOR_Y) {
-                pod.setPos(pod.getX(), SPACE_FLOOR_Y, pod.getZ());
-                Vec3 movement = pod.getDeltaMovement();
-                pod.setDeltaMovement(movement.x, Math.max(0.0D, movement.y), movement.z);
-                pod.fallDistance = 0.0F;
+            if (entity instanceof SpacePodEntity pod) {
+                keepPodAboveFloor(pod);
+                if (pod.getControllingPassenger() instanceof Player) {
+                    Vec3 bonusMovement = pod.getDeltaMovement().scale(SPACE_POD_SPEED_MULTIPLIER - 1.0D);
+                    if (bonusMovement.lengthSqr() > 1.0E-7D) pod.move(MoverType.SELF, bonusMovement);
+                    // The speed boost runs after the pod's normal movement, so enforce the floor again afterwards.
+                    keepPodAboveFloor(pod);
+                }
             } else if (entity instanceof AbstractKiProjectile projectile) {
                 projectiles.add(projectile);
             }
@@ -145,11 +155,20 @@ public final class SpaceEnvironmentHandler {
         player.setDeltaMovement(Vec3.ZERO);
         if (!player.isPassenger()) player.startRiding(pod);
     }
+    private static void keepPodAboveFloor(SpacePodEntity pod) {
+        if (pod.getY() < SPACE_FLOOR_Y) pod.setPos(pod.getX(), SPACE_FLOOR_Y, pod.getZ());
+        if (pod.getY() <= SPACE_FLOOR_Y) {
+            Vec3 movement = pod.getDeltaMovement();
+            if (movement.y < 0.0D) pod.setDeltaMovement(movement.x, 0.0D, movement.z);
+            pod.fallDistance = 0.0F;
+        }
+    }
     private void processPlanets(ServerLevel space, ServerPlayer player, List<AbstractKiProjectile> projectiles,
                                 long gameTime) {
         UUID playerId = player.getUUID();
         long[] destroyed = destroyedPlanets.computeIfAbsent(playerId, ignored -> freshDestroyedArray());
-        List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(playerId, player.position());
+        Vec3 travelPosition = player.getVehicle() instanceof SpacePodEntity pod ? pod.position() : player.position();
+        List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(playerId, travelPosition);
 
         for (SpacePlanetSystem.PlanetPlacement placement : placements) {
             int index = placement.index();
@@ -169,7 +188,7 @@ public final class SpaceEnvironmentHandler {
             }
 
             if (!SpacePlanetSystem.isDestroyed(gameTime, destroyed[index])
-                    && player.position().distanceToSqr(placement.position())
+                    && travelPosition.distanceToSqr(placement.position())
                     <= square(placement.definition().radius() + 1.5D)
                     && gameTime - lastTravel.getOrDefault(playerId, Long.MIN_VALUE / 2L) > TRAVEL_COOLDOWN_TICKS) {
                 travelToPlanet(space, player, placement.definition());
@@ -186,8 +205,12 @@ public final class SpaceEnvironmentHandler {
 
         Vec3 targetPosition = resolveArrival(target, planet.id());
         Entity vehicle = player.getVehicle();
-        player.stopRiding();
-        if (vehicle instanceof SpacePodEntity ownPod) ownPod.discard();
+        if (vehicle instanceof SpacePodEntity ownPod) {
+            ownPod.ejectPassengers();
+            ownPod.remove(Entity.RemovalReason.DISCARDED);
+        } else {
+            player.stopRiding();
+        }
 
         restorePlayer(player);
         weightlessPlayers.remove(player.getUUID());
@@ -196,6 +219,8 @@ public final class SpaceEnvironmentHandler {
 
         SpacePodEntity newPod = new SpacePodEntity(MainEntities.SPACE_POD.get(), target);
         newPod.setPos(targetPosition.x, targetPosition.y, targetPosition.z);
+        newPod.setYRot(player.getYRot());
+        newPod.setDeltaMovement(Vec3.ZERO);
         if (target.addFreshEntity(newPod)) player.startRiding(newPod);
     }
 

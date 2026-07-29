@@ -21,3 +21,9 @@
 - Fixed a server crash caused by modifying Space's live player list during proximity travel
 - Every Space entry now guarantees a space pod, even when the player did not arrive through the pod menu
 - Fixed planet arrivals occasionally placing players underground by scanning for a solid, dry surface with two blocks of headroom
+
+- Made DragonMineZ space pods travel at triple normal flight speed while piloted in Space
+- Planet proximity travel now follows the mounted pod and places the player inside a pod on arrival
+
+- Guaranteed that the source Space pod is removed before planet travel so only the destination pod remains
+- Fixed the Space safety floor for both players and boosted space pods, including downward movement after the speed boost
