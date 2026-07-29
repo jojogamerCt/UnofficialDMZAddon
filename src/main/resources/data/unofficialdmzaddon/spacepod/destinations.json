@@ -1,0 +1,19 @@
+{
+  "replace": false,
+  "destinations": [
+    {
+      "dimension": "unofficialdmzaddon:space",
+      "icon_texture": "unofficialdmzaddon:textures/gui/spacepod/space.png",
+      "id": "space",
+      "name": "gui.unofficialdmzaddon.spacepod.space",
+      "show_when_locked": true,
+      "translate": true,
+      "unlock_rules": {
+        "tag": "unofficialdmzaddon_has_fly"
+      },
+      "x": 0.0,
+      "y": 128.0,
+      "z": 0.0
+    }
+  ]
+}

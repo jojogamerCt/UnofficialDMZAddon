@@ -1,0 +1,18 @@
+- Added the first version of the Dragon Ball-inspired space system
+- Added Space as an empty, planet-free dimension prepared for future planet content
+- Integrated Space into DragonMineZ's native space-pod destination menu
+- Made Space unlock only after learning DragonMineZ's Fly skill
+- Added weightless player movement and safe fall handling while in Space
+- Added an invisible flight plane at the arrival altitude that keeps players and space pods out of the void without replacing the player's flying animation
+- Generated a Dragon Ball anime-inspired space texture and made it loop seamlessly on both axes
+- Replaced hard-edged cube skyboxes with a continuous spherical sky renderer
+- Added a programmatically drawn pixel-art Space icon matching the native destination menu
+- Updated the addon version to 10.2.1
+- Updated the CurseForge description with the current space-system information
+- Added procedural planets for Earth, Namek, Otherworld, Sacred Kai's Planet, and the Time Chamber
+- Scaled every space planet differently to reflect its Dragon Ball canon role and relative size
+- Added deterministic randomized planet placement that keeps all planets near each player while preventing overlap
+- Added proximity travel: approaching a planet transfers the player and their space pod into its dimension
+- Made space planets destructible by the player's ki attacks
+- Added a programmatically generated explosion texture, destruction fade, five-minute respawn timer, and respawn fade
+- Added a reusable PowerShell generator for all procedural planet and explosion textures

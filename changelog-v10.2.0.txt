@@ -11,6 +11,5 @@
 - Added complete Ultra Instinct and Ultra Ego names and descriptions for every supported race
 - Fixed Ultra Instinct and Ultra Ego access being persisted as Saiyan-only despite their per-race form files
 - Made the first Ultra Instinct and Ultra Ego skill levels purchasable directly from every race's native form skill tree
-- Removed obsolete Offworlder and Beerus race IDs and their generated configuration from the race-selection menu
 - Fixed UI and UE body recoloring for Majin and every other race without an actual hair bone
 - Preserved Majin ears, tentacles, and other native head geometry while using UI and UE

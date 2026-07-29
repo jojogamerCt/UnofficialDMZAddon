@@ -7,6 +7,7 @@
 ### Current features
 
 * **Alien race**, including native character customization and the **Full Power** transformation.
+* **Dragon Ball-style space system**, featuring a weightless dimension with a seamless anime-inspired cosmic sky and procedurally textured, canon-scaled worlds for Earth, Namek, Otherworld, Sacred Kai's Planet, and the Time Chamber. Learn the **Fly skill**, enter a DragonMineZ space pod, and select **Space**. Planets remain nearby without overlapping; approach one to travel into its dimension. Ki attacks can destroy planets with an animated explosion and fade, and each destroyed world reforms after five minutes. An invisible flight plane keeps players and pods safely above the void while preserving the flying animation.
 * **Ultra Instinct progression**: Sign, Mastered Ultra Instinct, Autonomous Ultra Instinct, and True Ultra Instinct.
 * **Ultra Ego progression**: Sign and Mastered Ultra Ego.
 * **Saiyan transformations**: Super Saiyan God, Super Saiyan Blue, Super Saiyan Rosé, Super Saiyan Rage, and Beast.
@@ -20,8 +21,6 @@
 * The Alien race's **Blood-Fueled Ki** passive refunds part of spent Ki by consuming health, then adds the sacrificed health as damage to the next attack.
 * Existing DragonMineZ Ultra Instinct and Ultra Ego tiers are reused instead of duplicated. Their original values remain replaceable through DragonMineZ configuration files, while the addon supplies universal race access and additional progression integration.
 * Native DragonMineZ transformation icons are reused throughout the skill menus and wheel.
-* Correct divine-form eye, hair, and body colors for both haired and hairless races, plus a DragonMineZ panorama for the Alien creation screen.
-* Compatibility and safety fixes for world loading, character data, first-person rendering, race assets, and DragonMineZ structure generation.
 
 DragonMineZ is required. Configuration files are generated under the normal DragonMineZ and Unofficial DMZ Addon config directories, allowing pack authors and server owners to tune progression and form values.
 

@@ -16,6 +16,7 @@ import org.unofficial.unofficialdmzaddon.dmz.UniversalDivineAndSaiyanInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRaceInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.TransformationInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctCombatHandler;
+import org.unofficial.unofficialdmzaddon.space.SpaceEnvironmentHandler;
 
 @Mod(UnofficialDMZAddon.MODID)
 public final class UnofficialDMZAddon {
@@ -35,6 +36,7 @@ public final class UnofficialDMZAddon {
         MinecraftForge.EVENT_BUS.register(new AlienCharacterSanitizer());
         MinecraftForge.EVENT_BUS.register(new AlienRacialPassiveHandler());
         MinecraftForge.EVENT_BUS.register(new FormSpecialBuffHandler());
+        MinecraftForge.EVENT_BUS.register(new SpaceEnvironmentHandler());
         // PlayerHudRenderer auto-registers via @Mod.EventBusSubscriber(value = Dist.CLIENT)
     }
 
