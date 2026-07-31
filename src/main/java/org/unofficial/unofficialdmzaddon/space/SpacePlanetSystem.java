@@ -9,62 +9,81 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-/** Shared deterministic layout and collision math used by both logical sides. */
+/** Shared deterministic solar-system layout and collision math used by both logical sides. */
 public final class SpacePlanetSystem {
     public static final long RESPAWN_TICKS = 20L * 60L * 5L;
     public static final long FADE_TICKS = 40L;
-    public static final double REGION_SIZE = 128.0D;
+    public static final double REGION_SIZE = 192.0D;
+    public static final double SOLAR_PLANE_Y = 160.0D;
+    public static final double SUN_RADIUS = 14.0D;
     public static final ResourceLocation EXPLOSION_TEXTURE = texture("planet_explosion");
 
+    private static final double[] ORBIT_RADII = {38.0D, 62.0D, 86.0D};
+    private static final double[] ORBIT_HEIGHTS = {0.0D, 7.0D, -6.0D};
+
     public static final List<SpacePlanetDefinition> PLANETS = List.of(
-            planet("earth", "Earth", "minecraft:overworld", 12.0D),
-            planet("namek", "Namek", "dragonminez:namek", 9.0D),
-            planet("sacred_kai", "Sacred Kai's Planet", "dragonminez:sacredkaiplanet", 6.0D)
+            planet("earth", "Earth", "minecraft:overworld", 9.5D),
+            planet("namek", "Namek", "dragonminez:namek", 7.25D),
+            planet("sacred_kai", "Sacred Kai's Planet", "dragonminez:sacredkaiplanet", 5.0D)
     );
 
     private SpacePlanetSystem() {
     }
 
+    /** Planets occupy stable, separated orbital bands around the sector sun. */
     public static List<PlanetPlacement> layout(UUID playerId, Vec3 playerPosition) {
+        Vec3 sun = sunPosition(playerPosition);
         long regionX = floorRegion(playerPosition.x);
         long regionZ = floorRegion(playerPosition.z);
-        double centerX = (regionX + 0.5D) * REGION_SIZE;
-        double centerZ = (regionZ + 0.5D) * REGION_SIZE;
-        long seed = playerId.getMostSignificantBits() ^ Long.rotateLeft(playerId.getLeastSignificantBits(), 19)
-                ^ regionX * 341873128712L ^ regionZ * 132897987541L;
+        long seed = solarSeed(playerId, regionX, regionZ);
         Random random = new Random(seed);
+        double baseAngle = random.nextDouble() * Math.PI * 2.0D;
         List<PlanetPlacement> result = new ArrayList<>(PLANETS.size());
 
         for (int index = 0; index < PLANETS.size(); index++) {
-            SpacePlanetDefinition definition = PLANETS.get(index);
-            Vec3 position = null;
-            for (int attempt = 0; attempt < 64; attempt++) {
-                double angle = random.nextDouble() * Math.PI * 2.0D;
-                double distance = 38.0D + random.nextDouble() * 24.0D;
-                double y = 144.0D + random.nextDouble() * 34.0D;
-                Vec3 candidate = new Vec3(centerX + Math.cos(angle) * distance, y,
-                        centerZ + Math.sin(angle) * distance);
-                if (isSeparated(candidate, definition.radius(), result)) {
-                    position = candidate;
-                    break;
-                }
-            }
-            if (position == null) {
-                double angle = index * (Math.PI * 2.0D / PLANETS.size());
-                position = new Vec3(centerX + Math.cos(angle) * 58.0D, 148.0D + index * 5.0D,
-                        centerZ + Math.sin(angle) * 58.0D);
-            }
-            result.add(new PlanetPlacement(index, definition, position));
+            double angle = baseAngle + index * 2.18D + random.nextDouble() * 0.28D;
+            double orbit = ORBIT_RADII[Math.min(index, ORBIT_RADII.length - 1)];
+            Vec3 position = new Vec3(
+                    sun.x + Math.cos(angle) * orbit,
+                    SOLAR_PLANE_Y + ORBIT_HEIGHTS[Math.min(index, ORBIT_HEIGHTS.length - 1)],
+                    sun.z + Math.sin(angle) * orbit);
+            result.add(new PlanetPlacement(index, PLANETS.get(index), position, orbit));
         }
         return result;
+    }
+
+    public static Vec3 sunPosition(Vec3 playerPosition) {
+        long regionX = floorRegion(playerPosition.x);
+        long regionZ = floorRegion(playerPosition.z);
+        return new Vec3((regionX + 0.5D) * REGION_SIZE, SOLAR_PLANE_Y,
+                (regionZ + 0.5D) * REGION_SIZE);
+    }
+
+    /** Nearby fixed stars provide parallax, making even slow movement obvious. */
+    public static List<StarPlacement> starLayout(UUID playerId, Vec3 playerPosition) {
+        long regionX = floorRegion(playerPosition.x);
+        long regionZ = floorRegion(playerPosition.z);
+        Vec3 sun = sunPosition(playerPosition);
+        Random random = new Random(solarSeed(playerId, regionX, regionZ) ^ 0x5DEECE66DL);
+        List<StarPlacement> stars = new ArrayList<>(180);
+        for (int i = 0; i < 180; i++) {
+            double angle = random.nextDouble() * Math.PI * 2.0D;
+            double distance = 24.0D + random.nextDouble() * 118.0D;
+            double y = 105.0D + random.nextDouble() * 112.0D;
+            double size = 0.10D + random.nextDouble() * 0.34D;
+            int palette = random.nextInt(10);
+            int color = palette < 6 ? 0xEAF6FF : palette < 8 ? 0x9CCBFF : palette == 8 ? 0xFFD89A : 0xD4B0FF;
+            Vec3 position = new Vec3(sun.x + Math.cos(angle) * distance, y,
+                    sun.z + Math.sin(angle) * distance);
+            stars.add(new StarPlacement(position, size, color));
+        }
+        return stars;
     }
 
     public static boolean segmentIntersects(Vec3 start, Vec3 end, Vec3 center, double radius) {
         Vec3 segment = end.subtract(start);
         double lengthSquared = segment.lengthSqr();
-        if (lengthSquared < 1.0E-7D) {
-            return start.distanceToSqr(center) <= radius * radius;
-        }
+        if (lengthSquared < 1.0E-7D) return start.distanceToSqr(center) <= radius * radius;
         double t = Math.max(0.0D, Math.min(1.0D, center.subtract(start).dot(segment) / lengthSquared));
         return start.add(segment.scale(t)).distanceToSqr(center) <= radius * radius;
     }
@@ -82,16 +101,13 @@ public final class SpacePlanetSystem {
         return destroyedAt >= 0L && currentTick - destroyedAt < RESPAWN_TICKS;
     }
 
-    private static boolean isSeparated(Vec3 candidate, double radius, List<PlanetPlacement> placements) {
-        for (PlanetPlacement placed : placements) {
-            double minimum = radius + placed.definition().radius() + 18.0D;
-            if (candidate.distanceToSqr(placed.position()) < minimum * minimum) return false;
-        }
-        return true;
-    }
-
     private static long floorRegion(double coordinate) {
         return (long) Math.floor(coordinate / REGION_SIZE);
+    }
+
+    private static long solarSeed(UUID playerId, long regionX, long regionZ) {
+        return playerId.getMostSignificantBits() ^ Long.rotateLeft(playerId.getLeastSignificantBits(), 19)
+                ^ regionX * 341873128712L ^ regionZ * 132897987541L;
     }
 
     private static SpacePlanetDefinition planet(String id, String name, String dimension, double radius) {
@@ -103,6 +119,9 @@ public final class SpacePlanetSystem {
                 "textures/environment/planets/" + id + ".png");
     }
 
-    public record PlanetPlacement(int index, SpacePlanetDefinition definition, Vec3 position) {
+    public record PlanetPlacement(int index, SpacePlanetDefinition definition, Vec3 position, double orbitRadius) {
+    }
+
+    public record StarPlacement(Vec3 position, double size, int color) {
     }
 }

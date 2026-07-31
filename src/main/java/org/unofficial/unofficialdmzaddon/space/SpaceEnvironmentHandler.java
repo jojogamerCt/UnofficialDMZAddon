@@ -133,12 +133,16 @@ public final class SpaceEnvironmentHandler {
                 .findFirst()
                 .orElse(null);
 
-        Vec3 entryPosition = player.position();
+        Vec3 entryPosition;
         if (sourcePlanet != null) {
-            Vec3 inward = player.position().subtract(sourcePlanet.position());
-            if (inward.lengthSqr() < 1.0E-6D) inward = new Vec3(1.0D, 0.0D, 0.0D);
-            entryPosition = sourcePlanet.position()
-                    .add(inward.normalize().scale(sourcePlanet.definition().radius() + 10.0D));
+            // Spawn directly above the source planet. This is deterministic, clear of its cubic bounds,
+            // and cannot point back through the sun like an impact-relative horizontal offset can.
+            double clearance = sourcePlanet.definition().radius() + 14.0D;
+            entryPosition = sourcePlanet.position().add(0.0D, clearance, 0.0D);
+        } else {
+            // Dimensions without a planet no longer inherit arbitrary coordinates that may be inside a body.
+            Vec3 sun = SpacePlanetSystem.sunPosition(player.position());
+            entryPosition = sun.add(0.0D, SpacePlanetSystem.SUN_RADIUS + 20.0D, 0.0D);
         }
         entryPosition = new Vec3(entryPosition.x, Math.max(SPACE_FLOOR_Y, entryPosition.y), entryPosition.z);
 

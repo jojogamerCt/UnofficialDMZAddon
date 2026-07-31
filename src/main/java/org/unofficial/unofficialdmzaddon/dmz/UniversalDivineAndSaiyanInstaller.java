@@ -28,6 +28,8 @@ public final class UniversalDivineAndSaiyanInstaller {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final List<Integer> UI_COSTS = List.of(120000, 180000, 260000, 360000);
     private static final List<Integer> UE_COSTS = List.of(120000, 180000);
+    private static final List<Integer> GOD_COSTS = List.of(150000, 250000);
+    public static final String GOD_FORMS_GROUP = "godforms";
     private UniversalDivineAndSaiyanInstaller() {}
 
     public static void install() {
@@ -65,7 +67,14 @@ public final class UniversalDivineAndSaiyanInstaller {
             }
             persistUniversalSkillAccess(races);
             installSaiyanForms(saiyan);
+            RaceCharacterConfig saiyanCharacter = ConfigManager.getRaceCharacter("saiyan");
+            if (saiyanCharacter != null) {
+                saiyanCharacter.getFormSkillsCosts().put(GOD_FORMS_GROUP,
+                        new RaceCharacterConfig.FormSkillCost(false, new ArrayList<>(GOD_COSTS)));
+            }
+            persistSaiyanGodCosts();
             persist("saiyan", saiyan.get(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN));
+            persist("saiyan", saiyan.get(GOD_FORMS_GROUP));
             UnofficialDMZAddon.LOGGER.info("[Unofficial DMZ Addon] Universal UI/UE access and Saiyan God branches installed for {} races.", races.size());
         } catch (Exception | LinkageError e) {
             UnofficialDMZAddon.LOGGER.error("[Unofficial DMZ Addon] Universal form installation failed", e);
@@ -116,24 +125,44 @@ public final class UniversalDivineAndSaiyanInstaller {
         return false;
     }
     private static void installSaiyanForms(Map<String, FormConfig> saiyan) {
-        FormConfig group = saiyan.get(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN);
-        if (group == null) return;
-        if (group.getForms() == null) group.setForms(new LinkedHashMap<>());
-        group.getForms().putIfAbsent("super_saiyan_god", saiyanForm("super_saiyan_god", 5, "base", "#D92F3D", "#E84C4C", "#FF665E", 2.35, 0.08));
-        group.getForms().putIfAbsent("super_saiyan_blue", saiyanForm("super_saiyan_blue", 6, "ssj", "#24CBE8", "#83F4FF", "#35DFFF", 2.75, 0.13));
-        group.getForms().putIfAbsent("super_saiyan_rose", saiyanForm("super_saiyan_rose", 7, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 3.05, 0.15));
-        group.getForms().putIfAbsent("super_saiyan_rage", saiyanForm("super_saiyan_rage", 8, "ssj2", "#F4D34A", "#63DFFF", "#E8DB55", 3.25, 0.18));
+        FormConfig superGroup = saiyan.get(SpecialRaceFormsDefinitions.SAIYAN_GROUP_SUPERSAIYAN);
+        if (superGroup == null) return;
+        if (superGroup.getForms() == null) superGroup.setForms(new LinkedHashMap<>());
+
+        // Migrate the old 10.2.x placement so existing configs cannot keep stale colors or duplicate entries.
+        superGroup.getForms().remove("super_saiyan_god");
+        superGroup.getForms().remove("super_saiyan_blue");
+        superGroup.getForms().remove("super_saiyan_rose");
+        superGroup.getForms().put("super_saiyan_rage",
+                saiyanForm("super_saiyan_rage", 8, "ssj2", "#F4D34A", "#63DFFF", "#E8DB55", 3.25, 0.18, false));
+
+        FormConfig godGroup = saiyan.get(GOD_FORMS_GROUP);
+        if (godGroup == null) godGroup = new FormConfig();
+        godGroup.setConfigVersion(FormConfig.CURRENT_VERSION);
+        godGroup.setGroupName(GOD_FORMS_GROUP);
+        godGroup.setFormType(GOD_FORMS_GROUP);
+        LinkedHashMap<String, FormConfig.FormData> forms = new LinkedHashMap<>();
+        forms.put("super_saiyan_god",
+                saiyanForm("super_saiyan_god", 1, "base", "#D92F3D", "#FF655F", "#FF3B35", 2.35, 0.08, false));
+        forms.put("super_saiyan_blue",
+                saiyanForm("super_saiyan_blue", 2, "ssj", "#22CFE8", "#91F7FF", "#24DDF4", 2.75, 0.13, true));
+        forms.put("super_saiyan_rose",
+                saiyanForm("super_saiyan_rose", 2, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 3.05, 0.15, false));
+        godGroup.setForms(forms);
+        saiyan.put(GOD_FORMS_GROUP, godGroup);
     }
 
-    private static FormConfig.FormData saiyanForm(String name, int level, String hairType, String hair, String eye, String aura, double mult, double drain) {
+    private static FormConfig.FormData saiyanForm(String name, int level, String hairType, String hair,
+                                                   String eye, String aura, double mult, double drain,
+                                                   boolean kaiokenStackable) {
         FormConfig.FormData f = new FormConfig.FormData(); f.setName(name); f.setUnlockOnSkillLevel(level);
         f.setHairType(hairType); f.setHairColor(hair); f.setEye1Color(eye); f.setEye2Color(eye);
-        f.setAuraType("kakarot"); f.setAuraColor(aura); f.setAuraLayer(1); f.setHasLightnings(level >= 7);
+        f.setAuraType("kakarot"); f.setAuraColor(aura); f.setAuraLayer(1); f.setHasLightnings(level >= 2);
         f.setLightningColor(eye); f.setStrMultiplier(mult); f.setSkpMultiplier(mult); f.setDefMultiplier(mult * 0.92);
         f.setPwrMultiplier(mult * 1.05); f.setStmMultiplier(1.25); f.setVitMultiplier(1.20); f.setEneMultiplier(1.30); f.setSpeedMultiplier(1.35);
         f.setEnergyDrain(drain); f.setStaminaDrain(drain * 0.35); f.setMaxMastery(100.0); f.setMasteryPerHitDealt(0.05);
         f.setMasteryPerHitReceived(0.04); f.setPassiveMasteryEveryFiveSeconds(0.003); f.setMaxStatsMultiplier(1.35); f.setMaxCostMultiplier(0.70);
-        f.setFormStackable(false); f.setIncompatibleWith(List.of()); return f;
+        f.setFormStackable(kaiokenStackable); f.setStackOnMastery(0.0); f.setIncompatibleWith(List.of()); return f;
     }
 
     private static FormConfig copy(FormConfig source) { return GSON.fromJson(GSON.toJson(source), FormConfig.class); }
@@ -157,6 +186,21 @@ public final class UniversalDivineAndSaiyanInstaller {
         }
     }
 
+
+    private static void persistSaiyanGodCosts() throws Exception {
+        Path file = FMLPaths.CONFIGDIR.get().resolve("dragonminez/races/saiyan/character.json");
+        JsonObject root;
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            root = JsonParser.parseReader(reader).getAsJsonObject();
+        }
+        JsonObject costs = root.has("formSkillsCosts") && root.get("formSkillsCosts").isJsonObject()
+                ? root.getAsJsonObject("formSkillsCosts") : new JsonObject();
+        costs.add(GOD_FORMS_GROUP, formSkillCost(GOD_COSTS));
+        root.add("formSkillsCosts", costs);
+        try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
+            GSON.toJson(root, writer);
+        }
+    }
     private static void persistRaceSkillCosts(String race) throws Exception {
         Path file = FMLPaths.CONFIGDIR.get().resolve("dragonminez/races").resolve(race).resolve("character.json");
         JsonObject root;

@@ -8,6 +8,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+import org.unofficial.unofficialdmzaddon.dmz.AddonFormCommand;
 import org.unofficial.unofficialdmzaddon.dmz.AlienCharacterSanitizer;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRacialPassiveHandler;
 import org.unofficial.unofficialdmzaddon.dmz.FormSpecialBuffHandler;
@@ -33,6 +34,7 @@ public final class UnofficialDMZAddon {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UnofficialDMZConfig.SPEC,
                 MODID + "-common.toml");
 
+        MinecraftForge.EVENT_BUS.addListener(AddonFormCommand::register);
         MinecraftForge.EVENT_BUS.register(new UltraInstinctCombatHandler());
         MinecraftForge.EVENT_BUS.register(new AlienCharacterSanitizer());
         MinecraftForge.EVENT_BUS.register(new AlienRacialPassiveHandler());

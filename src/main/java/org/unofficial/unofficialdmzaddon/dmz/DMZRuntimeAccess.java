@@ -19,12 +19,14 @@ public final class DMZRuntimeAccess {
     public static Optional<UltraInstinctState> getUltraInstinctState(Player player) {
         return getStatsData(player).flatMap(data -> {
             var character = data.getCharacter();
-            if (!character.hasActiveStackForm()) {
-                return Optional.empty();
-            }
+            boolean independent = character.hasActiveForm()
+                    && OMEN_FORM_GROUP.equalsIgnoreCase(character.getActiveFormGroup());
+            boolean legacyStack = character.hasActiveStackForm()
+                    && OMEN_FORM_GROUP.equalsIgnoreCase(character.getActiveStackFormGroup());
+            if (!independent && !legacyStack) return Optional.empty();
 
-            String activeGroup = character.getActiveStackFormGroup();
-            String activeForm = character.getActiveStackForm();
+            String activeGroup = independent ? character.getActiveFormGroup() : character.getActiveStackFormGroup();
+            String activeForm = independent ? character.getActiveForm() : character.getActiveStackForm();
             if (!OMEN_FORM_GROUP.equalsIgnoreCase(activeGroup)) {
                 return Optional.empty();
             }
@@ -32,7 +34,9 @@ public final class DMZRuntimeAccess {
                 return Optional.empty();
             }
 
-            double mastery = character.getStackFormMasteries().getMastery(activeGroup, activeForm);
+            double mastery = independent
+                    ? character.getFormMasteries().getMastery(activeGroup, activeForm)
+                    : character.getStackFormMasteries().getMastery(activeGroup, activeForm);
             int tier = UltraInstinctDefinitions.tierForForm(activeForm);
             return Optional.of(new UltraInstinctState(data, activeForm, tier, mastery));
         });

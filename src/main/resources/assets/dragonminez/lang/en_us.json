@@ -31,7 +31,7 @@
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_blue":  "Super Saiyan Blue",
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rose":  "Super Saiyan Rosé",
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rage":  "Super Saiyan Rage",
-    "skill.dragonminez.ultrainstinct.desc":  "Universal divine form tree. Sign grants evasive precision; Mastered grants silver-blue eyes and perfected defense; Autonomous and True improve dodge, precision strikes, speed, and energy control. Hairless races receive matching body colors.",
+    "skill.dragonminez.ultrainstinct.desc":  "Universal divine form tree. Every tier automatically cancels successful dodges. Sign has a 50-70% dodge chance, Mastered 65-82%, Autonomous 78-91%, and True 88-97%, based on mastery; higher tiers also dodge farther and consume less energy. Hairless races receive matching body colors.",
     "skill.dragonminez.ultraego.desc":  "Universal destroyer form tree. Purple eyes and hair/body coloration; damage increases as health falls, with Mastered Ultra Ego providing the strongest destructive scaling.",
     "skill.dragonminez.supersaiyan.desc":  "Saiyan transformation tree. God grants divine efficiency and resistance; Blue grants controlled power and Kaioken compatibility; Rosé grants damage and life restoration; Rage grows stronger as health falls. Native Super Saiyan tiers retain their multipliers plus universal form buffs.",
     "skill.dragonminez.racial_alien.desc":  "Blood-Fueled Ki refunds 25% of Ki spent, drains health equal to 12.5% of the original cost, then adds the drained health as bonus damage to the next hit.",
@@ -83,4 +83,9 @@
     "race.dragonminez.alien.group.ultraego":  "Ultra Ego",
     "race.dragonminez.alien.form.ultraego.sign":  "Ultra Ego Sign",
     "race.dragonminez.alien.form.ultraego.mastered":  "Mastered Ultra Ego"
-}
+,
+    "gui.dragonminez.radial.godforms": "God Forms",
+    "race.dragonminez.saiyan.group.godforms": "God Forms",
+    "race.dragonminez.saiyan.form.godforms.super_saiyan_god": "Super Saiyan God",
+    "race.dragonminez.saiyan.form.godforms.super_saiyan_blue": "Super Saiyan Blue",
+    "race.dragonminez.saiyan.form.godforms.super_saiyan_rose": "Super Saiyan Rosé"}

@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.unofficial.unofficialdmzaddon.dmz.SpecialRaceFormsDefinitions;
+import org.unofficial.unofficialdmzaddon.dmz.UniversalDivineAndSaiyanInstaller;
 
 /** Keeps addon transformations mutually exclusive with other active transformation groups. */
 @Mixin(value = TransformationsHelper.class, remap = false)
@@ -17,6 +18,10 @@ public abstract class DivineFormSelectionMixin {
     @Inject(method = "isSelectableForm", at = @At("HEAD"), cancellable = true)
     private static void unofficialdmzaddon$denyExclusiveSelectionWhileTransformed(
             StatsData data, String group, String form, CallbackInfoReturnable<Boolean> cir) {
+        if (!isGodPathAllowed(data, group, form)) {
+            cir.setReturnValue(false);
+            return;
+        }
         if (isExclusiveTarget(data, group, form) && isBlockedByCurrentTransformation(data, group)) {
             cir.setReturnValue(false);
         }
@@ -28,12 +33,25 @@ public abstract class DivineFormSelectionMixin {
         if (data == null || data.getCharacter() == null) return;
         String targetGroup = TransformationsHelper.getTransformTargetGroup(data);
         FormConfig.FormData candidate = TransformationsHelper.getNextFormCandidate(data);
+        if (candidate != null && !isGodPathAllowed(data, targetGroup, candidate.getName())) {
+            cir.setReturnValue(null);
+            return;
+        }
         if (candidate != null && isExclusiveTarget(data, targetGroup, candidate.getName())
                 && isBlockedByCurrentTransformation(data, targetGroup)) {
             cir.setReturnValue(null);
         }
     }
 
+
+    private static boolean isGodPathAllowed(StatsData data, String group, String form) {
+        if (data == null || data.getResources() == null || group == null || form == null) return true;
+        if (!UniversalDivineAndSaiyanInstaller.GOD_FORMS_GROUP.equalsIgnoreCase(group)) return true;
+        int alignment = data.getResources().getAlignment();
+        if ("super_saiyan_rose".equalsIgnoreCase(form)) return alignment <= 40;
+        if ("super_saiyan_blue".equalsIgnoreCase(form)) return alignment > 40;
+        return true;
+    }
     private static boolean isBlockedByCurrentTransformation(StatsData data, String targetGroup) {
         if (data == null || data.getCharacter() == null) return false;
         var character = data.getCharacter();

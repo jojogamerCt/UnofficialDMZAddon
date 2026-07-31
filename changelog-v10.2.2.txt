@@ -1,0 +1,23 @@
+Unofficial DMZ Addon 10.2.2
+
+God Forms
+- Moved Super Saiyan God, Super Saiyan Blue, and Super Saiyan Rosé into a dedicated God Forms skill branch and X-key utility-wheel section
+- Super Saiyan Rosé now replaces Super Saiyan Blue for Saiyans on the Evil alignment path; non-Evil Saiyans retain Super Saiyan Blue
+- Corrected the swapped Super Saiyan Blue and Super Saiyan Rosé hair, eye, and aura colors, including migration of existing generated configs
+- Super Saiyan Blue can now stack with Kaioken; Super Saiyan God and Super Saiyan Rosé remain independent
+- God Forms now display their aura automatically even when the normal Aura Status toggle is disabled
+- Added purchasable God Forms skill levels to the Saiyan transformation tree
+
+Ultra Instinct
+- Fixed every Ultra Instinct tier failing to dodge after UI was converted from a stack form into an independent form
+- Dodge chance, energy cost, distance, particles, sound, and the alternating body-lean feedback now use the active UI tier and mastery correctly
+
+Space
+- Reworked planets as Minecraft-style cubes instead of spheres
+- Arranged planets in stable, separated orbital bands around a central cubic sun
+- Added nearby world-space stars, faint orbit paths, and stronger speed streaks so player and space-pod movement is immediately visible through parallax
+- Scattered multiple star colors and sizes through each Space sector to make the dimension feel more alive
+
+Commands
+- Added /dmzform grant <targets> <form> for administrators to grant any form available to the target race, including Beast, Super Saiyan God, Super Saiyan Blue, and Super Saiyan Rosé
+- Rosé granted by command still follows the Evil-path requirement

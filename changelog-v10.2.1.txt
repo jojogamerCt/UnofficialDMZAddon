@@ -1,35 +1,20 @@
-- Added the first version of the Dragon Ball-inspired space system
-- Added Space as an empty, planet-free dimension prepared for future planet content
-- Integrated Space into DragonMineZ's native space-pod destination menu
-- Made Space unlock only after learning DragonMineZ's Fly skill
-- Added weightless player movement and safe fall handling while in Space
-- Added an invisible flight plane at the arrival altitude that keeps players and space pods out of the void without replacing the player's flying animation
-- Generated a Dragon Ball anime-inspired space texture and made it loop seamlessly on both axes
-- Replaced hard-edged cube skyboxes with a continuous spherical sky renderer
-- Added a programmatically drawn pixel-art Space icon matching the native destination menu
-- Updated the addon version to 10.2.1
-- Updated the CurseForge description with the current space-system information
-- Added procedural planets for Earth, Namek, and Sacred Kai's Planet
-- Scaled every space planet differently to reflect its Dragon Ball canon role and relative size
-- Added deterministic randomized planet placement that keeps all planets near each player while preventing overlap
-- Added proximity travel: approaching a planet transfers the player and their space pod into its dimension
-- Made space planets destructible by the player's ki attacks
-- Added a programmatically generated explosion texture, destruction fade, five-minute respawn timer, and respawn fade
-- Added a reusable PowerShell generator for all procedural planet and explosion textures
-- Removed the non-planet Otherworld and Time Chamber bodies from Space
-- Space travel now remembers the source dimension and spawns the player with their pod beside its matching planet
-- Fixed a server crash caused by modifying Space's live player list during proximity travel
-- Every Space entry now guarantees a space pod, even when the player did not arrive through the pod menu
-- Fixed planet arrivals occasionally placing players underground by scanning for a solid, dry surface with two blocks of headroom
+Unofficial DMZ Addon 10.2.1
 
-- Made DragonMineZ space pods travel at triple normal flight speed while piloted in Space
-- Planet proximity travel now follows the mounted pod and places the player inside a pod on arrival
+Space
+- Space is accessible from DragonMineZ's space-pod menu after learning the Fly skill
+- Space uses weightless flight, a seamless Dragon Ball-inspired sky, and a safety floor that prevents players and pods from falling into the void
+- Only actual planetary dimensions appear as nearby, separated worlds; approaching a world travels to its dimension
+- Piloted space pods move at triple normal flight speed and can enter planets while keeping the rider mounted
+- Traveling into a planet without a pod now leaves the player without a pod on arrival
+- Unoccupied pods left in Space remain saved there, while a ridden pod transfers without leaving a duplicate behind
+- Space pod doors close correctly when entering or traveling through Space
+- Planet arrivals now search for solid, dry ground with enough headroom instead of placing players underground
+- Planets can be destroyed with the owner's ki attacks, fade out with an explosion, and reform after five minutes
+- Fixed the world-travel crash caused by modifying Space's active player list during iteration
 
-- Guaranteed that the source Space pod is removed before planet travel so only the destination pod remains
-- Fixed the Space safety floor for both players and boosted space pods, including downward movement after the speed boost
-
-- Added a brief alternating 45-degree body lean when Ultra Instinct successfully dodges an attack
-
-- Traveling into a planet without a space pod now leaves the player without a pod on arrival
-- Unoccupied space pods left behind in Space now remain saved there when players travel to planets
-- Space pod doors now close when the pod enters or travels through Space
+Ultra Instinct
+- Successful Ultra Instinct dodges now cancel the attack before damage, hurt animation, damage numbers, or invulnerability frames are applied
+- Increased dodge frequency based on the active form and its mastery: Sign 50-70%, Mastered 65-82%, Autonomous 78-91%, and True 88-97%
+- Higher Ultra Instinct forms dodge farther, gain more vertical lift, and consume less energy per dodge
+- Dodge movement now uses authoritative server velocity so normal movement input cannot suppress it
+- Added synchronized particles, sound, and a brief alternating 45-degree body lean when a dodge succeeds

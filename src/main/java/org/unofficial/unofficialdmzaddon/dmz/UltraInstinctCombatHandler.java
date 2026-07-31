@@ -46,23 +46,19 @@ public final class UltraInstinctCombatHandler {
         DMZRuntimeAccess.getUltraInstinctState(victim).ifPresent(state -> {
             double masteryRatio = masteryRatio(state.mastery());
             double tierRatio = tierRatio(state.tier());
+            DodgeProfile profile = dodgeProfile(state.tier(), masteryRatio);
 
-            float dodgeChance = lerp(
-                    lerp(0.20, 0.34, tierRatio),
-                    lerp(0.45, 0.68, tierRatio),
-                    masteryRatio
-            );
-            if (victim.getRandom().nextFloat() > dodgeChance) {
+            if (victim.getRandom().nextFloat() >= profile.chance()) {
                 return;
             }
 
-            double kiCostRatio = lerp(0.020, 0.032, tierRatio);
-            int kiCost = Math.max(2, (int) Math.ceil(state.maxEnergy() * kiCostRatio));
+            int kiCost = Math.max(1, (int) Math.ceil(state.maxEnergy() * profile.energyCostRatio()));
             if (!state.consumeEnergy(kiCost)) {
                 return;
             }
 
-            // Cancel the entire attack – no hurt animation, no invulnerability, no damage.
+            // LivingAttackEvent is the earliest cancellable damage event. Stopping it here
+            // guarantees no health loss, hurt animation, invulnerability frames, or damage numbers.
             event.setCanceled(true);
 
             Vec3 direction = victim.position().subtract(attacker.position());
@@ -71,12 +67,14 @@ public final class UltraInstinctCombatHandler {
             }
             direction = direction.normalize();
 
-            double push = lerp(
-                    lerp(0.45, 0.70, tierRatio),
-                    lerp(0.70, 0.95, tierRatio),
-                    masteryRatio
+            // Set authoritative velocity instead of adding knockback. Player input can no longer
+            // erase the dodge before the server synchronizes it to the client.
+            Vec3 currentMovement = victim.getDeltaMovement();
+            victim.setDeltaMovement(
+                    direction.x * profile.distance(),
+                    Math.max(currentMovement.y, profile.verticalLift()),
+                    direction.z * profile.distance()
             );
-            victim.push(direction.x * push, 0.12, direction.z * push);
             victim.hurtMarked = true;
             boolean leanRight = victim.getPersistentData().getBoolean("unofficialdmzaddon:ui_dodge_side");
             victim.getPersistentData().putBoolean("unofficialdmzaddon:ui_dodge_side", !leanRight);
@@ -178,6 +176,65 @@ public final class UltraInstinctCombatHandler {
                 level.playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 0.9f, 1.1f);
             }
         });
+    }
+
+    private static DodgeProfile dodgeProfile(int tier, double masteryRatio) {
+        double chanceAtZeroMastery;
+        double chanceAtFullMastery;
+        double distanceAtZeroMastery;
+        double distanceAtFullMastery;
+        double verticalLift;
+        double energyCostAtZeroMastery;
+        double energyCostAtFullMastery;
+
+        switch (Math.max(1, Math.min(4, tier))) {
+            case 1 -> {
+                chanceAtZeroMastery = 0.50;
+                chanceAtFullMastery = 0.70;
+                distanceAtZeroMastery = 0.80;
+                distanceAtFullMastery = 1.05;
+                verticalLift = 0.12;
+                energyCostAtZeroMastery = 0.025;
+                energyCostAtFullMastery = 0.018;
+            }
+            case 2 -> {
+                chanceAtZeroMastery = 0.65;
+                chanceAtFullMastery = 0.82;
+                distanceAtZeroMastery = 1.00;
+                distanceAtFullMastery = 1.30;
+                verticalLift = 0.15;
+                energyCostAtZeroMastery = 0.021;
+                energyCostAtFullMastery = 0.014;
+            }
+            case 3 -> {
+                chanceAtZeroMastery = 0.78;
+                chanceAtFullMastery = 0.91;
+                distanceAtZeroMastery = 1.25;
+                distanceAtFullMastery = 1.60;
+                verticalLift = 0.18;
+                energyCostAtZeroMastery = 0.017;
+                energyCostAtFullMastery = 0.010;
+            }
+            default -> {
+                chanceAtZeroMastery = 0.88;
+                chanceAtFullMastery = 0.97;
+                distanceAtZeroMastery = 1.50;
+                distanceAtFullMastery = 1.90;
+                verticalLift = 0.22;
+                energyCostAtZeroMastery = 0.013;
+                energyCostAtFullMastery = 0.007;
+            }
+        }
+
+        return new DodgeProfile(
+                lerp(chanceAtZeroMastery, chanceAtFullMastery, masteryRatio),
+                lerp(distanceAtZeroMastery, distanceAtFullMastery, masteryRatio),
+                verticalLift,
+                lerp(energyCostAtZeroMastery, energyCostAtFullMastery, masteryRatio)
+        );
+    }
+
+    private record DodgeProfile(float chance, float distance, double verticalLift, float energyCostRatio) {
     }
 
     private static float lerp(double min, double max, double ratio) {
