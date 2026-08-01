@@ -29,11 +29,11 @@
     "message.unofficialdmzaddon.special_form.black.requirements":  "Black Form needs Fifth Form mastery and heavy battle pressure.",
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_god":  "Super Saiyan God",
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_blue":  "Super Saiyan Blue",
-    "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rose":  "Super Saiyan RosÃ©",
+    "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rose":  "Super Saiyan Ros\u00e9",
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rage":  "Super Saiyan Rage",
     "skill.dragonminez.ultrainstinct.desc":  "Universal divine form tree. Every tier automatically cancels successful dodges. Sign has a 50-70% dodge chance, Mastered 65-82%, Autonomous 78-91%, and True 88-97%, based on mastery; higher tiers also dodge farther and consume less energy. Hairless races receive matching body colors.",
     "skill.dragonminez.ultraego.desc":  "Universal destroyer form tree. Purple eyes and hair/body coloration; damage increases as health falls, with Mastered Ultra Ego providing the strongest destructive scaling.",
-    "skill.dragonminez.supersaiyan.desc":  "Saiyan transformation tree. God grants divine efficiency and resistance; Blue grants controlled power and Kaioken compatibility; RosÃ© grants damage and life restoration; Rage grows stronger as health falls. Native Super Saiyan tiers retain their multipliers plus universal form buffs.",
+    "skill.dragonminez.supersaiyan.desc":  "Saiyan transformation tree. God grants divine efficiency and resistance; Blue grants controlled power and Kaioken compatibility; Ros\u00e9 grants damage and life restoration; Rage grows stronger as health falls. Native Super Saiyan tiers retain their multipliers plus universal form buffs.",
     "skill.dragonminez.racial_alien.desc":  "Blood-Fueled Ki refunds 25% of Ki spent, drains health equal to 12.5% of the original cost, then adds the drained health as bonus damage to the next hit.",
     "race.dragonminez.human.group.ultrainstinct":  "Ultra Instinct",
     "race.dragonminez.human.form.ultrainstinct.sign":  "Ultra Instinct Sign",
@@ -87,6 +87,6 @@
     "race.dragonminez.saiyan.group.godforms":  "God Forms",
     "race.dragonminez.saiyan.form.godforms.super_saiyan_god":  "Super Saiyan God",
     "race.dragonminez.saiyan.form.godforms.super_saiyan_blue":  "Super Saiyan Blue",
-    "race.dragonminez.saiyan.form.godforms.super_saiyan_rose":  "Super Saiyan RosÃ©",
+    "race.dragonminez.saiyan.form.godforms.super_saiyan_rose":  "Super Saiyan Ros\u00e9",
     "race.dragonminez.saiyan.form.godforms.super_saiyan_blue_evolved":  "Super Saiyan Blue Evolved"
 }

@@ -25,6 +25,7 @@ God Forms
 Other fixes
 - Removed automatic form-buff chat messages when transforming.
 - Added Blue Evolved aliases to /dmzform grant, including ssjbe and blue_evolved.
+- Fixed the Super Saiyan Rose name and description displaying corrupted characters in production builds.
 
 Credit
 - Thanks to SpyrooTUR for the detailed 10.2.3 issue report and feature feedback.
