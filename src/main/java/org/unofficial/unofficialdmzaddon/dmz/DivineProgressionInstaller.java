@@ -5,6 +5,7 @@ import com.dragonminez.common.config.DefaultFormsFactory;
 import com.dragonminez.common.config.FormConfig;
 import com.dragonminez.common.config.RaceCharacterConfig;
 import com.dragonminez.common.config.SkillsConfig;
+import com.dragonminez.common.hair.HairManager;
 import com.dragonminez.common.util.lists.StackForms;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -181,6 +182,7 @@ public final class DivineProgressionInstaller {
 
         migrateLegacyAddonDuplicates(existing, defaults, groupName);
         defaults.getForms().forEach(existing.getForms()::putIfAbsent);
+        copyCanonicalDivineAuras(existing, defaults);
         if (existing.getGroupName() == null || existing.getGroupName().isBlank()) {
             existing.setGroupName(groupName);
         }
@@ -446,6 +448,17 @@ public final class DivineProgressionInstaller {
                 }
             }
 
+            for (Map.Entry<String, FormConfig.FormData> entry : defaults.getForms().entrySet()) {
+                JsonObject form = forms.getAsJsonObject(entry.getKey());
+                if (form != null) writeCanonicalAura(form, entry.getValue());
+                if (form != null && UltraInstinctDefinitions.FORM_AUTONOMOUS.equalsIgnoreCase(entry.getKey())) {
+                    form.addProperty("hairType", "base");
+                    form.addProperty("hairColor", entry.getValue().getHairColor());
+                    form.addProperty("keepBaseFormHeadBones", true);
+                    form.addProperty("forcedHairCode", entry.getValue().getForcedHairCode());
+                }
+            }
+
             if (!root.has("groupName")) root.addProperty("groupName", groupName);
             root.addProperty("formType", groupName);
             for (var formEntry : forms.entrySet()) {
@@ -510,7 +523,7 @@ public final class DivineProgressionInstaller {
         Map<String, FormConfig.FormData> forms = group.getForms();
         forms.putIfAbsent(UltraInstinctDefinitions.FORM_AUTONOMOUS,
                 addonUltraInstinctForm(UltraInstinctDefinitions.FORM_AUTONOMOUS, 3,
-                        "ssj2", "#E7EEFF", "#E3ECFF", "#FCFEFF", "#BEE8FF",
+                        "base", "#E7EEFF", "#E3ECFF", "#FCFEFF", "#BEE8FF",
                         1.72, 1.84, 1.55, 1.60, 1.42, 1.84, 1.40, 1.44,
                         0.045, 0.070, 0.06, 0.07, 1.34,
                         StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED, 55.0));
@@ -520,6 +533,7 @@ public final class DivineProgressionInstaller {
                         1.88, 2.00, 1.68, 1.76, 1.52, 2.00, 1.52, 1.55,
                         0.055, 0.085, 0.07, 0.08, 1.38,
                         StackForms.GROUP_ULTRAINSTINCT + "." + UltraInstinctDefinitions.FORM_AUTONOMOUS, 75.0));
+        configureUltraInstinctAuras(group);
         return group;
     }
 
@@ -530,7 +544,9 @@ public final class DivineProgressionInstaller {
         } catch (IOException e) {
             throw new IllegalStateException("DragonMineZ could not create its Ultra Instinct defaults", e);
         }
-        return makeIndependent(groups.get(StackForms.GROUP_ULTRAINSTINCT));
+        FormConfig group = makeIndependent(groups.get(StackForms.GROUP_ULTRAINSTINCT));
+        configureUltraInstinctAuras(group);
+        return group;
     }
 
     private static FormConfig createOriginalUltraEgoGroup() {
@@ -540,9 +556,83 @@ public final class DivineProgressionInstaller {
         } catch (IOException e) {
             throw new IllegalStateException("DragonMineZ could not create its Ultra Ego defaults", e);
         }
-        return makeIndependent(groups.get(StackForms.GROUP_ULTRAEGO));
+        FormConfig group = makeIndependent(groups.get(StackForms.GROUP_ULTRAEGO));
+        configureUltraEgoAuras(group);
+        return group;
     }
 
+    private static void configureUltraInstinctAuras(FormConfig group) {
+        if (group == null || group.getForms() == null) return;
+        int tier = 0;
+        for (FormConfig.FormData form : group.getForms().values()) {
+            String key = form.getName() == null ? "" : form.getName().toLowerCase();
+            boolean mastered = key.contains("mastered") || key.contains("autonomous");
+            boolean trueUi = key.equals(UltraInstinctDefinitions.FORM_TRUE);
+            form.setAuraType("god");
+            // Suppress the opaque inner oval while retaining the outer UI flame and world effects.
+            form.setAuraLayer(-1);
+            form.setAuraColor(trueUi ? "#D9CCFF" : mastered ? "#F8FCFF" : "#DDE8F2");
+            form.setExtraAuraType("kakarot");
+            form.setExtraAuraLayer(2);
+            form.setExtraAuraColor(trueUi ? "#A993FF" : mastered ? "#AEEBFF" : "#BFD8E8");
+            form.setHasLightnings(mastered || trueUi || tier >= 2);
+            form.setLightningColor(trueUi ? "#D9C7FF" : "#C7F2FF");
+            if (key.equals(UltraInstinctDefinitions.FORM_AUTONOMOUS)) {
+                form.setForcedHairCode(HairManager.toCode(HairManager.getPresetHair(1, "#E7EEFF")));
+            }
+            tier++;
+        }
+    }
+
+    private static void configureUltraEgoAuras(FormConfig group) {
+        if (group == null || group.getForms() == null) return;
+        int tier = 0;
+        for (FormConfig.FormData form : group.getForms().values()) {
+            boolean mastered = form.getName() != null && form.getName().toLowerCase().contains("mastered");
+            form.setAuraType("god");
+            form.setAuraLayer(1);
+            form.setAuraColor(mastered ? "#6F20C8" : "#51207F");
+            form.setExtraAuraType("kakarot");
+            form.setExtraAuraLayer(2);
+            form.setExtraAuraColor(mastered ? "#F03CFF" : "#B52CE0");
+            form.setHasLightnings(mastered || tier > 0);
+            form.setLightningColor(mastered ? "#FF74FF" : "#C85CFF");
+            tier++;
+        }
+    }
+
+    private static void copyCanonicalDivineAuras(FormConfig target, FormConfig defaults) {
+        for (Map.Entry<String, FormConfig.FormData> entry : defaults.getForms().entrySet()) {
+            FormConfig.FormData current = target.getFormByKey(entry.getKey());
+            FormConfig.FormData aura = entry.getValue();
+            if (current == null || aura == null) continue;
+            current.setAuraType(aura.getAuraType());
+            current.setAuraLayer(aura.getAuraLayer());
+            current.setAuraColor(aura.getAuraColor());
+            current.setExtraAuraType(aura.getExtraAuraType());
+            current.setExtraAuraLayer(aura.getExtraAuraLayer());
+            current.setExtraAuraColor(aura.getExtraAuraColor());
+            current.setHasLightnings(aura.getHasLightnings());
+            current.setLightningColor(aura.getLightningColor());
+            if (UltraInstinctDefinitions.FORM_AUTONOMOUS.equalsIgnoreCase(entry.getKey())) {
+                current.setHairType("base");
+                current.setHairColor(aura.getHairColor());
+                current.setKeepBaseFormHeadBones(true);
+                current.setForcedHairCode(aura.getForcedHairCode());
+            }
+        }
+    }
+
+    private static void writeCanonicalAura(JsonObject target, FormConfig.FormData aura) {
+        target.addProperty("auraType", aura.getAuraType());
+        target.addProperty("auraLayer", aura.getAuraLayer());
+        target.addProperty("auraColor", aura.getAuraColor());
+        target.addProperty("extraAuraType", aura.getExtraAuraType());
+        target.addProperty("extraAuraLayer", aura.getExtraAuraLayer());
+        target.addProperty("extraAuraColor", aura.getExtraAuraColor());
+        target.addProperty("hasLightnings", aura.getHasLightnings());
+        target.addProperty("lightningColor", aura.getLightningColor());
+    }
     private static FormConfig makeIndependent(FormConfig group) {
         if (group == null) return null;
         group.setFormType(group.getGroupName());

@@ -2,6 +2,7 @@ package org.unofficial.unofficialdmzaddon.mixin;
 
 import com.dragonminez.common.stats.character.Character;
 import com.dragonminez.common.stats.extras.FormMasteries;
+import com.dragonminez.common.stats.extras.UsedForms;
 import com.dragonminez.common.util.lists.StackForms;
 import net.minecraft.nbt.CompoundTag;
 import org.spongepowered.asm.mixin.Final;
@@ -27,6 +28,9 @@ public abstract class CharacterSafetyMixin {
     @Shadow private String selectedStackForm;
     @Shadow private String activeStackForm;
     @Shadow @Final private FormMasteries formMasteries;
+    @Shadow private UsedForms formsUsedBefore;
+    @Shadow private String previousFormGroup;
+    @Shadow private String previousForm;
     @Shadow @Final private FormMasteries stackFormMasteries;
     @Shadow private String bodyColor;
     @Shadow private String bodyColor2;
@@ -64,8 +68,28 @@ public abstract class CharacterSafetyMixin {
             selectedStackFormGroup = "";
             selectedStackForm = "";
         }
+
+        migrateSaiyanGodForms();
     }
 
+    private void migrateSaiyanGodForms() {
+        for (String form : new String[] {"super_saiyan_god", "super_saiyan_blue", "super_saiyan_rose"}) {
+            double oldMastery = formMasteries.getMastery("supersaiyan", form);
+            double current = formMasteries.getMastery("godforms", form);
+            if (oldMastery > current) formMasteries.setMastery("godforms", form, oldMastery, 100.0);
+            if (formsUsedBefore != null && formsUsedBefore.getFormGroup("supersaiyan").contains(form)) {
+                formsUsedBefore.putForm("godforms", form);
+            }
+        }
+        if (isMovedGodForm(selectedForm) && "supersaiyan".equalsIgnoreCase(selectedFormGroup)) selectedFormGroup = "godforms";
+        if (isMovedGodForm(activeForm) && "supersaiyan".equalsIgnoreCase(activeFormGroup)) activeFormGroup = "godforms";
+        if (isMovedGodForm(previousForm) && "supersaiyan".equalsIgnoreCase(previousFormGroup)) previousFormGroup = "godforms";
+    }
+
+    private static boolean isMovedGodForm(String form) {
+        return form != null && (form.equalsIgnoreCase("super_saiyan_god")
+                || form.equalsIgnoreCase("super_saiyan_blue") || form.equalsIgnoreCase("super_saiyan_rose"));
+    }
     private void migrateMastery(String group, String... forms) {
         for (String form : forms) {
             double oldMastery = stackFormMasteries.getMastery(group, form);

@@ -1,5 +1,11 @@
 Unofficial DMZ Addon 10.2.2
 
+Migration
+- Added automatic, idempotent saved-player migration from 10.2.1 to 10.2.2.
+- Existing Super Saiyan God, Blue, and Rose unlock progress, mastery, used-form history, active selection, and previous-form state now move cleanly from Super Forms to God Forms.
+- Old customized radial-menu layouts are rewritten to the new God Forms category instead of retaining stale entries.
+- Moved the 10.2.2 DragonMineZ UI and aura patches into the addon's production mixins, fixing exported jars silently falling back to the older official wheel and behavior.
+
 God Forms
 - Moved Super Saiyan God, Super Saiyan Blue, and Super Saiyan Rosé into a dedicated God Forms skill branch and X-key utility-wheel section
 - Super Saiyan Rosé now replaces Super Saiyan Blue for Saiyans on the Evil alignment path; non-Evil Saiyans retain Super Saiyan Blue
@@ -11,6 +17,12 @@ God Forms
 Ultra Instinct
 - Fixed every Ultra Instinct tier failing to dodge after UI was converted from a stack form into an independent form
 - Dodge chance, energy cost, distance, particles, sound, and the alternating body-lean feedback now use the active UI tier and mastery correctly
+- Added persistent tier-scaled Ultra Instinct auras with a silver-white divine core, pale blue outer flow, calm rising motes, and blue-white lightning on advanced tiers.
+- Removed the opaque inner UI aura layer while retaining the outer flame, lightning, floating rocks, ground smoke, and persistent behavior.
+- Corrected Autonomous Ultra Instinct to use silver Goku base-hair geometry instead of the generic Super Saiyan 2 preset. Existing generated form configs migrate automatically.
+
+Ultra Ego
+- Added persistent tier-scaled Ultra Ego auras with a dense violet core, magenta flame shell, rising destruction embers, and bright purple lightning on Mastered Ultra Ego.
 
 Space
 - Reworked planets as Minecraft-style cubes instead of spheres

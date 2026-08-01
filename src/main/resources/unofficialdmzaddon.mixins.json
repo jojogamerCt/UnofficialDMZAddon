@@ -8,11 +8,16 @@
     "CharacterSafetyMixin",
     "DivineFormSelectionMixin",
     "AlienFullPowerScalingMixin",
-    "RemovedRaceFilterMixin"
+    "RemovedRaceFilterMixin",
+    "TickHandlerAuraMixin"
   ],
   "client": [
     "BoneVisibilityHandlerMixin",
-    "FirstPersonManagerMixin"
+    "FirstPersonManagerMixin",
+    "RadialFormsAccessor",
+    "RadialFormsMixin",
+    "RadialLayoutStoreMixin",
+    "UtilityMenuScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -9,6 +9,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.unofficial.unofficialdmzaddon.dmz.AddonFormCommand;
+import org.unofficial.unofficialdmzaddon.dmz.AddonPlayerMigrationHandler;
 import org.unofficial.unofficialdmzaddon.dmz.AlienCharacterSanitizer;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRacialPassiveHandler;
 import org.unofficial.unofficialdmzaddon.dmz.FormSpecialBuffHandler;
@@ -39,6 +40,7 @@ public final class UnofficialDMZAddon {
         MinecraftForge.EVENT_BUS.register(new AlienCharacterSanitizer());
         MinecraftForge.EVENT_BUS.register(new AlienRacialPassiveHandler());
         MinecraftForge.EVENT_BUS.register(new FormSpecialBuffHandler());
+        MinecraftForge.EVENT_BUS.register(new AddonPlayerMigrationHandler());
         MinecraftForge.EVENT_BUS.register(new SpaceEnvironmentHandler());
         // PlayerHudRenderer auto-registers via @Mod.EventBusSubscriber(value = Dist.CLIENT)
     }
