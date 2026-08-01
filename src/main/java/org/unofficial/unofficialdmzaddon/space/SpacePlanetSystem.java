@@ -13,18 +13,19 @@ import java.util.UUID;
 public final class SpacePlanetSystem {
     public static final long RESPAWN_TICKS = 20L * 60L * 5L;
     public static final long FADE_TICKS = 40L;
-    public static final double REGION_SIZE = 192.0D;
+    public static final double REGION_SIZE = 640.0D;
     public static final double SOLAR_PLANE_Y = 160.0D;
-    public static final double SUN_RADIUS = 14.0D;
+    public static final double SUN_RADIUS = 16.0D;
     public static final ResourceLocation EXPLOSION_TEXTURE = texture("planet_explosion");
+    public static final ResourceLocation SUN_TEXTURE = texture("sun");
 
-    private static final double[] ORBIT_RADII = {38.0D, 62.0D, 86.0D};
-    private static final double[] ORBIT_HEIGHTS = {0.0D, 7.0D, -6.0D};
+    private static final double[] ORBIT_RADII = {96.0D, 168.0D, 240.0D};
+    private static final double[] ORBIT_HEIGHTS = {0.0D, 12.0D, -10.0D};
 
     public static final List<SpacePlanetDefinition> PLANETS = List.of(
-            planet("earth", "Earth", "minecraft:overworld", 9.5D),
-            planet("namek", "Namek", "dragonminez:namek", 7.25D),
-            planet("sacred_kai", "Sacred Kai's Planet", "dragonminez:sacredkaiplanet", 5.0D)
+            planet("earth", "Earth", "minecraft:overworld", 8.5D),
+            planet("namek", "Namek", "dragonminez:namek", 6.5D),
+            planet("sacred_kai", "Sacred Kai's Planet", "dragonminez:sacredkaiplanet", 4.5D)
     );
 
     private SpacePlanetSystem() {

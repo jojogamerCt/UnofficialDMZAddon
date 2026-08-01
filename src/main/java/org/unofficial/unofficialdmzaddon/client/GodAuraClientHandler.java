@@ -36,14 +36,15 @@ public final class GodAuraClientHandler {
         }
         level.players().forEach(player -> StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(data -> {
             UUID id = player.getUUID();
-            boolean divine = DivineAuraHelper.hasPersistentAura(data);
-            if (divine && !data.getStatus().isAuraActive() && !data.getStatus().isPermanentAura()) {
+            boolean godForm = DivineAuraHelper.hasPersistentGodAura(data);
+            boolean divineSignature = DivineAuraHelper.hasPersistentAura(data);
+            if (godForm && !data.getStatus().isAuraActive() && !data.getStatus().isPermanentAura()) {
                 data.getStatus().setPermanentAura(true);
                 FORCED.add(id);
-            } else if (!divine && FORCED.remove(id)) {
+            } else if (!godForm && FORCED.remove(id)) {
                 data.getStatus().setPermanentAura(false);
             }
-            if (divine) spawnDivineSignature(player, data.getCharacter().getActiveFormGroup(),
+            if (divineSignature) spawnDivineSignature(player, data.getCharacter().getActiveFormGroup(),
                     data.getCharacter().getActiveForm());
         }));
     }

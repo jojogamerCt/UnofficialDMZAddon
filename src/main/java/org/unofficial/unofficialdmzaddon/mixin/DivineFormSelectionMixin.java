@@ -50,6 +50,7 @@ public abstract class DivineFormSelectionMixin {
         int alignment = data.getResources().getAlignment();
         if ("super_saiyan_rose".equalsIgnoreCase(form)) return alignment <= 40;
         if ("super_saiyan_blue".equalsIgnoreCase(form)) return alignment > 40;
+        if ("super_saiyan_blue_evolved".equalsIgnoreCase(form)) return alignment > 40;
         return true;
     }
     private static boolean isBlockedByCurrentTransformation(StatsData data, String targetGroup) {

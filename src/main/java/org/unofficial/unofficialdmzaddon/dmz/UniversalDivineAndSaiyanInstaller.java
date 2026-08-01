@@ -28,7 +28,7 @@ public final class UniversalDivineAndSaiyanInstaller {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final List<Integer> UI_COSTS = List.of(120000, 180000, 260000, 360000);
     private static final List<Integer> UE_COSTS = List.of(120000, 180000);
-    private static final List<Integer> GOD_COSTS = List.of(150000, 250000);
+    private static final List<Integer> GOD_COSTS = List.of(150000, 250000, 350000);
     public static final String GOD_FORMS_GROUP = "godforms";
     private UniversalDivineAndSaiyanInstaller() {}
 
@@ -67,6 +67,7 @@ public final class UniversalDivineAndSaiyanInstaller {
             }
             persistUniversalSkillAccess(races);
             installSaiyanForms(saiyan);
+            configureBlueKaiokenOverlay();
             RaceCharacterConfig saiyanCharacter = ConfigManager.getRaceCharacter("saiyan");
             if (saiyanCharacter != null) {
                 saiyanCharacter.getFormSkillsCosts().put(GOD_FORMS_GROUP,
@@ -93,7 +94,8 @@ public final class UniversalDivineAndSaiyanInstaller {
             if (hairless) form.setKeepBaseFormHeadBones(true);
             if (ui) {
                 form.setEye1Color("#DDF7FF"); form.setEye2Color("#AEEBFF");
-                if (key.contains("mastered")) form.setHairColor("#E8F2FF");
+                if (key.contains("mastered")) form.setHairColor("#BFC6D2");
+                if (key.contains("autonomous")) form.setHairColor("#AEB6C4");
                 if (hairless) {
                     String bodyColor = key.contains("mastered") ? "#E8F2FF" : "#B8CAD8";
                     form.setHairType("");
@@ -136,6 +138,7 @@ public final class UniversalDivineAndSaiyanInstaller {
         superGroup.getForms().put("super_saiyan_rage",
                 saiyanForm("super_saiyan_rage", 8, "ssj2", "#F4D34A", "#63DFFF", "#E8DB55", 3.25, 0.18, false));
 
+        superGroup.getForms().remove("super_saiyan_blue_evolved");
         FormConfig godGroup = saiyan.get(GOD_FORMS_GROUP);
         if (godGroup == null) godGroup = new FormConfig();
         godGroup.setConfigVersion(FormConfig.CURRENT_VERSION);
@@ -148,8 +151,19 @@ public final class UniversalDivineAndSaiyanInstaller {
                 saiyanForm("super_saiyan_blue", 2, "ssj", "#22CFE8", "#91F7FF", "#24DDF4", 2.75, 0.13, true));
         forms.put("super_saiyan_rose",
                 saiyanForm("super_saiyan_rose", 2, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 3.05, 0.15, false));
+        forms.put("super_saiyan_blue_evolved",
+                saiyanForm("super_saiyan_blue_evolved", 3, "ssj", "#1594C7", "#7FEAFF", "#148FCB", 4.55, 0.19, false));
         godGroup.setForms(forms);
         saiyan.put(GOD_FORMS_GROUP, godGroup);
+    }
+
+    private static void configureBlueKaiokenOverlay() {
+        FormConfig kaioken = ConfigManager.getStackFormGroup(StackForms.GROUP_KAIOKEN);
+        if (kaioken == null || kaioken.getForms() == null) return;
+        for (FormConfig.FormData form : kaioken.getForms().values()) {
+            form.setAuraLayer(3);
+            form.setTintIntensity(Math.min(0.22D, Math.max(0.10D, form.getTintIntensity() * 0.45D)));
+        }
     }
 
     private static FormConfig.FormData saiyanForm(String name, int level, String hairType, String hair,

@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -51,6 +52,18 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
     public boolean isFoggyAt(int x, int y) {
         return false;
     }
+    @Override
+    public boolean renderClouds(ClientLevel level, int ticks, float partialTick, PoseStack poseStack,
+                                double camX, double camY, double camZ, Matrix4f projectionMatrix) {
+        return true;
+    }
+
+    @Override
+    public boolean renderSnowAndRain(ClientLevel level, int ticks, float partialTick, LightTexture lightTexture,
+                                     double camX, double camY, double camZ) {
+        return true;
+    }
+
 
     @Override
     public boolean renderSky(ClientLevel level, int ticks, float partialTick, PoseStack poseStack, Camera camera,
@@ -95,9 +108,14 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
 
         // A soft outer glow is drawn without writing depth, then the solid cubic sun anchors the system.
         RenderSystem.depthMask(false);
-        drawColoredCube(matrix, sunRelative, (float) SpacePlanetSystem.SUN_RADIUS + 3.5F, 255, 126, 24, 64);
+        drawColoredCube(matrix, sunRelative, (float) SpacePlanetSystem.SUN_RADIUS + 8.0F, 255, 116, 18, 42);
+        drawColoredCube(matrix, sunRelative, (float) SpacePlanetSystem.SUN_RADIUS + 3.5F, 255, 194, 72, 110);
         RenderSystem.depthMask(true);
-        drawColoredCube(matrix, sunRelative, (float) SpacePlanetSystem.SUN_RADIUS, 255, 203, 61, 255);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, SpacePlanetSystem.SUN_TEXTURE);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 0.92F, 1.0F);
+        drawCube(matrix, sunRelative, (float) SpacePlanetSystem.SUN_RADIUS);
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
         drawOrbitRings(matrix, player, cameraPosition);
         drawNearbyStars(matrix, player, cameraPosition);
 

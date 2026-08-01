@@ -3,6 +3,8 @@ package org.unofficial.unofficialdmzaddon.space;
 import com.dragonminez.common.init.MainEntities;
 import com.dragonminez.common.init.entities.SpacePodEntity;
 import com.dragonminez.common.init.entities.ki.AbstractKiProjectile;
+import com.dragonminez.common.network.NetworkHandler;
+import com.dragonminez.common.network.S2C.StatsSyncS2C;
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
 import net.minecraft.core.BlockPos;
@@ -42,6 +44,7 @@ public final class SpaceEnvironmentHandler {
     private final Map<UUID, long[]> destroyedPlanets = new HashMap<>();
     private final Map<UUID, Long> lastTravel = new HashMap<>();
     private final Map<UUID, ResourceLocation> pendingSpaceEntries = new HashMap<>();
+    private final Map<UUID, Vec3> previousTravelPositions = new HashMap<>();
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -174,6 +177,7 @@ public final class SpaceEnvironmentHandler {
         UUID playerId = player.getUUID();
         long[] destroyed = destroyedPlanets.computeIfAbsent(playerId, ignored -> freshDestroyedArray());
         Vec3 travelPosition = player.getVehicle() instanceof SpacePodEntity pod ? pod.position() : player.position();
+        Vec3 previousTravelPosition = previousTravelPositions.getOrDefault(playerId, travelPosition);
         List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(playerId, travelPosition);
 
         for (SpacePlanetSystem.PlanetPlacement placement : placements) {
@@ -184,24 +188,35 @@ public final class SpaceEnvironmentHandler {
             if (!SpacePlanetSystem.isDestroyed(gameTime, destroyed[index])) {
                 for (AbstractKiProjectile projectile : projectiles) {
                     if (!playerId.equals(projectile.getOwnerUUID())) continue;
-                    Vec3 previous = new Vec3(projectile.xo, projectile.yo, projectile.zo);
+                    if (!projectile.isFiring() || projectile.tickCount < 2) continue;
+                    Vec3 previous = projectile.position().subtract(projectile.getDeltaMovement());
                     if (SpacePlanetSystem.segmentIntersects(previous, projectile.position(), placement.position(),
                             placement.definition().radius())) {
                         destroyed[index] = gameTime;
+                        putOnEvilPath(player);
                         break;
                     }
                 }
             }
 
             if (!SpacePlanetSystem.isDestroyed(gameTime, destroyed[index])
-                    && travelPosition.distanceToSqr(placement.position())
-                    <= square(placement.definition().radius() + 1.5D)
+                    && SpacePlanetSystem.segmentIntersects(previousTravelPosition, travelPosition,
+                    placement.position(), placement.definition().radius() + 3.0D)
                     && gameTime - lastTravel.getOrDefault(playerId, Long.MIN_VALUE / 2L) > TRAVEL_COOLDOWN_TICKS) {
                 travelToPlanet(space, player, placement.definition());
                 lastTravel.put(playerId, gameTime);
                 return;
             }
         }
+        previousTravelPositions.put(playerId, travelPosition);
+    }
+
+    private static void putOnEvilPath(ServerPlayer player) {
+        StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(data -> {
+            if (data.getResources().getAlignment() <= 40) return;
+            data.getResources().setAlignment(0);
+            NetworkHandler.sendToTrackingEntityAndSelf(new StatsSyncS2C(player), player);
+        });
     }
 
     private void travelToPlanet(ServerLevel space, ServerPlayer player, SpacePlanetDefinition planet) {
@@ -267,6 +282,7 @@ public final class SpaceEnvironmentHandler {
         destroyedPlanets.remove(playerId);
         lastTravel.remove(playerId);
         pendingSpaceEntries.remove(playerId);
+        previousTravelPositions.remove(playerId);
     }
 
     private void restorePlayer(Player player) {

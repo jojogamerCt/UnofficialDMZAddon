@@ -14,6 +14,6 @@ public abstract class TickHandlerAuraMixin {
     @ModifyVariable(method = "updateAuraLight", at = @At("STORE"), ordinal = 0)
     private static boolean unofficialdmzaddon$forceGodAuraLight(boolean original,
             ServerPlayer player, StatsData data) {
-        return original || DivineAuraHelper.hasPersistentAura(data);
+        return original || DivineAuraHelper.hasPersistentGodAura(data);
     }
 }

@@ -1,24 +1,24 @@
-**![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_ADDON_Header.webp)**
+﻿**![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_ADDON_Header.webp)**
 
 **![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Description.webp)**
 
-**Unofficial DMZ Addon** expands **DragonMine Z 2.1.3** with new race progression, transformations, visuals, and mechanics designed to use DragonMineZ's native systems.
+**Unofficial DMZ Addon 10.2.3** expands **DragonMine Z 2.1.3** with transformations, race progression, visuals, and mechanics built around DragonMineZ's native systems.
 
 ### Current features
 
 * **Alien race**, with native character customization, the **Blood-Fueled Ki** racial passive, and the **Full Power** transformation.
-* **Dragon Ball-style Space**, unlocked after learning DragonMineZ's **Fly** skill and accessible from the native space-pod menu. Space provides weightless flight, a seamless anime-inspired sky, void protection, nearby non-overlapping planetary worlds, ki-based planet destruction, animated explosions, and five-minute world reformation.
+* **Dragon Ball-style Space**, unlocked through DragonMineZ's **Fly** skill and accessible from the native space-pod menu. Space provides visible weightless flight, no Earth weather or clouds, a seamless anime sky, widely separated cubic worlds with GPT Image 2 surface art, a bright textured sun, reliable high-speed planet travel, native DMZ ki trajectories with accurate planet impacts, Evil-path consequences, animated explosions, and five-minute world reformation.
 * **Persistent space-pod travel**. Piloted pods move at triple normal flight speed, close their doors during travel, and carry their rider into planets without duplication. Players traveling without a pod arrive without one, while unoccupied pods left in Space remain saved there.
 * **Safe planetary arrivals** that locate solid, dry ground with enough headroom instead of spawning players underground.
-* **Universal Ultra Instinct progression** for every race: Sign, Mastered, Autonomous, and True Ultra Instinct. Successful dodges fully cancel the incoming attack and trigger synchronized particles, sound, displacement, and an alternating 45-degree body lean. Dodge chance scales with form and mastery: **Sign 50-70%**, **Mastered 65-82%**, **Autonomous 78-91%**, and **True 88-97%**. Higher tiers dodge farther and consume less energy.
-* **Universal Ultra Ego progression** for every race: Sign and Mastered Ultra Ego.
-* **Saiyan transformations**: Super Saiyan God, Super Saiyan Blue, Super Saiyan Rosé, Super Saiyan Rage, and Beast. Super Saiyan Blue supports DragonMineZ's stackable **Kaioken** mechanic.
+* **Universal Ultra Instinct progression** for every race: Sign, Mastered, Autonomous, and True Ultra Instinct. Successful dodges fully cancel incoming attacks and trigger synchronized particles, sound, displacement, and DragonMineZ's native randomized evasion animations. Dodge chance scales with form and mastery: **Sign 50-70%**, **Mastered 65-82%**, **Autonomous 78-91%**, and **True 88-97%**. Higher tiers dodge farther and consume less energy.
+* **Universal Ultra Ego progression** for every race: Sign and Mastered Ultra Ego. UI and UE keep persistent signature effects without changing Aura Status; persistent Aura Status belongs to God Forms and survives Ki techniques.
+* **Saiyan transformations**: Super Saiyan God, Super Saiyan Blue, Super Saiyan Rosé, Super Saiyan Blue Evolved, Super Saiyan Rage, and Beast. Blue preserves its blue hair and aura beneath a separate red **Kaioken** overlay; Blue Evolved matches Blue with Kaioken x20 power and cannot stack with Kaioken.
 * **Race transformations** including Namekian Orange, Frost Demon Golden and Black, and Alien Full Power.
 * Transformation unlocks integrated into the appropriate native race skill trees with TP costs, mastery requirements, and prerequisite forms.
 * Every addon transformation is selectable through DragonMineZ's native **X-key transformation wheel**, including dedicated Ultra Instinct and Ultra Ego sections.
 * Ultra Instinct, Ultra Ego, Beast, Orange, Golden, Black, and Alien Full Power are independent forms and cannot activate while a conflicting transformation is active.
 * Hairless races display Ultra Instinct and Ultra Ego colors through their bodies while preserving ears and other native 3D head components.
-* Every active form receives combat benefits. Exact buffs are shown in skill descriptions and when forms activate.
+* Every active form receives combat benefits. Exact buffs are documented in the relevant skill descriptions without transformation chat spam.
 * Existing DragonMineZ Ultra Instinct and Ultra Ego forms and icons are reused rather than duplicated, and their values remain replaceable through DragonMineZ configuration files.
 
 DragonMineZ is required. Configuration files are generated under the normal DragonMineZ and Unofficial DMZ Addon config directories, allowing pack authors and server owners to tune progression and form values.

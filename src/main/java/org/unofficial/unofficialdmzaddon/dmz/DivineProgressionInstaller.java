@@ -523,7 +523,7 @@ public final class DivineProgressionInstaller {
         Map<String, FormConfig.FormData> forms = group.getForms();
         forms.putIfAbsent(UltraInstinctDefinitions.FORM_AUTONOMOUS,
                 addonUltraInstinctForm(UltraInstinctDefinitions.FORM_AUTONOMOUS, 3,
-                        "base", "#E7EEFF", "#E3ECFF", "#FCFEFF", "#BEE8FF",
+                        "base", "#AEB6C4", "#E3ECFF", "#FCFEFF", "#BEE8FF",
                         1.72, 1.84, 1.55, 1.60, 1.42, 1.84, 1.40, 1.44,
                         0.045, 0.070, 0.06, 0.07, 1.34,
                         StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED, 55.0));
@@ -577,8 +577,10 @@ public final class DivineProgressionInstaller {
             form.setExtraAuraColor(trueUi ? "#A993FF" : mastered ? "#AEEBFF" : "#BFD8E8");
             form.setHasLightnings(mastered || trueUi || tier >= 2);
             form.setLightningColor(trueUi ? "#D9C7FF" : "#C7F2FF");
+            if (key.equals(StackForms.ULTRAINSTINCT_MASTERED)) form.setHairColor("#BFC6D2");
+            if (key.equals(UltraInstinctDefinitions.FORM_AUTONOMOUS)) form.setHairColor("#AEB6C4");
             if (key.equals(UltraInstinctDefinitions.FORM_AUTONOMOUS)) {
-                form.setForcedHairCode(HairManager.toCode(HairManager.getPresetHair(1, "#E7EEFF")));
+                form.setForcedHairCode(HairManager.toCode(HairManager.getPresetHair(1, "#AEB6C4")));
             }
             tier++;
         }

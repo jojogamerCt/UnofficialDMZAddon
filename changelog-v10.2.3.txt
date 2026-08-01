@@ -1,0 +1,30 @@
+Unofficial DMZ Addon 10.2.3
+
+Space
+- Prevented the player race model from disappearing during forced flight in Space.
+- Disabled Earth weather and cloud rendering in Space.
+- Replaced Earth, Namek, Sacred Kai's Planet, and sun surfaces with a cohesive GPT Image 2 texture set optimized into game-ready cube textures.
+- Made the sun brighter and gave it a dedicated animated-plasma-style surface.
+- Increased orbital spacing, reduced planet sizes slightly, and expanded solar-system sectors so planetary bounds no longer collide.
+- Fixed false planet intersections that could redirect newly spawned or charging ki attacks to Earth instead of following DragonMineZ's normal firing trajectory.
+- Added swept travel collision so fast players and space pods cannot phase through planets between ticks.
+- Planet destruction now immediately moves the responsible player onto DragonMineZ's Evil alignment path.
+
+Ultra Instinct and Ultra Ego
+- UI and UE no longer toggle DragonMineZ's Aura Status; only God Forms own that toggle.
+- Persistent UI and UE signature effects remain active independently from Aura Status.
+- Replaced the rigid 45-degree UI dodge lean with DragonMineZ's native randomized four-direction evasion animations.
+- Mastered and Autonomous Ultra Instinct now use clearly silver hair instead of near-white hair.
+
+God Forms
+- God Form auras are restored automatically after Ki techniques stop ordinary aura rendering.
+- Super Saiyan Blue with Kaioken now preserves its blue hair and blue base aura while Kaioken renders as a separate red overlay.
+- Added Super Saiyan Blue Evolved to the third God Forms skill level and X-key God Forms wheel.
+- Blue Evolved uses darker blue visuals, matches Super Saiyan Blue with Kaioken x20 power, follows the non-Evil Blue path, and cannot stack with Kaioken.
+
+Other fixes
+- Removed automatic form-buff chat messages when transforming.
+- Added Blue Evolved aliases to /dmzform grant, including ssjbe and blue_evolved.
+
+Credit
+- Thanks to SpyrooTUR for the detailed 10.2.3 issue report and feature feedback.

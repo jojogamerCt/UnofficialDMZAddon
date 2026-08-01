@@ -92,6 +92,7 @@ public final class AddonFormCommand {
             case "god", "ssjg", "super_saiyan_god" -> "super_saiyan_god";
             case "blue", "ssjb", "super_saiyan_blue" -> "super_saiyan_blue";
             case "rose", "rosé", "ssjr", "super_saiyan_rose" -> "super_saiyan_rose";
+            case "blue_evolved", "ssjbe", "ssj_blue_evolved", "super_saiyan_blue_evolved" -> "super_saiyan_blue_evolved";
             case "rage", "ssjrage", "super_saiyan_rage" -> "super_saiyan_rage";
             default -> value;
         };

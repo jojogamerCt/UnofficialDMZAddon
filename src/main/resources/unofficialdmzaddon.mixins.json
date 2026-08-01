@@ -17,7 +17,8 @@
     "RadialFormsAccessor",
     "RadialFormsMixin",
     "RadialLayoutStoreMixin",
-    "UtilityMenuScreenMixin"
+    "UtilityMenuScreenMixin",
+    "PersistentDivineAuraMixin"
   ],
   "injectors": {
     "defaultRequire": 1
