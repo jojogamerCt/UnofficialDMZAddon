@@ -12,6 +12,8 @@
     "TickHandlerAuraMixin"
   ],
   "client": [
+    "BlueKaiokenAuraMixin",
+    "BlueKaiokenHairMixin",
     "BoneVisibilityHandlerMixin",
     "FirstPersonManagerMixin",
     "RadialFormsAccessor",

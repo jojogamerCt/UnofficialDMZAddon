@@ -18,7 +18,7 @@ Ultra Instinct and Ultra Ego
 
 God Forms
 - God Form auras are restored automatically after Ki techniques stop ordinary aura rendering.
-- Super Saiyan Blue with Kaioken now preserves its blue hair and blue base aura while Kaioken renders as a separate red overlay.
+- Super Saiyan Blue with Kaioken now keeps Blue hair and renders the configured Blue and Kaioken auras simultaneously on separate layers.
 - Added Super Saiyan Blue Evolved to the third God Forms skill level and X-key God Forms wheel.
 - Blue Evolved uses darker blue visuals, matches Super Saiyan Blue with Kaioken x20 power, follows the non-Evil Blue path, and cannot stack with Kaioken.
 
@@ -26,6 +26,5 @@ Other fixes
 - Removed automatic form-buff chat messages when transforming.
 - Added Blue Evolved aliases to /dmzform grant, including ssjbe and blue_evolved.
 - Fixed the Super Saiyan Rose name and description displaying corrupted characters in production builds.
-
 Credit
 - Thanks to SpyrooTUR for the detailed 10.2.3 issue report and feature feedback.
