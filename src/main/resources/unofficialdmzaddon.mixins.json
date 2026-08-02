@@ -9,9 +9,12 @@
     "DivineFormSelectionMixin",
     "AlienFullPowerScalingMixin",
     "RemovedRaceFilterMixin",
-    "TickHandlerAuraMixin"
+    "TickHandlerAuraMixin",
+    "SpacePodTravelMixin",
+    "SpacePodIdleMixin"
   ],
   "client": [
+    "AlienBuffedModelMixin",
     "BlueKaiokenAuraMixin",
     "BlueKaiokenHairMixin",
     "BoneVisibilityHandlerMixin",

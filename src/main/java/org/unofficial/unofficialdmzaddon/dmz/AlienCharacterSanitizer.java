@@ -31,6 +31,12 @@ public class AlienCharacterSanitizer {
 
             boolean dirty = false;
 
+            // Alien biology is its own racial path and can never receive the Human Android upgrade.
+            if (stats.getStatus().isAndroidUpgraded()) {
+                stats.getStatus().setAndroidUpgraded(false);
+                dirty = true;
+            }
+
             // Aliens are bald — hairId must always be 0.
             if (character.getHairId() != 0) {
                 character.setHairId(0);

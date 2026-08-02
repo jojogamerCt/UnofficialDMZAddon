@@ -39,8 +39,8 @@ public final class DivineProgressionInstaller {
     private static final List<String> SAIYAN_ONLY = List.of(SpecialRaceFormsDefinitions.SAIYAN_RACE);
     private static final List<Integer> LEGACY_ULTRA_INSTINCT_COSTS = List.of(-1, 5_000, 260_000, 360_000);
     private static final List<Integer> LEGACY_ULTRA_EGO_COSTS = List.of(-1, 5_000);
-    private static final List<Integer> ULTRA_INSTINCT_COSTS = List.of(120_000, 180_000, 260_000, 360_000);
-    private static final List<Integer> ULTRA_EGO_COSTS = List.of(120_000, 180_000);
+    private static final List<Integer> ULTRA_INSTINCT_COSTS = List.of(120_000, 180_000, 360_000);
+    private static final List<Integer> ULTRA_EGO_COSTS = List.of(180_000);
     private static final String ULTRA_INSTINCT_MASTER = "goku";
     private static final String ULTRA_EGO_MASTER = "vegeta";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -57,7 +57,7 @@ public final class DivineProgressionInstaller {
         if (skillsOk && runtimeOk && filesOk && migrationOk) {
             UnofficialDMZAddon.LOGGER.info(
                     "[Unofficial DMZ Addon] Divine progression installed from DragonMineZ defaults: "
-                            + "Goku teaches Ultra Instinct, Vegeta teaches Ultra Ego, both appear in native "
+                            + "Ultra Instinct and Ultra Ego appear only in native "
                             + "form skill trees and independent X-wheel form groups, and config overrides are preserved."
             );
             return true;
@@ -108,23 +108,22 @@ public final class DivineProgressionInstaller {
             config.getSkills().put(skillId,
                     new SkillsConfig.SkillCosts(new ArrayList<>(costs), new ArrayList<>(SAIYAN_ONLY)));
         } else {
-            if (legacyCosts(skillId).equals(existing.getCosts())) existing.setCosts(new ArrayList<>(costs));
+            existing.setCosts(migrateCosts(skillId, existing.getCosts()));
             existing.setAllowedRaces(new ArrayList<>(SAIYAN_ONLY));
         }
 
         RaceCharacterConfig saiyan = ConfigManager.getRaceCharacter(SpecialRaceFormsDefinitions.SAIYAN_RACE);
         if (saiyan != null) {
             RaceCharacterConfig.FormSkillCost formCost = saiyan.getFormSkillsCosts().get(skillId);
-            if (formCost == null || legacyCosts(skillId).equals(formCost.getPrices())) {
+            if (formCost == null) {
                 saiyan.getFormSkillsCosts().put(skillId,
-                        new RaceCharacterConfig.FormSkillCost(true, new ArrayList<>(costs)));
+                        new RaceCharacterConfig.FormSkillCost(false, new ArrayList<>(costs)));
             } else {
-                formCost.setBuyFromMaster(true);
+                formCost.setPrices(migrateCosts(skillId, formCost.getPrices()));
+                formCost.setBuyFromMaster(false);
             }
         }
-
-        List<String> offerings = config.getSkillOfferings().computeIfAbsent(master, ignored -> new ArrayList<>());
-        if (offerings.stream().noneMatch(skillId::equalsIgnoreCase)) offerings.add(skillId);
+        removeOffering(config, master, skillId);
     }
 
     private static void unregisterIndependentFormSkill(SkillsConfig config, String skillId, String master) {
@@ -181,6 +180,24 @@ public final class DivineProgressionInstaller {
         }
 
         migrateLegacyAddonDuplicates(existing, defaults, groupName);
+        if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) existing.getForms().remove("autonomous");
+        if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) {
+            FormConfig.FormData trueUi = existing.getFormByKey(UltraInstinctDefinitions.FORM_TRUE);
+            if (trueUi != null) {
+                trueUi.setUnlockOnSkillLevel(3);
+                trueUi.setFormRequisite(StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED);
+                trueUi.setUnlockOnMastery(75.0);
+            }
+        }
+        if (StackForms.GROUP_ULTRAEGO.equals(groupName)) existing.getForms().remove(StackForms.ULTRAEGO_SIGN);
+        if (StackForms.GROUP_ULTRAEGO.equals(groupName)) {
+            FormConfig.FormData ultraEgo = existing.getFormByKey(StackForms.ULTRAEGO_MASTERED);
+            if (ultraEgo != null) {
+                ultraEgo.setUnlockOnSkillLevel(1);
+                ultraEgo.setFormRequisite("");
+                ultraEgo.setUnlockOnMastery(0.0);
+            }
+        }
         defaults.getForms().forEach(existing.getForms()::putIfAbsent);
         copyCanonicalDivineAuras(existing, defaults);
         if (existing.getGroupName() == null || existing.getGroupName().isBlank()) {
@@ -257,19 +274,19 @@ public final class DivineProgressionInstaller {
             JsonObject skills = objectObject(root, "skills");
             JsonObject offerings = objectObject(root, "skillOfferings");
             removeOffering(offerings, "whis", StackForms.GROUP_ULTRAINSTINCT);
+            removeOffering(offerings, ULTRA_INSTINCT_MASTER, StackForms.GROUP_ULTRAINSTINCT);
             removeOffering(offerings, "beerus", StackForms.GROUP_ULTRAEGO);
+            removeOffering(offerings, ULTRA_EGO_MASTER, StackForms.GROUP_ULTRAEGO);
             removeString(stackSkills, StackForms.GROUP_ULTRAINSTINCT);
             removeString(stackSkills, StackForms.GROUP_ULTRAEGO);
 
             if (UnofficialDMZConfig.ULTRA_INSTINCT_ENABLED.get()) {
                 ensureString(formSkills, StackForms.GROUP_ULTRAINSTINCT);
                 ensureSkillCosts(skills, StackForms.GROUP_ULTRAINSTINCT, ULTRA_INSTINCT_COSTS);
-                ensureOffering(offerings, ULTRA_INSTINCT_MASTER, StackForms.GROUP_ULTRAINSTINCT);
             }
             if (UnofficialDMZConfig.ULTRA_EGO_ENABLED.get()) {
                 ensureString(formSkills, StackForms.GROUP_ULTRAEGO);
                 ensureSkillCosts(skills, StackForms.GROUP_ULTRAEGO, ULTRA_EGO_COSTS);
-                ensureOffering(offerings, ULTRA_EGO_MASTER, StackForms.GROUP_ULTRAEGO);
             }
 
             root.add("stackSkills", stackSkills);
@@ -310,11 +327,27 @@ public final class DivineProgressionInstaller {
         }
 
         JsonObject skill = skills.getAsJsonObject(skillId);
-        if (skill.has("costs") && matchesCosts(skill.getAsJsonArray("costs"), legacyCosts(skillId))) {
-            skill.add("costs", GSON.toJsonTree(costs));
+        List<Integer> current = new ArrayList<>();
+        if (skill.has("costs") && skill.get("costs").isJsonArray()) {
+            for (var value : skill.getAsJsonArray("costs")) if (value.isJsonPrimitive()) current.add(value.getAsInt());
         }
+        skill.add("costs", GSON.toJsonTree(migrateCosts(skillId, current)));
     }
 
+    private static List<Integer> migrateCosts(String skillId, List<Integer> current) {
+        List<Integer> source = current == null ? List.of() : current;
+        if (StackForms.GROUP_ULTRAINSTINCT.equalsIgnoreCase(skillId)) {
+            if (source.size() == 3) return new ArrayList<>(source);
+            if (source.size() >= 4) return new ArrayList<>(List.of(source.get(0), source.get(1), source.get(source.size() - 1)));
+            return new ArrayList<>(ULTRA_INSTINCT_COSTS);
+        }
+        if (StackForms.GROUP_ULTRAEGO.equalsIgnoreCase(skillId)) {
+            if (source.size() == 1) return new ArrayList<>(source);
+            if (source.size() >= 2) return new ArrayList<>(List.of(source.get(source.size() - 1)));
+            return new ArrayList<>(ULTRA_EGO_COSTS);
+        }
+        return new ArrayList<>(source);
+    }
     private static boolean matchesCosts(JsonArray actual, List<Integer> expected) {
         if (actual.size() != expected.size()) return false;
         for (int i = 0; i < expected.size(); i++) {
@@ -395,9 +428,10 @@ public final class DivineProgressionInstaller {
         JsonObject entry = costs.has(skillId) && costs.get(skillId).isJsonObject()
                 ? costs.getAsJsonObject(skillId) : new JsonObject();
         boolean missing = !entry.has("prices") || !entry.get("prices").isJsonArray();
-        boolean legacy = !missing && matchesCosts(entry.getAsJsonArray("prices"), legacyCosts(skillId));
-        if (missing || legacy) entry.add("prices", GSON.toJsonTree(prices));
-        entry.addProperty("buyFromMaster", true);
+        List<Integer> current = new ArrayList<>();
+        if (!missing) for (var value : entry.getAsJsonArray("prices")) if (value.isJsonPrimitive()) current.add(value.getAsInt());
+        entry.add("prices", GSON.toJsonTree(migrateCosts(skillId, current)));
+        entry.addProperty("buyFromMaster", false);
         costs.add(skillId, entry);
     }
 
@@ -437,6 +471,8 @@ public final class DivineProgressionInstaller {
             JsonObject forms = root.has("forms") && root.get("forms").isJsonObject()
                     ? root.getAsJsonObject("forms")
                     : new JsonObject();
+            if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) forms.remove("autonomous");
+            if (StackForms.GROUP_ULTRAEGO.equals(groupName)) forms.remove(StackForms.ULTRAEGO_SIGN);
 
             for (Map.Entry<String, FormConfig.FormData> entry : defaults.getForms().entrySet()) {
                 String formKey = entry.getKey();
@@ -451,13 +487,18 @@ public final class DivineProgressionInstaller {
             for (Map.Entry<String, FormConfig.FormData> entry : defaults.getForms().entrySet()) {
                 JsonObject form = forms.getAsJsonObject(entry.getKey());
                 if (form != null) writeCanonicalAura(form, entry.getValue());
-                if (form != null && UltraInstinctDefinitions.FORM_AUTONOMOUS.equalsIgnoreCase(entry.getKey())) {
-                    form.addProperty("hairType", "base");
-                    form.addProperty("hairColor", entry.getValue().getHairColor());
-                    form.addProperty("keepBaseFormHeadBones", true);
-                    form.addProperty("forcedHairCode", entry.getValue().getForcedHairCode());
+                if (form != null && StackForms.GROUP_ULTRAINSTINCT.equals(groupName)
+                        && UltraInstinctDefinitions.FORM_TRUE.equalsIgnoreCase(entry.getKey())) {
+                    form.addProperty("unlockOnSkillLevel", 3);
+                    form.addProperty("formRequisite", StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED);
+                    form.addProperty("unlockOnMastery", 75.0);
                 }
-            }
+                if (form != null && StackForms.GROUP_ULTRAEGO.equals(groupName)
+                        && StackForms.ULTRAEGO_MASTERED.equalsIgnoreCase(entry.getKey())) {
+                    form.addProperty("unlockOnSkillLevel", 1);
+                    form.addProperty("formRequisite", "");
+                    form.addProperty("unlockOnMastery", 0.0);
+                }}
 
             if (!root.has("groupName")) root.addProperty("groupName", groupName);
             root.addProperty("formType", groupName);
@@ -521,18 +562,12 @@ public final class DivineProgressionInstaller {
     private static FormConfig createExtendedUltraInstinctGroup() {
         FormConfig group = createOriginalUltraInstinctGroup();
         Map<String, FormConfig.FormData> forms = group.getForms();
-        forms.putIfAbsent(UltraInstinctDefinitions.FORM_AUTONOMOUS,
-                addonUltraInstinctForm(UltraInstinctDefinitions.FORM_AUTONOMOUS, 3,
-                        "base", "#AEB6C4", "#E3ECFF", "#FCFEFF", "#BEE8FF",
-                        1.72, 1.84, 1.55, 1.60, 1.42, 1.84, 1.40, 1.44,
-                        0.045, 0.070, 0.06, 0.07, 1.34,
-                        StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED, 55.0));
         forms.putIfAbsent(UltraInstinctDefinitions.FORM_TRUE,
-                addonUltraInstinctForm(UltraInstinctDefinitions.FORM_TRUE, 4,
+                addonUltraInstinctForm(UltraInstinctDefinitions.FORM_TRUE, 3,
                         "base", "#242333", "#D8CCFF", "#C3B0FF", "#E8DAFF",
                         1.88, 2.00, 1.68, 1.76, 1.52, 2.00, 1.52, 1.55,
                         0.055, 0.085, 0.07, 0.08, 1.38,
-                        StackForms.GROUP_ULTRAINSTINCT + "." + UltraInstinctDefinitions.FORM_AUTONOMOUS, 75.0));
+                        StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED, 75.0));
         configureUltraInstinctAuras(group);
         return group;
     }
@@ -557,35 +592,36 @@ public final class DivineProgressionInstaller {
             throw new IllegalStateException("DragonMineZ could not create its Ultra Ego defaults", e);
         }
         FormConfig group = makeIndependent(groups.get(StackForms.GROUP_ULTRAEGO));
+        if (group != null && group.getForms() != null) {
+            group.getForms().remove(StackForms.ULTRAEGO_SIGN);
+            FormConfig.FormData ultraEgo = group.getFormByKey(StackForms.ULTRAEGO_MASTERED);
+            if (ultraEgo != null) {
+                ultraEgo.setUnlockOnSkillLevel(1);
+                ultraEgo.setFormRequisite("");
+                ultraEgo.setUnlockOnMastery(0.0);
+            }
+        }
         configureUltraEgoAuras(group);
         return group;
     }
 
     private static void configureUltraInstinctAuras(FormConfig group) {
         if (group == null || group.getForms() == null) return;
-        int tier = 0;
         for (FormConfig.FormData form : group.getForms().values()) {
             String key = form.getName() == null ? "" : form.getName().toLowerCase();
-            boolean mastered = key.contains("mastered") || key.contains("autonomous");
+            boolean mastered = key.contains("mastered");
             boolean trueUi = key.equals(UltraInstinctDefinitions.FORM_TRUE);
             form.setAuraType("god");
-            // Suppress the opaque inner oval while retaining the outer UI flame and world effects.
             form.setAuraLayer(-1);
             form.setAuraColor(trueUi ? "#D9CCFF" : mastered ? "#F8FCFF" : "#DDE8F2");
             form.setExtraAuraType("kakarot");
-            form.setExtraAuraLayer(2);
+            form.setExtraAuraLayer(-1);
             form.setExtraAuraColor(trueUi ? "#A993FF" : mastered ? "#AEEBFF" : "#BFD8E8");
-            form.setHasLightnings(mastered || trueUi || tier >= 2);
+            form.setHasLightnings(false);
             form.setLightningColor(trueUi ? "#D9C7FF" : "#C7F2FF");
             if (key.equals(StackForms.ULTRAINSTINCT_MASTERED)) form.setHairColor("#BFC6D2");
-            if (key.equals(UltraInstinctDefinitions.FORM_AUTONOMOUS)) form.setHairColor("#AEB6C4");
-            if (key.equals(UltraInstinctDefinitions.FORM_AUTONOMOUS)) {
-                form.setForcedHairCode(HairManager.toCode(HairManager.getPresetHair(1, "#AEB6C4")));
-            }
-            tier++;
         }
     }
-
     private static void configureUltraEgoAuras(FormConfig group) {
         if (group == null || group.getForms() == null) return;
         int tier = 0;
@@ -616,12 +652,6 @@ public final class DivineProgressionInstaller {
             current.setExtraAuraColor(aura.getExtraAuraColor());
             current.setHasLightnings(aura.getHasLightnings());
             current.setLightningColor(aura.getLightningColor());
-            if (UltraInstinctDefinitions.FORM_AUTONOMOUS.equalsIgnoreCase(entry.getKey())) {
-                current.setHairType("base");
-                current.setHairColor(aura.getHairColor());
-                current.setKeepBaseFormHeadBones(true);
-                current.setForcedHairCode(aura.getForcedHairCode());
-            }
         }
     }
 

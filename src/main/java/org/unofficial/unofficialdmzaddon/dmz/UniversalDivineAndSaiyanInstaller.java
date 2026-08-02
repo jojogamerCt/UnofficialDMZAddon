@@ -26,8 +26,8 @@ import java.util.Map;
 /** Makes divine forms universal and installs the missing Saiyan divine branches. */
 public final class UniversalDivineAndSaiyanInstaller {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final List<Integer> UI_COSTS = List.of(120000, 180000, 260000, 360000);
-    private static final List<Integer> UE_COSTS = List.of(120000, 180000);
+    private static final List<Integer> UI_COSTS = List.of(120000, 180000, 360000);
+    private static final List<Integer> UE_COSTS = List.of(180000);
     private static final List<Integer> GOD_COSTS = List.of(150000, 250000, 350000);
     public static final String GOD_FORMS_GROUP = "godforms";
     private UniversalDivineAndSaiyanInstaller() {}
@@ -95,7 +95,6 @@ public final class UniversalDivineAndSaiyanInstaller {
             if (ui) {
                 form.setEye1Color("#DDF7FF"); form.setEye2Color("#AEEBFF");
                 if (key.contains("mastered")) form.setHairColor("#BFC6D2");
-                if (key.contains("autonomous")) form.setHairColor("#AEB6C4");
                 if (hairless) {
                     String bodyColor = key.contains("mastered") ? "#E8F2FF" : "#B8CAD8";
                     form.setHairType("");
@@ -145,13 +144,13 @@ public final class UniversalDivineAndSaiyanInstaller {
         godGroup.setGroupName(GOD_FORMS_GROUP);
         godGroup.setFormType(GOD_FORMS_GROUP);
         LinkedHashMap<String, FormConfig.FormData> forms = new LinkedHashMap<>();
-        forms.put("super_saiyan_god",
+        if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_GOD_FORM.get()) forms.put("super_saiyan_god",
                 saiyanForm("super_saiyan_god", 1, "base", "#D92F3D", "#FF655F", "#FF3B35", 2.35, 0.08, false));
-        forms.put("super_saiyan_blue",
+        if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_BLUE_FORM.get()) forms.put("super_saiyan_blue",
                 saiyanForm("super_saiyan_blue", 2, "ssj", "#22CFE8", "#91F7FF", "#24DDF4", 2.75, 0.13, true));
-        forms.put("super_saiyan_rose",
+        if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_ROSE_FORM.get()) forms.put("super_saiyan_rose",
                 saiyanForm("super_saiyan_rose", 2, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 3.05, 0.15, false));
-        forms.put("super_saiyan_blue_evolved",
+        if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_BLUE_EVOLVED_FORM.get()) forms.put("super_saiyan_blue_evolved",
                 saiyanForm("super_saiyan_blue_evolved", 3, "ssj", "#1594C7", "#7FEAFF", "#148FCB", 4.55, 0.19, false));
         godGroup.setForms(forms);
         saiyan.put(GOD_FORMS_GROUP, godGroup);

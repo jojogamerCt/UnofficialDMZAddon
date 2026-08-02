@@ -22,10 +22,10 @@ public abstract class RadialLayoutStoreMixin {
     private static void unofficialdmzaddon$migrateLegacyGodLayout(CallbackInfo ci) {
         if (unofficialdmzaddon$migrating) return;
         List<String> legacy = ORDER.get("superforms:supersaiyan");
-        if (legacy == null) return;
+        if (legacy == null) legacy = new ArrayList<>();
         boolean changed = false;
         List<String> god = new ArrayList<>(ORDER.getOrDefault("godforms:godforms", Collections.emptyList()));
-        for (String form : List.of("super_saiyan_god", "super_saiyan_blue", "super_saiyan_rose")) {
+        for (String form : List.of("super_saiyan_god", "super_saiyan_blue", "super_saiyan_rose", "super_saiyan_blue_evolved")) {
             String oldKey = "form:supersaiyan:" + form;
             String newKey = "form:godforms:" + form;
             if (legacy.remove(oldKey)) {

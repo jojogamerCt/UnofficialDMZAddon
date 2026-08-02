@@ -3,38 +3,46 @@ package org.unofficial.unofficialdmzaddon.dmz;
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Implements Alien Blood-Fueled Ki: refund Ki at a health cost, then empower the next hit. */
+/** Alien Adaptive Physiology: repeated exposure to one damage type builds temporary resistance. */
 public final class AlienRacialPassiveHandler {
-    private final Map<UUID,Float> previousEnergy=new HashMap<>();
-    private final Map<UUID,Float> pendingDamage=new HashMap<>();
+    private static final long ADAPTATION_WINDOW_TICKS = 120L;
+    private static final int MAX_ADAPTATION = 5;
+    private static final float RESISTANCE_PER_STACK = 0.04F;
+    private final Map<UUID, Adaptation> adaptations = new HashMap<>();
 
-    @SubscribeEvent public void onTick(TickEvent.PlayerTickEvent event){
-        if(event.phase!=TickEvent.Phase.END||event.player.level().isClientSide()||!(event.player instanceof ServerPlayer player))return;
-        StatsProvider.get(StatsCapability.INSTANCE,player).ifPresent(data->{
-            if(!SpecialRaceFormsDefinitions.ALIEN_RACE.equalsIgnoreCase(data.getCharacter().getRaceName())){previousEnergy.remove(player.getUUID());return;}
-            float now=data.getResources().getCurrentEnergy();Float before=previousEnergy.put(player.getUUID(),now);
-            if(before==null||now>=before||player.tickCount<40)return;
-            float spent=before-now;float refund=spent*0.25f;float healthCost=spent*0.125f;
-            data.getResources().addEnergy(refund);previousEnergy.put(player.getUUID(),data.getResources().getCurrentEnergy());
-            float safeCost=Math.min(healthCost,Math.max(0,player.getHealth()-1f));
-            if(safeCost>0){player.setHealth(player.getHealth()-safeCost);pendingDamage.merge(player.getUUID(),safeCost,Float::sum);}
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onHurt(LivingHurtEvent event) {
+        if (!org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.ALIEN_RACIAL_PASSIVE.get()
+                || event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
+        StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(data -> {
+            if (!SpecialRaceFormsDefinitions.ALIEN_RACE.equalsIgnoreCase(data.getCharacter().getRaceName())) {
+                adaptations.remove(player.getUUID());
+                return;
+            }
+            String damageType = event.getSource().getMsgId();
+            long now = player.serverLevel().getGameTime();
+            Adaptation previous = adaptations.get(player.getUUID());
+            int stacks = previous != null && previous.damageType().equals(damageType)
+                    && now <= previous.expiresAt() ? Math.min(MAX_ADAPTATION, previous.stacks() + 1) : 1;
+            float reduction = Math.min(0.20F, (stacks - 1) * RESISTANCE_PER_STACK);
+            if (reduction > 0.0F) event.setAmount(event.getAmount() * (1.0F - reduction));
+            adaptations.put(player.getUUID(), new Adaptation(damageType, stacks, now + ADAPTATION_WINDOW_TICKS));
         });
     }
 
-    @SubscribeEvent public void onHurt(LivingHurtEvent event){
-        if(!(event.getSource().getEntity() instanceof ServerPlayer attacker)||event.isCanceled())return;
-        StatsProvider.get(StatsCapability.INSTANCE,attacker).ifPresent(data->{
-            if(!SpecialRaceFormsDefinitions.ALIEN_RACE.equalsIgnoreCase(data.getCharacter().getRaceName()))return;
-            float stored=pendingDamage.getOrDefault(attacker.getUUID(),0f);if(stored<=0)return;
-            event.setAmount(event.getAmount()+stored);pendingDamage.remove(attacker.getUUID());
-        });
+    @SubscribeEvent
+    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        adaptations.remove(event.getEntity().getUUID());
     }
+
+    private record Adaptation(String damageType, int stacks, long expiresAt) {}
 }

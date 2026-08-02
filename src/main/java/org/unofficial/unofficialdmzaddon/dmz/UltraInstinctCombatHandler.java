@@ -29,6 +29,7 @@ public final class UltraInstinctCombatHandler {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onLivingAttack(LivingAttackEvent event) {
+        if (!org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.UI_DODGES_ENABLED.get()) return;
         if (event.isCanceled()) {
             return;
         }

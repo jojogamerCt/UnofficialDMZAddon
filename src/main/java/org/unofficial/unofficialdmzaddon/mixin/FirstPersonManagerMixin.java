@@ -1,6 +1,7 @@
 package org.unofficial.unofficialdmzaddon.mixin;
 
 import com.dragonminez.client.render.firstperson.dto.FirstPersonManager;
+import com.dragonminez.common.init.entities.SpacePodEntity;
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
 import net.minecraft.client.Minecraft;
@@ -30,6 +31,13 @@ public abstract class FirstPersonManagerMixin {
     @Inject(method = "shouldRenderFirstPerson", at = @At("RETURN"), cancellable = true)
     private static void unofficialdmzaddon$enableForDMZPlayers(
             Player player, CallbackInfoReturnable<Boolean> cir) {
+
+        // A scaled race model fills the camera while the passenger is seated inside the pod.
+        // Use the normal first-person renderer until the player dismounts.
+        if (player.getVehicle() instanceof SpacePodEntity) {
+            cir.setReturnValue(false);
+            return;
+        }
 
         // Already returning true — DMZ's own setting or a previous mixin enabled it
         if (cir.getReturnValue()) return;

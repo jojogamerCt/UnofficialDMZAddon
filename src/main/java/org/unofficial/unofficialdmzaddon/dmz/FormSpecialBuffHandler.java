@@ -12,6 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 public final class FormSpecialBuffHandler {
     @SubscribeEvent
     public void onHurt(LivingHurtEvent event) {
+        if (!org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPECIAL_FORM_BUFFS.get()) return;
         if (event.isCanceled()) return;
         if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
             StatsProvider.get(StatsCapability.INSTANCE, attacker).ifPresent(data -> {

@@ -7,15 +7,12 @@ import java.util.Locale;
 
 /** Addon-only Ultra Instinct extensions layered on DragonMineZ's native forms. */
 public final class UltraInstinctDefinitions {
-
-    public static final String FORM_AUTONOMOUS = "autonomous";
     public static final String FORM_TRUE = "true";
     public static final String LEGACY_FORM_OMEN = "ultrainstinctomen";
 
     public static final List<String> FORM_ORDER = List.of(
             StackForms.ULTRAINSTINCT_SIGN,
             StackForms.ULTRAINSTINCT_MASTERED,
-            FORM_AUTONOMOUS,
             FORM_TRUE
     );
 
@@ -70,7 +67,6 @@ public final class UltraInstinctDefinitions {
         return switch (normalize(targetForm)) {
             case StackForms.ULTRAINSTINCT_SIGN -> 0.50f;
             case StackForms.ULTRAINSTINCT_MASTERED -> 0.43f;
-            case FORM_AUTONOMOUS -> 0.36f;
             case FORM_TRUE -> 0.30f;
             default -> 1.0f;
         };
@@ -79,7 +75,6 @@ public final class UltraInstinctDefinitions {
     public static double requiredMasteryForTarget(String targetForm) {
         return switch (normalize(targetForm)) {
             case StackForms.ULTRAINSTINCT_MASTERED -> 35.0;
-            case FORM_AUTONOMOUS -> 55.0;
             case FORM_TRUE -> 75.0;
             default -> 0.0;
         };
@@ -88,8 +83,7 @@ public final class UltraInstinctDefinitions {
     public static String requiredPreviousFormForTarget(String targetForm) {
         return switch (normalize(targetForm)) {
             case StackForms.ULTRAINSTINCT_MASTERED -> StackForms.ULTRAINSTINCT_SIGN;
-            case FORM_AUTONOMOUS -> StackForms.ULTRAINSTINCT_MASTERED;
-            case FORM_TRUE -> FORM_AUTONOMOUS;
+            case FORM_TRUE -> StackForms.ULTRAINSTINCT_MASTERED;
             default -> "";
         };
     }

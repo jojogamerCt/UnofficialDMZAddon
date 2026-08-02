@@ -89,6 +89,31 @@ public final class SpacePlanetSystem {
         return start.add(segment.scale(t)).distanceToSqr(center) <= radius * radius;
     }
 
+    /** Segment versus axis-aligned cube test matching the rendered planet geometry. */
+    public static boolean segmentIntersectsCube(Vec3 start, Vec3 end, Vec3 center, double halfExtent) {
+        Vec3 direction = end.subtract(start);
+        double minimum = 0.0D;
+        double maximum = 1.0D;
+        double[] origins = {start.x - center.x, start.y - center.y, start.z - center.z};
+        double[] deltas = {direction.x, direction.y, direction.z};
+        for (int axis = 0; axis < 3; axis++) {
+            if (Math.abs(deltas[axis]) < 1.0E-8D) {
+                if (origins[axis] < -halfExtent || origins[axis] > halfExtent) return false;
+                continue;
+            }
+            double first = (-halfExtent - origins[axis]) / deltas[axis];
+            double second = (halfExtent - origins[axis]) / deltas[axis];
+            if (first > second) {
+                double swap = first;
+                first = second;
+                second = swap;
+            }
+            minimum = Math.max(minimum, first);
+            maximum = Math.min(maximum, second);
+            if (minimum > maximum) return false;
+        }
+        return true;
+    }
     public static float visibility(long currentTick, long destroyedAt) {
         if (destroyedAt < 0L) return 1.0F;
         long age = currentTick - destroyedAt;

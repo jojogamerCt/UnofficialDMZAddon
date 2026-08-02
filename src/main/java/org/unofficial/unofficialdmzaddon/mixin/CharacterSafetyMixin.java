@@ -52,6 +52,8 @@ public abstract class CharacterSafetyMixin {
         migrateMastery(StackForms.GROUP_ULTRAINSTINCT, "sign", "mastered", "autonomous", "true");
         migrateMastery(StackForms.GROUP_ULTRAEGO, "sign", "mastered");
 
+        migrateRemovedDivineForms();
+
         if (isDivine(activeStackFormGroup)) {
             if (activeForm == null || activeForm.isEmpty()) {
                 activeFormGroup = activeStackFormGroup;
@@ -72,6 +74,22 @@ public abstract class CharacterSafetyMixin {
         migrateSaiyanGodForms();
     }
 
+    private void migrateRemovedDivineForms() {
+        double autonomousMastery = formMasteries.getMastery(StackForms.GROUP_ULTRAINSTINCT, "autonomous");
+        double masteredMastery = formMasteries.getMastery(StackForms.GROUP_ULTRAINSTINCT, "mastered");
+        if (autonomousMastery > masteredMastery) {
+            formMasteries.setMastery(StackForms.GROUP_ULTRAINSTINCT, "mastered", autonomousMastery, 100.0);
+        }
+        double egoSignMastery = formMasteries.getMastery(StackForms.GROUP_ULTRAEGO, "sign");
+        double egoMastery = formMasteries.getMastery(StackForms.GROUP_ULTRAEGO, "mastered");
+        if (egoSignMastery > egoMastery) {
+            formMasteries.setMastery(StackForms.GROUP_ULTRAEGO, "mastered", egoSignMastery, 100.0);
+        }
+        if ("autonomous".equalsIgnoreCase(selectedForm) && StackForms.GROUP_ULTRAINSTINCT.equalsIgnoreCase(selectedFormGroup)) selectedForm = "mastered";
+        if ("autonomous".equalsIgnoreCase(activeForm) && StackForms.GROUP_ULTRAINSTINCT.equalsIgnoreCase(activeFormGroup)) activeForm = "mastered";
+        if ("sign".equalsIgnoreCase(selectedForm) && StackForms.GROUP_ULTRAEGO.equalsIgnoreCase(selectedFormGroup)) selectedForm = "mastered";
+        if ("sign".equalsIgnoreCase(activeForm) && StackForms.GROUP_ULTRAEGO.equalsIgnoreCase(activeFormGroup)) activeForm = "mastered";
+    }
     private void migrateSaiyanGodForms() {
         for (String form : new String[] {"super_saiyan_god", "super_saiyan_blue", "super_saiyan_rose"}) {
             double oldMastery = formMasteries.getMastery("supersaiyan", form);

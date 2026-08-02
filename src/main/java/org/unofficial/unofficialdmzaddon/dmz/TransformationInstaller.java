@@ -38,7 +38,6 @@ public final class TransformationInstaller {
             UltraInstinctDefinitions.LEGACY_FORM_OMEN,
             StackForms.ULTRAINSTINCT_SIGN,
             StackForms.ULTRAINSTINCT_MASTERED,
-            UltraInstinctDefinitions.FORM_AUTONOMOUS,
             UltraInstinctDefinitions.FORM_TRUE
     );
 
@@ -413,6 +412,8 @@ public final class TransformationInstaller {
             if (fullPower != null) {
                 fullPower.setFormStackable(false);
                 fullPower.setStackDrainMultiplier(1.0);
+                fullPower.setCustomModel("");
+                fullPower.setModelScaling(new Float[]{1.4f, 1.3f, 1.4f});
                 return true;
             }
             fullPower = new FormConfig.FormData();
@@ -429,7 +430,7 @@ public final class TransformationInstaller {
                     "#A80F0F",
                     "#F11212",
                     "#FF6E3A",
-                    new float[]{1.22f, 1.22f, 1.22f},
+                    new float[]{1.4f, 1.3f, 1.4f},
                     5.00, 5.20, 2.10, 3.80, 1.55, 5.80, 1.80, 1.45,
                     0.28, 1.55, 1.24,
                     0.030, 0.018, 0.0032,
@@ -611,7 +612,7 @@ public final class TransformationInstaller {
                         SpecialRaceFormsDefinitions.ALIEN_FULL_POWER_UNLOCK_LEVEL,
                         "#E67E7E", "#C85F5F", "#A94545", "base",
                         "", "#A80F0F", "#F11212", "#FF6E3A",
-                        new float[]{1.22f, 1.22f, 1.22f},
+                        new float[]{1.4f, 1.3f, 1.4f},
                         5.00, 5.20, 2.10, 3.80, 1.55, 5.80, 1.80, 1.45,
                         0.28, 1.55, 1.24,
                         0.030, 0.018, 0.0032,
@@ -725,6 +726,10 @@ public final class TransformationInstaller {
                 JsonObject existing = forms.getAsJsonObject(formKey);
                 existing.addProperty("formStackable", false);
                 existing.addProperty("stackDrainMultiplier", 1.0);
+                if (SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER.equals(formKey)) {
+                    existing.addProperty("customModel", "");
+                    existing.add("modelScaling", GSON.toJsonTree(new float[]{1.4f, 1.3f, 1.4f}));
+                }
             } else {
                 forms.add(formKey, formJson);
             }

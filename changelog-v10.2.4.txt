@@ -1,0 +1,46 @@
+Unofficial DMZ Addon 10.2.4
+
+Space and planet travel
+- Moved space arrivals close to the source planet while retaining a short arrival grace period.
+- Matched travel and ki-impact collision to the planets' cubic geometry, preventing players and fast pods from phasing through corners.
+- Made DragonMineZ space-pod transfers atomic: departure state is captured before the source pod is removed, the rider spawns beside the correct source planet inside one closed destination pod, and no pod is lost or duplicated.
+- Added persistent per-planet return points so players arrive at the exact position and facing direction where they last departed that dimension for Space.
+- Restored player visibility during space flight and retained DragonMineZ ki projectile behavior in the active Space dimension.
+- Kept the invisible space floor and pod speed configurable, alongside planet travel, destruction, entry margins, and arrival clearance.
+- Removed gravity and automatic orbit motion from space pods. Unoccupied pods now remain completely stationary in Space.
+- Prevented muscular or scaled race bodies from blocking the first-person camera while seated inside a space pod.
+- Fixed repeat pod journeys from a planet to Space after returning from a previous trip by validating the Fly skill directly instead of relying on stale cross-dimension tag state.
+- Fixed the production-client startup crash caused by the stationary space-pod mixin targeting a development-only method name.
+
+Alien race
+- Replaced Blood-Fueled Ki with Adaptive Physiology, an Alien-exclusive passive that builds 4% resistance per repeated damage type up to 20% and resets when adapting to a different threat.
+- Assigned Alien its own racial identity instead of inheriting Human mechanics.
+- Removed Android transformation eligibility from Alien configs and clears stale Android upgrades from existing Alien characters.
+
+New classes
+- Added Ki Adept, Duelist, Vanguard, and Tactician to DragonMineZ's native class selector for every race.
+- Gave every addon class a distinct name color in class-selection and character-information screens.
+- Added distinct configurable stat growth and passives for sustained Ki, precision offense, defensive recovery, and alternating melee/Ki combat.
+- Stores the new class definitions in each race's DragonMineZ stats.json so servers and modpacks can tune them independently.
+Ultra Instinct and Ultra Ego
+- Removed Autonomous Ultra Instinct; True Ultra Instinct now progresses directly from Mastered Ultra Instinct.
+- Consolidated Ultra Ego Sign and Mastered Ultra Ego into one lore-accurate Ultra Ego form.
+- Renamed the remaining Mastered Ultra Ego entry to Ultra Ego and corrected UI/UE skill descriptions.
+- Migrated previous four-tier UI and two-tier UE costs into the new three-tier/one-tier trees, preventing priceless forms.
+- Preserved previous AUI/TUI and UE Sign/Mastered purchases by mapping their skill levels and mastery to TUI and Ultra Ego.
+- Removed persistent aura rendering from every Ultra Instinct tier.
+- Kept Ultra Ego's aggressive purple aura persistent without changing DragonMineZ Aura Status.
+- Removed Ultra Instinct and Ultra Ego from Goku and Vegeta's offerings; both now unlock only through native race form skill trees or administrator commands.
+
+God Forms and progression
+- Stopped persistent God aura rendering from repeatedly rewriting Aura Status, eliminating Ki-move aura flashing.
+- Fixed alignment-aware transformation cycling: Good characters progress through Blue and Blue Evolved, while Evil characters progress through Rose.
+- Enforced Super Saiyan Rose's Evil-path restriction in wheel selection and normal transformation cycling.
+- Added Blue Evolved to migrated wheel layouts so buying or granting it becomes visible immediately.
+- Preserved normal transformation-key progression beyond Super Saiyan Blue.
+
+Configuration
+- Expanded unofficialdmzaddon-common.toml with toggles for individual addon transformations, UI dodges, persistent divine auras, special form buffs, Alien's racial passive, Space, Fly requirements, planet travel/destruction, visibility recovery, floor height, pod speed, collision margins, and arrival clearance.
+
+Credits
+- Thanks to SpyrooTUR, WillChill and Raph1987 for reporting these issues and providing detailed feedback.

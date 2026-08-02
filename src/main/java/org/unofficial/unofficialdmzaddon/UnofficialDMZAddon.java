@@ -10,6 +10,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.unofficial.unofficialdmzaddon.dmz.AddonFormCommand;
 import org.unofficial.unofficialdmzaddon.dmz.AddonPlayerMigrationHandler;
+import org.unofficial.unofficialdmzaddon.dmz.AddonClassInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.AlienCharacterSanitizer;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRacialPassiveHandler;
 import org.unofficial.unofficialdmzaddon.dmz.FormSpecialBuffHandler;
@@ -49,6 +50,7 @@ public final class UnofficialDMZAddon {
         event.enqueueWork(AddonNetwork::register);
         event.enqueueWork(LegacyRaceCleanup::removeLegacyConfigs);
         event.enqueueWork(AlienRaceInstaller::install);
+        event.enqueueWork(AddonClassInstaller::install);
         event.enqueueWork(TransformationInstaller::install);
         event.enqueueWork(UniversalDivineAndSaiyanInstaller::install);
     }

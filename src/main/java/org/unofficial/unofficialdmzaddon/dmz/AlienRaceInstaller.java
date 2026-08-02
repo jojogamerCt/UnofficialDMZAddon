@@ -109,6 +109,8 @@ public final class AlienRaceInstaller {
         root.addProperty("useVanillaSkin",   false);
         root.addProperty("customModel",      ALIEN_RACE);
         root.addProperty("isLayered",        true);
+        root.add("defaultModelScaling", GSON.toJsonTree(new float[]{1.15f, 1.15f, 1.15f}));
+        root.addProperty("racialSkill",      ALIEN_RACE);
 
         root.addProperty("defaultBodyType",  0);
         root.addProperty("defaultEyesType",  0);
@@ -199,6 +201,9 @@ public final class AlienRaceInstaller {
             raceConfig.setHasGender(false);
             raceConfig.setCustomModel(ALIEN_RACE);
             raceConfig.setIsLayered(true);
+            raceConfig.setDefaultModelScaling(new Float[]{1.15f, 1.15f, 1.15f});
+            raceConfig.setRacialSkill(ALIEN_RACE);
+            raceConfig.getFormSkillsCosts().remove("androidforms");
             raceConfig.setDefaultEye1Color(ALIEN_DEFAULT_EYE_COLOR);
             raceConfig.setDefaultEye2Color(ALIEN_DEFAULT_EYE_COLOR);
             raceConfig.setDefaultAuraColor(ALIEN_DEFAULT_AURA_COLOR);

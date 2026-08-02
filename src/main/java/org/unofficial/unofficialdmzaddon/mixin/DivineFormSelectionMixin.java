@@ -1,6 +1,7 @@
 package org.unofficial.unofficialdmzaddon.mixin;
 
 import com.dragonminez.common.config.FormConfig;
+import com.dragonminez.common.config.ConfigManager;
 import com.dragonminez.common.stats.StatsData;
 import com.dragonminez.common.util.TransformationsHelper;
 import com.dragonminez.common.util.lists.StackForms;
@@ -44,6 +45,29 @@ public abstract class DivineFormSelectionMixin {
     }
 
 
+    @Inject(method = "getNextFormCandidate", at = @At("RETURN"), cancellable = true)
+    private static void unofficialdmzaddon$skipWrongAlignmentBranch(
+            StatsData data, CallbackInfoReturnable<FormConfig.FormData> cir) {
+        FormConfig.FormData candidate = cir.getReturnValue();
+        if (data == null || candidate == null) return;
+        String group = TransformationsHelper.getTransformTargetGroup(data);
+        if (!UniversalDivineAndSaiyanInstaller.GOD_FORMS_GROUP.equalsIgnoreCase(group)
+                || isGodPathAllowed(data, group, candidate.getName())) return;
+        FormConfig config = ConfigManager.getFormGroup(data.getCharacter().getRaceName(), group);
+        if (config == null || config.getForms() == null) return;
+        boolean afterRejected = false;
+        for (FormConfig.FormData form : config.getForms().values()) {
+            if (!afterRejected) {
+                afterRejected = form.getName().equalsIgnoreCase(candidate.getName());
+                continue;
+            }
+            if (isGodPathAllowed(data, group, form.getName())) {
+                cir.setReturnValue(form);
+                return;
+            }
+        }
+        cir.setReturnValue(null);
+    }
     private static boolean isGodPathAllowed(StatsData data, String group, String form) {
         if (data == null || data.getResources() == null || group == null || form == null) return true;
         if (!UniversalDivineAndSaiyanInstaller.GOD_FORMS_GROUP.equalsIgnoreCase(group)) return true;
