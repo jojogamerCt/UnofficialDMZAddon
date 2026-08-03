@@ -63,7 +63,7 @@ jobs:
         run: |
           MIRROR='https://mirror.sjtu.edu.cn/bmclapi'
           FORGE_VERSION='1.20.1-47.4.10'
-          MCP_VERSION='1.20.1-20230612.114412'
+          MCP_VERSION='1.20.1'
 
           FORGE_SOURCE="$GITHUB_WORKSPACE/.verified-forge/forge-${FORGE_VERSION}-userdev.jar"
           MCP_SOURCE="$GITHUB_WORKSPACE/.verified-forge/mcp_config-${MCP_VERSION}.zip"
