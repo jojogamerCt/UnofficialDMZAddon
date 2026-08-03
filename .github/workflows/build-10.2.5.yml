@@ -63,19 +63,18 @@ jobs:
         run: |
           MIRROR='https://mirror.sjtu.edu.cn/bmclapi'
           FORGE_VERSION='1.20.1-47.4.10'
-          MCP_VERSION='1.20.1'
+          MCP_VERSIONS=('1.20.1' '1.20.1-20230612.114412')
 
           FORGE_SOURCE="$GITHUB_WORKSPACE/.verified-forge/forge-${FORGE_VERSION}-userdev.jar"
-          MCP_SOURCE="$GITHUB_WORKSPACE/.verified-forge/mcp_config-${MCP_VERSION}.zip"
           FORGE_CACHE="$HOME/.gradle/caches/forge_gradle/maven_downloader/net/minecraftforge/forge/${FORGE_VERSION}/forge-${FORGE_VERSION}-userdev.jar"
-          MCP_CACHE="$HOME/.gradle/caches/forge_gradle/maven_downloader/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip"
-          mkdir -p "$(dirname "$FORGE_SOURCE")" "$(dirname "$FORGE_CACHE")" "$(dirname "$MCP_CACHE")"
+          mkdir -p "$(dirname "$FORGE_SOURCE")" "$(dirname "$FORGE_CACHE")"
 
           download_verified() {
             local url="$1"
             local output="$2"
             local checksum_file
             checksum_file="$(mktemp)"
+            mkdir -p "$(dirname "$output")"
             curl --fail --location --retry 5 --retry-all-errors "$url" --output "$output"
             curl --fail --location --retry 5 --retry-all-errors "$url.sha1" --output "$checksum_file"
             echo "$(tr -d '\r\n' <"$checksum_file")  $output" | sha1sum --check
@@ -86,6 +85,7 @@ jobs:
           seed_cache() {
             local source="$1"
             local target="$2"
+            mkdir -p "$(dirname "$target")"
             cp "$source" "$target"
             printf '%s' "$(md5sum "$target" | cut -d' ' -f1)" > "$target.md5"
             unzip -t "$target" >/dev/null
@@ -94,15 +94,21 @@ jobs:
           download_verified \
             "$MIRROR/net/minecraftforge/forge/${FORGE_VERSION}/forge-${FORGE_VERSION}-userdev.jar" \
             "$FORGE_SOURCE"
-          download_verified \
-            "$MIRROR/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip" \
-            "$MCP_SOURCE"
-
           seed_cache "$FORGE_SOURCE" "$FORGE_CACHE"
-          seed_cache "$MCP_SOURCE" "$MCP_CACHE"
+
+          SEEDED_FILES=("$FORGE_CACHE")
+          for MCP_VERSION in "${MCP_VERSIONS[@]}"; do
+            MCP_SOURCE="$GITHUB_WORKSPACE/.verified-forge/mcp_config-${MCP_VERSION}.zip"
+            MCP_CACHE="$HOME/.gradle/caches/forge_gradle/maven_downloader/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip"
+            download_verified \
+              "$MIRROR/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip" \
+              "$MCP_SOURCE"
+            seed_cache "$MCP_SOURCE" "$MCP_CACHE"
+            SEEDED_FILES+=("$MCP_CACHE")
+          done
 
           echo "Seeded ForgeGradle cache:"
-          sha1sum "$FORGE_CACHE" "$MCP_CACHE"
+          sha1sum "${SEEDED_FILES[@]}"
 
       - name: Build addon JAR
         run: |
