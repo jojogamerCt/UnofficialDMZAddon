@@ -61,30 +61,41 @@ jobs:
 
       - name: Prepare verified local Forge repository
         run: |
+          MIRROR='https://mirror.sjtu.edu.cn/bmclapi'
           FORGE_VERSION='1.20.1-47.4.10'
-          BASE="https://mirror.sjtu.edu.cn/bmclapi/net/minecraftforge/forge/${FORGE_VERSION}"
-          LOCAL_DIR="$GITHUB_WORKSPACE/.forge-mirror/net/minecraftforge/forge/${FORGE_VERSION}"
-          mkdir -p "$LOCAL_DIR"
+          FORGE_DIR="$GITHUB_WORKSPACE/.forge-mirror/net/minecraftforge/forge/${FORGE_VERSION}"
+          MCP_VERSION='1.20.1-20230612.114412'
+          MCP_DIR="$GITHUB_WORKSPACE/.forge-mirror/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}"
+          mkdir -p "$FORGE_DIR" "$MCP_DIR"
 
-          curl --fail --location --retry 5 --retry-all-errors \
-            "$BASE/forge-${FORGE_VERSION}-userdev.jar" \
-            --output "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar"
-          curl --fail --location --retry 5 --retry-all-errors \
-            "$BASE/forge-${FORGE_VERSION}-userdev.jar.sha1" \
-            --output /tmp/forge-userdev.jar.sha1
+          download_verified() {
+            local url="$1"
+            local output="$2"
+            local checksum_file
+            checksum_file="$(mktemp)"
+            curl --fail --location --retry 5 --retry-all-errors "$url" --output "$output"
+            curl --fail --location --retry 5 --retry-all-errors "$url.sha1" --output "$checksum_file"
+            echo "$(tr -d '\r\n' <"$checksum_file")  $output" | sha1sum --check
+            md5sum "$output" | cut -d' ' -f1 > "$output.md5"
+            unzip -t "$output" >/dev/null
+            rm -f "$checksum_file"
+          }
 
-          echo "$(tr -d '\r\n' </tmp/forge-userdev.jar.sha1)  $LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar" | sha1sum --check
-          md5sum "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar" | cut -d' ' -f1 \
-            > "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar.md5"
-          unzip -t "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar" >/dev/null
+          download_verified \
+            "$MIRROR/net/minecraftforge/forge/${FORGE_VERSION}/forge-${FORGE_VERSION}-userdev.jar" \
+            "$FORGE_DIR/forge-${FORGE_VERSION}-userdev.jar"
+          download_verified \
+            "$MIRROR/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip" \
+            "$MCP_DIR/mcp_config-${MCP_VERSION}.zip"
 
           cat > /tmp/forge-local-repository.gradle <<'EOF'
           gradle.beforeProject { project ->
               project.repositories.maven { repo ->
-                  repo.name = 'VerifiedLocalForgeUserdev'
+                  repo.name = 'VerifiedLocalForgeTooling'
                   repo.url = project.uri(System.getenv('GITHUB_WORKSPACE') + '/.forge-mirror')
                   repo.content { content ->
                       content.includeGroup('net.minecraftforge')
+                      content.includeGroup('de.oceanlabs.mcp')
                   }
               }
           }
