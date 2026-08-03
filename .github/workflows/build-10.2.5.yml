@@ -26,6 +26,14 @@ jobs:
           git clone https://github.com/DragonMineZ/dragonminez.git dragonminez
           git -C dragonminez checkout 685b010269ba45ca736342ab7a60dddb0758181f
           rm -rf dragonminez/.git
+          cat >> dragonminez/build.gradle.kts <<'EOF'
+
+          repositories.withType<org.gradle.api.artifacts.repositories.MavenArtifactRepository>().configureEach {
+              if (url.host == "maven.minecraftforge.net") {
+                  setUrl("https://mirror.sjtu.edu.cn/bmclapi/")
+              }
+          }
+          EOF
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
