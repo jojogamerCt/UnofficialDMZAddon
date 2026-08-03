@@ -59,44 +59,44 @@ jobs:
           git commit -m "Implement 10.2.5 player-requested fixes [10.2.5 applied]"
           git push origin HEAD:agent/10.2.5-player-fixes
 
-      - name: Download verified Forge userdev archive
+      - name: Prepare verified local Forge repository
         run: |
           FORGE_VERSION='1.20.1-47.4.10'
           BASE="https://mirror.sjtu.edu.cn/bmclapi/net/minecraftforge/forge/${FORGE_VERSION}"
+          LOCAL_DIR="$GITHUB_WORKSPACE/.forge-mirror/net/minecraftforge/forge/${FORGE_VERSION}"
+          mkdir -p "$LOCAL_DIR"
+
           curl --fail --location --retry 5 --retry-all-errors \
             "$BASE/forge-${FORGE_VERSION}-userdev.jar" \
-            --output /tmp/forge-userdev.jar
+            --output "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar"
           curl --fail --location --retry 5 --retry-all-errors \
             "$BASE/forge-${FORGE_VERSION}-userdev.jar.sha1" \
             --output /tmp/forge-userdev.jar.sha1
-          echo "$(tr -d '\r\n' </tmp/forge-userdev.jar.sha1)  /tmp/forge-userdev.jar" | sha1sum --check
-          unzip -t /tmp/forge-userdev.jar
-          ls -lh /tmp/forge-userdev.jar
+
+          echo "$(tr -d '\r\n' </tmp/forge-userdev.jar.sha1)  $LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar" | sha1sum --check
+          md5sum "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar" | cut -d' ' -f1 \
+            > "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar.md5"
+          unzip -t "$LOCAL_DIR/forge-${FORGE_VERSION}-userdev.jar" >/dev/null
+
+          cat > /tmp/forge-local-repository.gradle <<'EOF'
+          gradle.beforeProject { project ->
+              project.repositories.maven { repo ->
+                  repo.name = 'VerifiedLocalForgeUserdev'
+                  repo.url = project.uri(System.getenv('GITHUB_WORKSPACE') + '/.forge-mirror')
+                  repo.content { content ->
+                      content.includeGroup('net.minecraftforge')
+                  }
+              }
+          }
+          EOF
 
       - name: Build addon JAR
         run: |
           chmod +x gradlew
-
-          echo 'Priming ForgeGradle cache; the upstream userdev response may be malformed.'
-          ./gradlew help --no-daemon --stacktrace --refresh-dependencies || true
-
-          mapfile -t cached_userdevs < <(
-            find "$HOME/.gradle/caches" -type f \
-              -name 'forge-1.20.1-47.4.10-userdev.jar' -print
-          )
-          if [ "${#cached_userdevs[@]}" -eq 0 ]; then
-            echo 'ForgeGradle did not create a userdev cache entry.' >&2
-            find "$HOME/.gradle/caches" -type f -iname '*47.4.10*' -print || true
-            exit 1
-          fi
-
-          for cached in "${cached_userdevs[@]}"; do
-            echo "Replacing malformed cached archive: $cached"
-            cp /tmp/forge-userdev.jar "$cached"
-            unzip -t "$cached" >/dev/null
-          done
-
-          ./gradlew clean build --offline --no-daemon --stacktrace
+          ./gradlew clean build \
+            --init-script /tmp/forge-local-repository.gradle \
+            --no-daemon \
+            --stacktrace
 
       - name: Package Gradle project
         run: |
@@ -105,6 +105,7 @@ jobs:
           rsync -a ./ /tmp/unofficialdmzaddon-project/UnofficialDMZAddon-10.2.5/ \
             --exclude='.git/' \
             --exclude='.gradle/' \
+            --exclude='.forge-mirror/' \
             --exclude='build/' \
             --exclude='*/build/' \
             --exclude='release/'
