@@ -1,0 +1,63 @@
+name: Build Unofficial DMZ Addon 10.2.5
+
+on:
+  push:
+    branches:
+      - agent/10.2.5-player-fixes
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-build:
+    if: ${{ !contains(github.event.head_commit.message, '[10.2.5 applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Apply 10.2.5 changes
+        run: python3 .github/scripts/apply_10_2_5.py
+
+      - name: Validate changed files
+        run: |
+          python3 -m json.tool src/main/resources/unofficialdmzaddon.mixins.json >/dev/null
+          python3 -m json.tool src/main/resources/assets/dragonminez/lang/en_us.json >/dev/null
+          git diff --check
+
+      - name: Commit release implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement 10.2.5 player-requested fixes [10.2.5 applied]"
+          git push origin HEAD:agent/10.2.5-player-fixes
+
+      - name: Build addon JAR
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build --no-daemon --stacktrace
+
+      - name: Package Gradle project
+        run: |
+          mkdir -p release
+          cp build/libs/*.jar release/
+          git archive --format=zip --output=release/UnofficialDMZAddon-10.2.5-gradle-project.zip HEAD
+          ls -lah release
+
+      - name: Upload release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnofficialDMZAddon-10.2.5-release
+          path: release/*
+          if-no-files-found: error
+          retention-days: 30
