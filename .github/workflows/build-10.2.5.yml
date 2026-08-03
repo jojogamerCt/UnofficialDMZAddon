@@ -96,7 +96,7 @@ jobs:
             unzip -t "$cached" >/dev/null
           done
 
-          ./gradlew clean build --no-daemon --stacktrace
+          ./gradlew clean build --offline --no-daemon --stacktrace
 
       - name: Package Gradle project
         run: |
