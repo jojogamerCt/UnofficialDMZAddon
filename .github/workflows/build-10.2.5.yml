@@ -62,7 +62,18 @@ jobs:
       - name: Build addon JAR
         run: |
           chmod +x gradlew
-          ./gradlew clean build --no-daemon --stacktrace
+          for attempt in 1 2 3; do
+            echo "Gradle build attempt $attempt"
+            if ./gradlew clean build --no-daemon --stacktrace --refresh-dependencies; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit 1
+            fi
+            rm -rf "$HOME/.gradle/caches/forge_gradle" \
+                   "$HOME/.gradle/caches/modules-2/files-2.1/net.minecraftforge/forge/1.20.1-47.4.10"
+            sleep 10
+          done
 
       - name: Package Gradle project
         run: |
