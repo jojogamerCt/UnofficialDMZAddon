@@ -59,14 +59,17 @@ jobs:
           git commit -m "Implement 10.2.5 player-requested fixes [10.2.5 applied]"
           git push origin HEAD:agent/10.2.5-player-fixes
 
-      - name: Prepare verified local Forge repository
+      - name: Prepare verified Forge tooling cache
         run: |
           MIRROR='https://mirror.sjtu.edu.cn/bmclapi'
           FORGE_VERSION='1.20.1-47.4.10'
-          FORGE_DIR="$GITHUB_WORKSPACE/.forge-mirror/net/minecraftforge/forge/${FORGE_VERSION}"
           MCP_VERSION='1.20.1-20230612.114412'
-          MCP_DIR="$GITHUB_WORKSPACE/.forge-mirror/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}"
-          mkdir -p "$FORGE_DIR" "$MCP_DIR"
+
+          FORGE_SOURCE="$GITHUB_WORKSPACE/.verified-forge/forge-${FORGE_VERSION}-userdev.jar"
+          MCP_SOURCE="$GITHUB_WORKSPACE/.verified-forge/mcp_config-${MCP_VERSION}.zip"
+          FORGE_CACHE="$HOME/.gradle/caches/forge_gradle/maven_downloader/net/minecraftforge/forge/${FORGE_VERSION}/forge-${FORGE_VERSION}-userdev.jar"
+          MCP_CACHE="$HOME/.gradle/caches/forge_gradle/maven_downloader/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip"
+          mkdir -p "$(dirname "$FORGE_SOURCE")" "$(dirname "$FORGE_CACHE")" "$(dirname "$MCP_CACHE")"
 
           download_verified() {
             local url="$1"
@@ -76,67 +79,35 @@ jobs:
             curl --fail --location --retry 5 --retry-all-errors "$url" --output "$output"
             curl --fail --location --retry 5 --retry-all-errors "$url.sha1" --output "$checksum_file"
             echo "$(tr -d '\r\n' <"$checksum_file")  $output" | sha1sum --check
-            md5sum "$output" | cut -d' ' -f1 > "$output.md5"
             unzip -t "$output" >/dev/null
             rm -f "$checksum_file"
           }
 
-          write_pom() {
-            local output="$1"
-            local group="$2"
-            local artifact="$3"
-            local version="$4"
-            local packaging="$5"
-            cat > "$output" <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <project xmlns="http://maven.apache.org/POM/4.0.0">
-            <modelVersion>4.0.0</modelVersion>
-            <groupId>$group</groupId>
-            <artifactId>$artifact</artifactId>
-            <version>$version</version>
-            <packaging>$packaging</packaging>
-          </project>
-          EOF
+          seed_cache() {
+            local source="$1"
+            local target="$2"
+            cp "$source" "$target"
+            printf '%s' "$(md5sum "$target" | cut -d' ' -f1)" > "$target.md5"
+            unzip -t "$target" >/dev/null
           }
 
           download_verified \
             "$MIRROR/net/minecraftforge/forge/${FORGE_VERSION}/forge-${FORGE_VERSION}-userdev.jar" \
-            "$FORGE_DIR/forge-${FORGE_VERSION}-userdev.jar"
-          write_pom \
-            "$FORGE_DIR/forge-${FORGE_VERSION}.pom" \
-            'net.minecraftforge' 'forge' "$FORGE_VERSION" 'jar'
-
+            "$FORGE_SOURCE"
           download_verified \
             "$MIRROR/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip" \
-            "$MCP_DIR/mcp_config-${MCP_VERSION}.zip"
-          write_pom \
-            "$MCP_DIR/mcp_config-${MCP_VERSION}.pom" \
-            'de.oceanlabs.mcp' 'mcp_config' "$MCP_VERSION" 'zip'
+            "$MCP_SOURCE"
 
-          cat > /tmp/forge-local-repository.gradle <<'EOF'
-          gradle.beforeProject { project ->
-              project.repositories.maven { repo ->
-                  repo.name = 'VerifiedLocalForgeTooling'
-                  repo.url = project.uri(System.getenv('GITHUB_WORKSPACE') + '/.forge-mirror')
-                  repo.metadataSources { sources ->
-                      sources.mavenPom()
-                      sources.artifact()
-                  }
-                  repo.content { content ->
-                      content.includeGroup('net.minecraftforge')
-                      content.includeGroup('de.oceanlabs.mcp')
-                  }
-              }
-          }
-          EOF
+          seed_cache "$FORGE_SOURCE" "$FORGE_CACHE"
+          seed_cache "$MCP_SOURCE" "$MCP_CACHE"
+
+          echo "Seeded ForgeGradle cache:"
+          sha1sum "$FORGE_CACHE" "$MCP_CACHE"
 
       - name: Build addon JAR
         run: |
           chmod +x gradlew
-          ./gradlew clean build \
-            --init-script /tmp/forge-local-repository.gradle \
-            --no-daemon \
-            --stacktrace
+          ./gradlew clean build --no-daemon --stacktrace
 
       - name: Package Gradle project
         run: |
@@ -145,7 +116,7 @@ jobs:
           rsync -a ./ /tmp/unofficialdmzaddon-project/UnofficialDMZAddon-10.2.5/ \
             --exclude='.git/' \
             --exclude='.gradle/' \
-            --exclude='.forge-mirror/' \
+            --exclude='.verified-forge/' \
             --exclude='build/' \
             --exclude='*/build/' \
             --exclude='release/'
