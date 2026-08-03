@@ -81,18 +81,47 @@ jobs:
             rm -f "$checksum_file"
           }
 
+          write_pom() {
+            local output="$1"
+            local group="$2"
+            local artifact="$3"
+            local version="$4"
+            local packaging="$5"
+            cat > "$output" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>$group</groupId>
+            <artifactId>$artifact</artifactId>
+            <version>$version</version>
+            <packaging>$packaging</packaging>
+          </project>
+          EOF
+          }
+
           download_verified \
             "$MIRROR/net/minecraftforge/forge/${FORGE_VERSION}/forge-${FORGE_VERSION}-userdev.jar" \
             "$FORGE_DIR/forge-${FORGE_VERSION}-userdev.jar"
+          write_pom \
+            "$FORGE_DIR/forge-${FORGE_VERSION}.pom" \
+            'net.minecraftforge' 'forge' "$FORGE_VERSION" 'jar'
+
           download_verified \
             "$MIRROR/de/oceanlabs/mcp/mcp_config/${MCP_VERSION}/mcp_config-${MCP_VERSION}.zip" \
             "$MCP_DIR/mcp_config-${MCP_VERSION}.zip"
+          write_pom \
+            "$MCP_DIR/mcp_config-${MCP_VERSION}.pom" \
+            'de.oceanlabs.mcp' 'mcp_config' "$MCP_VERSION" 'zip'
 
           cat > /tmp/forge-local-repository.gradle <<'EOF'
           gradle.beforeProject { project ->
               project.repositories.maven { repo ->
                   repo.name = 'VerifiedLocalForgeTooling'
                   repo.url = project.uri(System.getenv('GITHUB_WORKSPACE') + '/.forge-mirror')
+                  repo.metadataSources { sources ->
+                      sources.mavenPom()
+                      sources.artifact()
+                  }
                   repo.content { content ->
                       content.includeGroup('net.minecraftforge')
                       content.includeGroup('de.oceanlabs.mcp')
