@@ -43,29 +43,45 @@ public final class AddonClassInstaller {
         boolean changed = false;
         if (!config.getClasses().containsKey("kiadept")) {
             configure(config.getClassStats("kiadept"), 0, 0, 0, 5, 10, 10,
-                    0.65, 10.0, 7.0, 0.55, 0.8, 1.2, 1.4, 1.5, 2.4,
+                    0.65, 10.0, 7.0, 0.55, 0.8, 0.168, 1.4, 1.5, 2.4,
                     map("cooldownMultiplier", 0.82, "durationMultiplier", 1.10));
             changed = true;
         }
         if (!config.getClasses().containsKey("duelist")) {
             configure(config.getClassStats("duelist"), 5, 10, 0, 5, 0, 0,
-                    1.35, 4.0, 11.0, 1.0, 1.8, 0.9, 1.4, 0.7, 1.2,
+                    1.35, 4.0, 11.0, 1.0, 1.8, 0.18, 1.4, 0.7, 1.2,
                     map("strikeMultiplier", 1.10, "critBonus", 0.08, "armorPen", 0.05));
             changed = true;
         }
         if (!config.getClasses().containsKey("vanguard")) {
             configure(config.getClassStats("vanguard"), 5, 0, 10, 10, 0, 0,
-                    2.15, 5.0, 10.0, 0.8, 0.8, 1.65, 2.4, 0.55, 1.0,
+                    2.15, 5.0, 10.0, 0.8, 0.8, 0.36, 2.4, 0.55, 1.0,
                     map("healthRegen", 1.25, "staminaRegen", 1.10, "healingReceived", 1.10));
             changed = true;
         }
         if (!config.getClasses().containsKey("tactician")) {
             configure(config.getClassStats("tactician"), 5, 5, 5, 5, 5, 5,
-                    1.2, 7.0, 9.0, 1.0, 1.2, 1.2, 1.4, 1.25, 1.5,
+                    1.2, 7.0, 9.0, 1.0, 1.2, 0.24, 1.4, 1.25, 1.5,
                     map("meleeAfterKi", 1.18, "kiAfterMelee", 0.75, "windowTicks", 80.0));
             changed = true;
         }
+        changed |= migrateLegacyDefenseScaling(config, "kiadept", 1.2, 0.168);
+        changed |= migrateLegacyDefenseScaling(config, "duelist", 0.9, 0.18);
+        changed |= migrateLegacyDefenseScaling(config, "vanguard", 1.65, 0.36);
+        changed |= migrateLegacyDefenseScaling(config, "tactician", 1.2, 0.24);
         return changed;
+    }
+
+    private static boolean migrateLegacyDefenseScaling(RaceStatsConfig config,
+                                                       String classKey,
+                                                       double legacyValue,
+                                                       double balancedValue) {
+        RaceStatsConfig.ClassStats stats = config.getClasses().get(classKey);
+        if (stats == null || stats.getStatScaling() == null) return false;
+        double current = stats.getStatScaling().getDefenseScaling();
+        if (Math.abs(current - legacyValue) > 0.000001D) return false;
+        stats.getStatScaling().setDefenseScaling(balancedValue);
+        return true;
     }
 
     private static void configure(RaceStatsConfig.ClassStats stats, int str, int skp, int res, int vit, int pwr, int ene,

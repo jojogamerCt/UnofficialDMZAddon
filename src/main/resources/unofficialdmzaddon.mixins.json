@@ -23,7 +23,9 @@
     "RadialFormsMixin",
     "RadialLayoutStoreMixin",
     "UtilityMenuScreenMixin",
-    "PersistentDivineAuraMixin"
+    "PersistentDivineAuraMixin",
+    "ClientLanguageMixin",
+    "SearchFlightAuraMixin"
   ],
   "injectors": {
     "defaultRequire": 1

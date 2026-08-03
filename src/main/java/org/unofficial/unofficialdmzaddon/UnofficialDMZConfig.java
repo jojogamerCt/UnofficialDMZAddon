@@ -7,6 +7,7 @@ public final class UnofficialDMZConfig {
     public static final ForgeConfigSpec SPEC;
 
     public static final ForgeConfigSpec.BooleanValue FIRST_PERSON_RACE_MODEL;
+    public static final ForgeConfigSpec.BooleanValue HALAL_MODE;
     public static final ForgeConfigSpec.BooleanValue ULTRA_INSTINCT_ENABLED;
     public static final ForgeConfigSpec.BooleanValue ULTRA_EGO_ENABLED;
     public static final ForgeConfigSpec.BooleanValue UI_DODGES_ENABLED;
@@ -38,6 +39,10 @@ public final class UnofficialDMZConfig {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
         builder.comment("Client rendering options").push("rendering");
         FIRST_PERSON_RACE_MODEL = builder.define("first_person_race_model", true);
+        HALAL_MODE = builder
+                .comment("For my muslim fellows",
+                        "Replaces whole-word God/god labels with Frog/frog on the client")
+                .define("halal_mode", false);
         SPACE_VISIBILITY_RECOVERY = builder.comment("Prevent non-potion invisibility while flying in space")
                 .define("space_visibility_recovery", true);
         builder.pop();

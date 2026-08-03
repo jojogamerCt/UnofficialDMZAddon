@@ -43,6 +43,9 @@ public final class DivineProgressionInstaller {
     private static final List<Integer> ULTRA_EGO_COSTS = List.of(180_000);
     private static final String ULTRA_INSTINCT_MASTER = "goku";
     private static final String ULTRA_EGO_MASTER = "vegeta";
+    private static final double UI_SIGN_STAMINA_DRAIN = 0.012;
+    private static final double UI_MASTERED_STAMINA_DRAIN = 0.018;
+    private static final double UI_TRUE_STAMINA_DRAIN = 0.024;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private DivineProgressionInstaller() {
@@ -200,6 +203,7 @@ public final class DivineProgressionInstaller {
         }
         defaults.getForms().forEach(existing.getForms()::putIfAbsent);
         copyCanonicalDivineAuras(existing, defaults);
+        if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) balanceUltraInstinctDrain(existing);
         if (existing.getGroupName() == null || existing.getGroupName().isBlank()) {
             existing.setGroupName(groupName);
         }
@@ -248,10 +252,12 @@ public final class DivineProgressionInstaller {
 
     private static boolean persistNativeConfigFiles() {
         boolean skills = persistNativeSkillConfig() && persistSaiyanDivineSkillCosts();
-        boolean ui = !UnofficialDMZConfig.ULTRA_INSTINCT_ENABLED.get()
-                || persistConfigBackedGroup(createExtendedUltraInstinctGroup());
-        boolean ue = !UnofficialDMZConfig.ULTRA_EGO_ENABLED.get()
-                || persistConfigBackedGroup(createOriginalUltraEgoGroup());
+        boolean ui = UnofficialDMZConfig.ULTRA_INSTINCT_ENABLED.get()
+                ? persistConfigBackedGroup(createExtendedUltraInstinctGroup())
+                : archiveDisabledRaceFormFile(StackForms.GROUP_ULTRAINSTINCT);
+        boolean ue = UnofficialDMZConfig.ULTRA_EGO_ENABLED.get()
+                ? persistConfigBackedGroup(createOriginalUltraEgoGroup())
+                : archiveDisabledRaceFormFile(StackForms.GROUP_ULTRAEGO);
         boolean legacy = archiveLegacyStackFormFile(StackForms.GROUP_ULTRAINSTINCT)
                 && archiveLegacyStackFormFile(StackForms.GROUP_ULTRAEGO);
         return skills && ui && ue && legacy;
@@ -283,10 +289,16 @@ public final class DivineProgressionInstaller {
             if (UnofficialDMZConfig.ULTRA_INSTINCT_ENABLED.get()) {
                 ensureString(formSkills, StackForms.GROUP_ULTRAINSTINCT);
                 ensureSkillCosts(skills, StackForms.GROUP_ULTRAINSTINCT, ULTRA_INSTINCT_COSTS);
+            } else {
+                removeString(formSkills, StackForms.GROUP_ULTRAINSTINCT);
+                skills.remove(StackForms.GROUP_ULTRAINSTINCT);
             }
             if (UnofficialDMZConfig.ULTRA_EGO_ENABLED.get()) {
                 ensureString(formSkills, StackForms.GROUP_ULTRAEGO);
                 ensureSkillCosts(skills, StackForms.GROUP_ULTRAEGO, ULTRA_EGO_COSTS);
+            } else {
+                removeString(formSkills, StackForms.GROUP_ULTRAEGO);
+                skills.remove(StackForms.GROUP_ULTRAEGO);
             }
 
             root.add("stackSkills", stackSkills);
@@ -447,6 +459,25 @@ public final class DivineProgressionInstaller {
             return false;
         }
     }
+    private static boolean archiveDisabledRaceFormFile(String groupName) {
+        Path file = FMLPaths.CONFIGDIR.get()
+                .resolve("dragonminez")
+                .resolve("races")
+                .resolve(SpecialRaceFormsDefinitions.SAIYAN_RACE)
+                .resolve("forms")
+                .resolve(groupName + ".json");
+        if (!Files.exists(file)) return true;
+        Path backup = file.resolveSibling(groupName + ".addon-disabled");
+        try {
+            Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
+            return true;
+        } catch (IOException e) {
+            UnofficialDMZAddon.LOGGER.warn(
+                    "[Unofficial DMZ Addon] Failed disabling form file '{}': {}", file, e.getMessage());
+            return false;
+        }
+    }
+
     private static boolean persistConfigBackedGroup(FormConfig defaults) {
         String groupName = defaults.getGroupName().toLowerCase();
         Path file = FMLPaths.CONFIGDIR.get()
@@ -487,6 +518,9 @@ public final class DivineProgressionInstaller {
             for (Map.Entry<String, FormConfig.FormData> entry : defaults.getForms().entrySet()) {
                 JsonObject form = forms.getAsJsonObject(entry.getKey());
                 if (form != null) writeCanonicalAura(form, entry.getValue());
+                if (form != null && StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) {
+                    migrateUltraInstinctDrain(form, entry.getKey());
+                }
                 if (form != null && StackForms.GROUP_ULTRAINSTINCT.equals(groupName)
                         && UltraInstinctDefinitions.FORM_TRUE.equalsIgnoreCase(entry.getKey())) {
                     form.addProperty("unlockOnSkillLevel", 3);
@@ -566,7 +600,7 @@ public final class DivineProgressionInstaller {
                 addonUltraInstinctForm(UltraInstinctDefinitions.FORM_TRUE, 3,
                         "base", "#242333", "#D8CCFF", "#C3B0FF", "#E8DAFF",
                         1.88, 2.00, 1.68, 1.76, 1.52, 2.00, 1.52, 1.55,
-                        0.055, 0.085, 0.07, 0.08, 1.38,
+                        0.055, UI_TRUE_STAMINA_DRAIN, 0.07, 0.08, 1.38,
                         StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED, 75.0));
         configureUltraInstinctAuras(group);
         return group;
@@ -581,6 +615,7 @@ public final class DivineProgressionInstaller {
         }
         FormConfig group = makeIndependent(groups.get(StackForms.GROUP_ULTRAINSTINCT));
         configureUltraInstinctAuras(group);
+        balanceUltraInstinctDrain(group);
         return group;
     }
 
@@ -636,6 +671,40 @@ public final class DivineProgressionInstaller {
             form.setHasLightnings(mastered || tier > 0);
             form.setLightningColor(mastered ? "#FF74FF" : "#C85CFF");
             tier++;
+        }
+    }
+
+    private static void balanceUltraInstinctDrain(FormConfig group) {
+        if (group == null || group.getForms() == null) return;
+        migrateUltraInstinctDrain(group.getFormByKey(StackForms.ULTRAINSTINCT_SIGN), 0.03, UI_SIGN_STAMINA_DRAIN);
+        migrateUltraInstinctDrain(group.getFormByKey(StackForms.ULTRAINSTINCT_MASTERED), 0.06, UI_MASTERED_STAMINA_DRAIN);
+        migrateUltraInstinctDrain(group.getFormByKey(UltraInstinctDefinitions.FORM_TRUE), 0.085, UI_TRUE_STAMINA_DRAIN);
+    }
+
+    private static void migrateUltraInstinctDrain(FormConfig.FormData form, double legacy, double balanced) {
+        if (form == null) return;
+        double current = form.getStaminaDrain();
+        if (current <= 0.0 || near(current, legacy)) form.setStaminaDrain(balanced);
+    }
+
+    private static void migrateUltraInstinctDrain(JsonObject form, String formKey) {
+        double legacy;
+        double balanced;
+        if (StackForms.ULTRAINSTINCT_SIGN.equalsIgnoreCase(formKey)) {
+            legacy = 0.03;
+            balanced = UI_SIGN_STAMINA_DRAIN;
+        } else if (StackForms.ULTRAINSTINCT_MASTERED.equalsIgnoreCase(formKey)) {
+            legacy = 0.06;
+            balanced = UI_MASTERED_STAMINA_DRAIN;
+        } else if (UltraInstinctDefinitions.FORM_TRUE.equalsIgnoreCase(formKey)) {
+            legacy = 0.085;
+            balanced = UI_TRUE_STAMINA_DRAIN;
+        } else {
+            return;
+        }
+        if (!form.has("staminaDrain") || !form.get("staminaDrain").isJsonPrimitive()
+                || near(form.get("staminaDrain").getAsDouble(), legacy)) {
+            form.addProperty("staminaDrain", balanced);
         }
     }
 

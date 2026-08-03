@@ -1,0 +1,25 @@
+Unofficial DMZ Addon 10.2.5
+
+Accessibility and text
+- Added Halal Mode under the addon rendering settings with the subtitle "For my muslim fellows".
+- Halal Mode replaces whole-word God/god labels with Frog/frog at display time without renaming internal form IDs, config keys, saves, or DragonMineZ data.
+
+Flight visuals
+- Rotated the aura sideways while a player is moving with DragonMineZ Search Flight, matching the forward-flying anime and manga silhouette while leaving Combat Flight unchanged.
+
+Class balance
+- Rebalanced addon-class defense growth against DragonMineZ's native class range: Ki Adept 0.168, Duelist 0.18, Vanguard 0.36, and Tactician 0.24.
+- Migrates only the exact 10.2.4 addon defaults so server and modpack custom defense values remain untouched.
+
+Ultra Instinct and Ultra Ego
+- Reduced Ultra Instinct stamina drain to 0.012 for Sign, 0.018 for Mastered, and 0.024 for True.
+- Reduced automatic-dodge energy costs while preserving the documented 50-70%, 65-82%, and 88-97% mastery-scaled chances.
+- Corrected the post-Autonomous three-tier scaling so True Ultra Instinct receives the intended top-tier dodge distance and combat scaling.
+- Disabling Ultra Instinct or Ultra Ego now removes its runtime group, skill-tree entry, persisted race form file, and stale radial-menu layout entries.
+- Disabled form files are archived with an .addon-disabled suffix so administrators can restore or compare previous tuning.
+
+Namekian forms
+- Orange Form now preserves DragonMineZ's base Namekian head bones, keeping ears and antennae visible for newly generated and existing configs.
+
+Compatibility
+- All fixes are implemented in Unofficial DMZ Addon through addon installers, config migration, and mixins; DragonMineZ base source is not modified.

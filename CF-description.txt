@@ -2,7 +2,7 @@
 
 **![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Description.webp)**
 
-**Unofficial DMZ Addon 10.2.4** expands **DragonMine Z 2.1.3** with transformations, race progression, visuals, and mechanics built around DragonMineZ's native systems.
+**Unofficial DMZ Addon 10.2.5** expands **DragonMine Z 2.1.3** with transformations, race progression, visuals, and mechanics built around DragonMineZ's native systems.
 
 ### Current features
 
@@ -22,7 +22,7 @@
 * Every active form receives combat benefits. Exact buffs are documented in the relevant skill descriptions without transformation chat spam.
 * Existing DragonMineZ Ultra Instinct and Ultra Ego forms and icons are reused rather than duplicated, and their values remain replaceable through DragonMineZ configuration files.
 
-DragonMineZ is required. Configuration files are generated under the normal DragonMineZ and Unofficial DMZ Addon config directories. Pack authors and server owners can toggle individual addon forms, dodges, auras, buffs, Alien passive behavior, Space systems, Fly requirements, planet interaction, floor height, pod speed, collision margins, and arrival distance. UI and UE unlock from native race form skill trees rather than Goku or Vegeta.
+DragonMineZ is required. Configuration files are generated under the normal DragonMineZ and Unofficial DMZ Addon config directories. Pack authors and server owners can toggle individual addon forms, dodges, auras, buffs, Halal Mode text filtering, Alien passive behavior, Space systems, Fly requirements, planet interaction, floor height, pod speed, collision margins, and arrival distance. UI and UE unlock from native race form skill trees rather than Goku or Vegeta.
 
 ![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Socials.webp)
 

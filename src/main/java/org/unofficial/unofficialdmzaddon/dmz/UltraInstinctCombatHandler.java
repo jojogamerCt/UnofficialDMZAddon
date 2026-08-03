@@ -195,8 +195,8 @@ public final class UltraInstinctCombatHandler {
                 distanceAtZeroMastery = 0.80;
                 distanceAtFullMastery = 1.05;
                 verticalLift = 0.12;
-                energyCostAtZeroMastery = 0.025;
-                energyCostAtFullMastery = 0.018;
+                energyCostAtZeroMastery = 0.012;
+                energyCostAtFullMastery = 0.008;
             }
             case 2 -> {
                 chanceAtZeroMastery = 0.65;
@@ -204,17 +204,8 @@ public final class UltraInstinctCombatHandler {
                 distanceAtZeroMastery = 1.00;
                 distanceAtFullMastery = 1.30;
                 verticalLift = 0.15;
-                energyCostAtZeroMastery = 0.021;
-                energyCostAtFullMastery = 0.014;
-            }
-            case 3 -> {
-                chanceAtZeroMastery = 0.78;
-                chanceAtFullMastery = 0.91;
-                distanceAtZeroMastery = 1.25;
-                distanceAtFullMastery = 1.60;
-                verticalLift = 0.18;
-                energyCostAtZeroMastery = 0.017;
-                energyCostAtFullMastery = 0.010;
+                energyCostAtZeroMastery = 0.010;
+                energyCostAtFullMastery = 0.006;
             }
             default -> {
                 chanceAtZeroMastery = 0.88;
@@ -222,8 +213,8 @@ public final class UltraInstinctCombatHandler {
                 distanceAtZeroMastery = 1.50;
                 distanceAtFullMastery = 1.90;
                 verticalLift = 0.22;
-                energyCostAtZeroMastery = 0.013;
-                energyCostAtFullMastery = 0.007;
+                energyCostAtZeroMastery = 0.0075;
+                energyCostAtFullMastery = 0.004;
             }
         }
 
@@ -247,6 +238,6 @@ public final class UltraInstinctCombatHandler {
     }
 
     private static double tierRatio(int tier) {
-        return Math.max(0.0, Math.min(1.0, (tier - 1) / 3.0));
+        return Math.max(0.0, Math.min(1.0, (tier - 1) / 2.0));
     }
 }

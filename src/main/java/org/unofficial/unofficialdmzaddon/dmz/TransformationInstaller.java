@@ -220,6 +220,7 @@ public final class TransformationInstaller {
             if (orange != null) {
                 orange.setFormStackable(false);
                 orange.setStackDrainMultiplier(1.0);
+                orange.setKeepBaseFormHeadBones(true);
                 return true;
             }
             orange = new FormConfig.FormData();
@@ -475,6 +476,7 @@ public final class TransformationInstaller {
                                                double kaiokenDrainMultiplier) {
         formData.setName(formName);
         formData.setUnlockOnSkillLevel(unlockLevel);
+        formData.setKeepBaseFormHeadBones(true);
         formData.setCustomModel(usesFrostDemonFinalModel(formName) ? "frostdemon_final" : "");
         formData.setBodyColor1(bodyColor1);
         formData.setBodyColor2(bodyColor2);
@@ -726,6 +728,9 @@ public final class TransformationInstaller {
                 JsonObject existing = forms.getAsJsonObject(formKey);
                 existing.addProperty("formStackable", false);
                 existing.addProperty("stackDrainMultiplier", 1.0);
+                if (SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE.equals(formKey)) {
+                    existing.addProperty("keepBaseFormHeadBones", true);
+                }
                 if (SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER.equals(formKey)) {
                     existing.addProperty("customModel", "");
                     existing.add("modelScaling", GSON.toJsonTree(new float[]{1.4f, 1.3f, 1.4f}));
@@ -784,6 +789,7 @@ public final class TransformationInstaller {
         JsonObject form = new JsonObject();
         form.addProperty("name", formName);
         form.addProperty("unlockOnSkillLevel", unlockLevel);
+        form.addProperty("keepBaseFormHeadBones", true);
         form.addProperty("customModel", usesFrostDemonFinalModel(formName) ? "frostdemon_final" : "");
         form.addProperty("bodyColor1", bodyColor1);
         form.addProperty("bodyColor2", bodyColor2);
