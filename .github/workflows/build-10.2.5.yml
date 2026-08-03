@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - agent/10.2.5-player-fixes
+  pull_request:
+    branches:
+      - master
 
 permissions:
   contents: write
 
 jobs:
-  patch-and-build:
-    if: ${{ !contains(github.event.head_commit.message, '[10.2.5 applied]') }}
+  build-release:
     runs-on: ubuntu-latest
     steps:
       - name: Check out release branch
@@ -25,8 +27,11 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Apply 10.2.5 changes
-        run: python3 .github/scripts/apply_10_2_5.py
+      - name: Apply 10.2.5 changes when needed
+        run: |
+          if grep -q '^addon_mod_version=10.2.4$' gradle.properties; then
+            python3 .github/scripts/apply_10_2_5.py
+          fi
 
       - name: Validate changed files
         run: |
@@ -35,7 +40,12 @@ jobs:
           git diff --check
 
       - name: Commit release implementation
+        if: github.event_name == 'push'
         run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo 'Release implementation already committed.'
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
