@@ -10,12 +10,13 @@ import org.unofficial.unofficialdmzaddon.client.HalalModeText;
 @Mixin(ClientLanguage.class)
 public abstract class ClientLanguageMixin {
     @Inject(
-            method = "getOrDefault(Ljava/lang/String;)Ljava/lang/String;",
+            method = "getOrDefault(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
             at = @At("RETURN"),
             cancellable = true
     )
     private void unofficialdmzaddon$applyHalalMode(
             String key,
+            String fallback,
             CallbackInfoReturnable<String> cir) {
         cir.setReturnValue(HalalModeText.apply(cir.getReturnValue()));
     }
