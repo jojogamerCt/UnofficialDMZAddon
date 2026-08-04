@@ -3,6 +3,7 @@ Unofficial DMZ Addon 10.2.5
 Accessibility and text
 - Added Halal Mode under the addon rendering settings with the subtitle "For my muslim fellows".
 - Halal Mode replaces whole-word God/god labels with Frog/frog at display time without renaming internal form IDs, config keys, saves, or DragonMineZ data.
+- Fixed a client startup crash by targeting ClientLanguage's two-argument translation lookup used by Minecraft 1.20.1.
 
 Flight visuals
 - Rotated the aura sideways while a player is moving with DragonMineZ Search Flight, matching the forward-flying anime and manga silhouette while leaving Combat Flight unchanged.
