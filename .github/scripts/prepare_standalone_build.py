@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 settings_path = ROOT / "settings.gradle"
 build_path = ROOT / "build.gradle"
+mixin_path = ROOT / "src/main/java/org/unofficial/unofficialdmzaddon/mixin/ClientLanguageMixin.java"
 
 settings = settings_path.read_text(encoding="utf-8")
 settings = settings.replace(
@@ -50,3 +51,17 @@ elif new_dependencies not in build:
     raise RuntimeError("Could not locate DragonMineZ dependency block")
 
 build_path.write_text(build.rstrip() + "\n", encoding="utf-8")
+
+mixin = mixin_path.read_text(encoding="utf-8")
+mixin = mixin.replace(
+    'method = "getOrDefault(Ljava/lang/String;)Ljava/lang/String;"',
+    'method = "getOrDefault(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"',
+)
+mixin = mixin.replace(
+    "            String key,\n            CallbackInfoReturnable<String> cir)",
+    "            String key,\n            String fallback,\n            CallbackInfoReturnable<String> cir)",
+)
+expected_target = 'getOrDefault(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;'
+if expected_target not in mixin or "String fallback" not in mixin:
+    raise RuntimeError("ClientLanguageMixin is not targeting the Minecraft 1.20.1 two-argument lookup")
+mixin_path.write_text(mixin.rstrip() + "\n", encoding="utf-8")
