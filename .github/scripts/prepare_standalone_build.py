@@ -11,7 +11,7 @@ settings = settings.replace(
     "\ninclude 'dragonminez'\nproject(':dragonminez').projectDir = file('dragonminez')\n",
     "\n",
 )
-settings_path.write_text(settings, encoding="utf-8")
+settings_path.write_text(settings.rstrip() + "\n", encoding="utf-8")
 
 build = build_path.read_text(encoding="utf-8")
 start = build.find("evaluationDependsOn(':dragonminez')")
@@ -49,4 +49,4 @@ if old_dependencies in build:
 elif new_dependencies not in build:
     raise RuntimeError("Could not locate DragonMineZ dependency block")
 
-build_path.write_text(build, encoding="utf-8")
+build_path.write_text(build.rstrip() + "\n", encoding="utf-8")
