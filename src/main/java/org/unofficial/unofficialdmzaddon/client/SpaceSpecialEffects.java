@@ -6,14 +6,13 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -71,10 +70,20 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
     public boolean renderSky(ClientLevel level, int ticks, float partialTick, PoseStack poseStack, Camera camera,
                              Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog) {
         renderSpaceSky(poseStack);
-        renderSolarSystem(level, poseStack, camera);
+        renderSolarSystem(level, poseStack, camera, partialTick);
         renderPlanets(level, poseStack, camera, partialTick);
         renderMotionStreaks(level, poseStack, camera);
+        restoreRenderState();
         return true;
+    }
+
+    /** A late, depth-safe pass used when shader or LOD renderers replace the normal custom-sky stage. */
+    public static void renderCompatibilityPass(ClientLevel level, PoseStack poseStack, Camera camera,
+                                               float partialTick) {
+        renderSpaceSkyDepthSafe(poseStack);
+        renderSolarSystem(level, poseStack, camera, partialTick);
+        renderPlanets(level, poseStack, camera, partialTick);
+        restoreRenderState();
     }
 
     private static void renderSpaceSky(PoseStack poseStack) {
@@ -94,8 +103,24 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.enableDepthTest();
     }
 
+    private static void renderSpaceSkyDepthSafe(PoseStack poseStack) {
+        if (!skyFilterConfigured) {
+            Minecraft.getInstance().getTextureManager().getTexture(SKY).setFilter(true, true);
+            skyFilterConfigured = true;
+        }
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, SKY);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        drawSphere(poseStack.last().pose(), Vec3.ZERO, SKY_RADIUS,
+                SKY_LONGITUDE_SEGMENTS, SKY_LATITUDE_SEGMENTS);
+        RenderSystem.depthMask(true);
+    }
 
-    private static void renderSolarSystem(ClientLevel level, PoseStack poseStack, Camera camera) {
+
+    private static void renderSolarSystem(ClientLevel level, PoseStack poseStack, Camera camera, float partialTick) {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
         Matrix4f matrix = poseStack.last().pose();
@@ -118,7 +143,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.setShaderColor(1.0F, 1.0F, 0.92F, 1.0F);
         drawCube(matrix, sunRelative, (float) SpacePlanetSystem.SUN_RADIUS);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        drawOrbitRings(matrix, player, cameraPosition);
+        drawOrbitRings(matrix, player, cameraPosition, level.getGameTime() + partialTick);
         drawNearbyStars(matrix, player, cameraPosition);
 
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
@@ -126,11 +151,11 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.enableCull();
     }
 
-    private static void drawOrbitRings(Matrix4f matrix, Player player, Vec3 cameraPosition) {
+    private static void drawOrbitRings(Matrix4f matrix, Player player, Vec3 cameraPosition, double tickTime) {
         Vec3 sun = SpacePlanetSystem.sunPosition(player.position());
         BufferBuilder buffer = Tesselator.getInstance().getBuilder();
         buffer.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR);
-        for (SpacePlanetSystem.PlanetPlacement planet : SpacePlanetSystem.layout(player.getUUID(), player.position())) {
+        for (SpacePlanetSystem.PlanetPlacement planet : SpacePlanetSystem.layout(player.position(), tickTime)) {
             double radius = planet.orbitRadius();
             for (int i = 0; i < 96; i++) {
                 double a0 = Math.PI * 2.0D * i / 96.0D;
@@ -147,7 +172,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
     private static void drawNearbyStars(Matrix4f matrix, Player player, Vec3 cameraPosition) {
         BufferBuilder buffer = Tesselator.getInstance().getBuilder();
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        for (SpacePlanetSystem.StarPlacement star : SpacePlanetSystem.starLayout(player.getUUID(), player.position())) {
+        for (SpacePlanetSystem.StarPlacement star : SpacePlanetSystem.starLayout(player.position())) {
             Vec3 relative = star.position().subtract(cameraPosition);
             int rgb = star.color();
             appendColoredCube(buffer, matrix, relative, (float) star.size(),
@@ -190,6 +215,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
         long gameTime = level.getGameTime();
+        double renderTime = gameTime + partialTick;
         Vec3 cameraPosition = camera.getPosition();
 
         RenderSystem.enableBlend();
@@ -199,7 +225,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.depthMask(true);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
 
-        for (SpacePlanetSystem.PlanetPlacement placement : SpacePlanetSystem.layout(player.getUUID(), player.position())) {
+        for (SpacePlanetSystem.PlanetPlacement placement : SpacePlanetSystem.layout(player.position(), renderTime)) {
             long destroyedAt = SpacePlanetClientState.destroyedAt(placement.index());
             Vec3 relative = placement.position().subtract(cameraPosition);
             boolean unlocked = SpacePlanetClientState.isUnlocked(player, placement);
@@ -210,7 +236,8 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
                     RenderSystem.setShader(GameRenderer::getPositionTexShader);
                     RenderSystem.setShaderTexture(0, placement.definition().texture());
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, visibility);
-                    drawCube(poseStack.last().pose(), relative, (float) placement.definition().radius());
+                    drawRotatingCube(poseStack, relative, (float) placement.definition().radius(),
+                            (float) placement.spinAngle());
                 } else {
                     RenderSystem.setShader(GameRenderer::getPositionColorShader);
                     drawColoredCube(poseStack.last().pose(), relative,
@@ -237,10 +264,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
 
     private static void drawLockedPlanetMarker(PoseStack poseStack, Camera camera, Vec3 center,
                                                 float planetRadius, float visibility) {
-        Minecraft minecraft = Minecraft.getInstance();
-        Font font = minecraft.font;
-        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        float scale = Math.max(0.35F, planetRadius * 0.18F);
+        float scale = Math.max(0.35F, planetRadius * 0.22F);
 
         poseStack.pushPose();
         poseStack.translate(center.x, center.y, center.z);
@@ -250,13 +274,48 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         int alpha = Math.max(0, Math.min(255, Math.round(visibility * 255.0F)));
-        int color = alpha << 24 | 0x00FFFFFF;
-        font.drawInBatch("?", -font.width("?") / 2.0F, -font.lineHeight / 2.0F, color, false,
-                poseStack.last().pose(), buffers, Font.DisplayMode.SEE_THROUGH, 0, LightTexture.FULL_BRIGHT);
-        buffers.endBatch();
+        drawQuestionMark(poseStack.last().pose(), alpha);
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
         poseStack.popPose();
+    }
+
+    private static void drawQuestionMark(Matrix4f matrix, int alpha) {
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        // Seven-segment-style question mark. Geometry avoids the shader/text-render crash paths
+        // used by some Oculus and Sodium-derived renderers.
+        markerQuad(buffer, matrix, -1.5F, -3.0F, 1.5F, -2.2F, alpha);
+        markerQuad(buffer, matrix, 0.7F, -2.2F, 1.5F, -0.5F, alpha);
+        markerQuad(buffer, matrix, -0.2F, -0.5F, 1.5F, 0.3F, alpha);
+        markerQuad(buffer, matrix, -0.2F, 0.3F, 0.6F, 1.5F, alpha);
+        markerQuad(buffer, matrix, -0.2F, 2.2F, 0.6F, 3.0F, alpha);
+        Tesselator.getInstance().end();
+    }
+
+    private static void markerQuad(BufferBuilder buffer, Matrix4f matrix,
+                                   float x0, float y0, float x1, float y1, int alpha) {
+        buffer.vertex(matrix, x0, y0, 0.0F).color(255, 255, 255, alpha).endVertex();
+        buffer.vertex(matrix, x1, y0, 0.0F).color(255, 255, 255, alpha).endVertex();
+        buffer.vertex(matrix, x1, y1, 0.0F).color(255, 255, 255, alpha).endVertex();
+        buffer.vertex(matrix, x0, y1, 0.0F).color(255, 255, 255, alpha).endVertex();
+    }
+
+    private static void drawRotatingCube(PoseStack poseStack, Vec3 center, float halfSize, float yaw) {
+        poseStack.pushPose();
+        poseStack.translate(center.x, center.y, center.z);
+        poseStack.mulPose(Axis.YP.rotation(yaw));
+        drawCube(poseStack.last().pose(), Vec3.ZERO, halfSize);
+        poseStack.popPose();
+    }
+
+    private static void restoreRenderState() {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
     }
 
 

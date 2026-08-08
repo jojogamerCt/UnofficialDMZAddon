@@ -36,7 +36,7 @@ public final class SpacePlanetClientState {
         if (player == null || !player.level().dimension().equals(SpaceDimension.KEY)) return;
 
         long gameTime = player.level().getGameTime();
-        List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(player.getUUID(), player.position());
+        List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(player.position(), gameTime);
         List<AbstractKiProjectile> projectiles = player.level().getEntitiesOfClass(AbstractKiProjectile.class,
                 player.getBoundingBox().inflate(320.0D));
 
@@ -53,8 +53,8 @@ public final class SpacePlanetClientState {
                 if (!player.getUUID().equals(projectile.getOwnerUUID())) continue;
                 if (!projectile.isFiring() || projectile.tickCount < 2) continue;
                 Vec3 previous = projectile.position().subtract(projectile.getDeltaMovement());
-                if (SpacePlanetSystem.segmentIntersects(previous, projectile.position(), placement.position(),
-                        placement.definition().radius())) {
+                if (SpacePlanetSystem.segmentIntersectsRotatedCube(previous, projectile.position(),
+                        placement.position(), placement.definition().radius(), placement.spinAngle())) {
                     DESTROYED_AT[index] = gameTime;
                     break;
                 }

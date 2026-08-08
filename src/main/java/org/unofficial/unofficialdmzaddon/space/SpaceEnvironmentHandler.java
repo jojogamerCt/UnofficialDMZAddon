@@ -162,7 +162,8 @@ public final class SpaceEnvironmentHandler {
     }
 
     public static Vec3 spaceEntryPosition(ServerPlayer player, ResourceLocation sourceDimension) {
-        SpacePlanetSystem.PlanetPlacement sourcePlanet = SpacePlanetSystem.layout(player.getUUID(), Vec3.ZERO)
+        SpacePlanetSystem.PlanetPlacement sourcePlanet = SpacePlanetSystem.layout(Vec3.ZERO,
+                        player.serverLevel().getGameTime())
                 .stream()
                 .filter(placement -> placement.definition().dimension().equals(sourceDimension))
                 .findFirst()
@@ -185,7 +186,8 @@ public final class SpaceEnvironmentHandler {
         if (entry == null) return;
         ResourceLocation sourceDimension = entry.sourceDimension();
 
-        SpacePlanetSystem.PlanetPlacement sourcePlanet = SpacePlanetSystem.layout(player.getUUID(), Vec3.ZERO)
+        SpacePlanetSystem.PlanetPlacement sourcePlanet = SpacePlanetSystem.layout(Vec3.ZERO,
+                        player.serverLevel().getGameTime())
                 .stream()
                 .filter(placement -> placement.definition().dimension().equals(sourceDimension))
                 .findFirst()
@@ -235,7 +237,7 @@ public final class SpaceEnvironmentHandler {
         long[] destroyed = destroyedPlanets.computeIfAbsent(playerId, ignored -> freshDestroyedArray());
         Vec3 travelPosition = player.getVehicle() instanceof SpacePodEntity pod ? pod.position() : player.position();
         Vec3 previousTravelPosition = previousTravelPositions.getOrDefault(playerId, travelPosition);
-        List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(playerId, travelPosition);
+        List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(travelPosition, gameTime);
 
         for (SpacePlanetSystem.PlanetPlacement placement : placements) {
             int index = placement.index();
@@ -251,8 +253,8 @@ public final class SpaceEnvironmentHandler {
                     if (!playerId.equals(projectile.getOwnerUUID())) continue;
                     if (!projectile.isFiring() || projectile.tickCount < 2) continue;
                     Vec3 previous = projectile.position().subtract(projectile.getDeltaMovement());
-                    if (SpacePlanetSystem.segmentIntersectsCube(previous, projectile.position(), placement.position(),
-                            placement.definition().radius())) {
+                    if (SpacePlanetSystem.segmentIntersectsRotatedCube(previous, projectile.position(),
+                            placement.position(), placement.definition().radius(), placement.spinAngle())) {
                         destroyed[index] = gameTime;
                         putOnEvilPath(player);
                         break;
@@ -262,8 +264,9 @@ public final class SpaceEnvironmentHandler {
 
             if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_PLANET_TRAVEL.get()
                     && !SpacePlanetSystem.isDestroyed(gameTime, destroyed[index])
-                    && SpacePlanetSystem.segmentIntersectsCube(previousTravelPosition, travelPosition,
-                    placement.position(), placement.definition().radius() + org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_PLANET_ENTRY_MARGIN.get())
+                    && SpacePlanetSystem.segmentIntersectsRotatedCube(previousTravelPosition, travelPosition,
+                    placement.position(), placement.definition().radius() + org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_PLANET_ENTRY_MARGIN.get(),
+                    placement.spinAngle())
                     && gameTime - lastTravel.getOrDefault(playerId, Long.MIN_VALUE / 2L) > TRAVEL_COOLDOWN_TICKS) {
                 travelToPlanet(space, player, placement.definition());
                 lastTravel.put(playerId, gameTime);
