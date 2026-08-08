@@ -77,7 +77,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         return true;
     }
 
-    /** A late, depth-safe pass used when shader or LOD renderers replace the normal custom-sky stage. */
+    /** A late, depth-safe pass used when shader renderers replace the normal custom-sky stage. */
     public static void renderCompatibilityPass(ClientLevel level, PoseStack poseStack, Camera camera,
                                                float partialTick) {
         renderSpaceSkyDepthSafe(poseStack);

@@ -31,7 +31,6 @@ public final class UnofficialDMZConfig {
     public static final ForgeConfigSpec.BooleanValue SPACE_VISIBILITY_RECOVERY;
     public static final ForgeConfigSpec.BooleanValue SPACE_PLANET_HUD;
     public static final ForgeConfigSpec.BooleanValue SPACE_RENDER_COMPATIBILITY;
-    public static final ForgeConfigSpec.BooleanValue SPACE_LOD_COMPATIBILITY;
     public static final ForgeConfigSpec.DoubleValue SPACE_FLOOR_HEIGHT;
     public static final ForgeConfigSpec.DoubleValue SPACE_POD_SPEED_MULTIPLIER;
     public static final ForgeConfigSpec.DoubleValue SPACE_PLANET_ENTRY_MARGIN;
@@ -47,8 +46,6 @@ public final class UnofficialDMZConfig {
                 .define("space_planet_info_hud", true);
         SPACE_RENDER_COMPATIBILITY = builder.comment("Use a late depth-safe celestial pass with shader renderers")
                 .define("space_shader_compatibility", true);
-        SPACE_LOD_COMPATIBILITY = builder.comment("Isolate the empty Space dimension from supported LOD renderers")
-                .define("space_lod_compatibility", true);
         builder.pop();
 
         builder.comment("Transformation availability and behavior").push("transformations");

@@ -14,11 +14,10 @@ Solar-system animation and information
 - Locked-world HUDs conceal the planet identity and telemetry until DragonMineZ progression unlocks the destination.
 
 Rendering compatibility
-- Added a late, depth-safe celestial fallback for Oculus/Iris, OptiFine-style shader loaders, Distant Horizons, and Voxy render stages.
+- Added a late, depth-safe celestial fallback for Oculus/Iris and OptiFine-style shader loaders.
 - Replaced the locked-world text renderer with shader-safe question-mark geometry.
-- Integrated Distant Horizons through its optional API: LOD rendering is overridden only while the player is in the empty Space dimension and the user's original setting is restored on exit.
 - Kept all compatibility hooks optional and reflection-only so none of those rendering mods become required dependencies.
-- Added configuration switches for the planet HUD, shader fallback, and LOD isolation.
+- Added configuration switches for the planet HUD and shader fallback.
 
 Documentation
 - Updated the CurseForge description for the current 10.3.0 feature set and corrected the description of stationary unoccupied space pods.
