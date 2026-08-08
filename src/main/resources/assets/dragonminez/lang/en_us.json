@@ -31,9 +31,10 @@
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_blue":  "Super Saiyan Blue",
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rose":  "Super Saiyan Ros\u00e9",
     "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rage":  "Super Saiyan Rage",
+    "race.dragonminez.saiyan.form.supersaiyan.super_saiyan_rose_evolved":  "Super Saiyan Rosé Evolved",
     "skill.dragonminez.ultrainstinct.desc":  "Universal divine form tree. Every tier automatically cancels successful dodges. Sign has a 50-70% dodge chance, Mastered 65-82%, and True 88-97%, based on mastery; higher tiers also dodge farther and consume less energy. Hairless races receive matching body colors.",
     "skill.dragonminez.ultraego.desc":  "Single-tier universal destroyer form. Purple eyes and hair/body coloration, a persistent aggressive aura, and damage that increases as health falls.",
-    "skill.dragonminez.supersaiyan.desc":  "Saiyan transformation tree. God grants divine efficiency and resistance; Blue grants controlled power and Kaioken compatibility; Ros\u00e9 grants damage and life restoration; Rage grows stronger as health falls. Native Super Saiyan tiers retain their multipliers plus universal form buffs.",
+    "skill.dragonminez.supersaiyan.desc":  "Saiyan transformation tree. God grants divine efficiency and resistance; Blue and Rosé share the same base multiplier; Blue Evolved and Rosé Evolved share the same evolved multiplier; Rosé forms grant damage and life restoration; Rage gains its anime-style yellow aura with a cyan body outline and grows stronger as health falls.",
     "skill.dragonminez.racial_alien": "Adaptive Physiology",
     "skill.dragonminez.racial_alien.desc":  "Adaptive Physiology builds 4% resistance whenever the same damage type hits repeatedly, up to 20%. Adapting to a different threat replaces the previous resistance.",
     "race.dragonminez.human.group.ultrainstinct":  "Ultra Instinct",
@@ -91,6 +92,7 @@
     "race.dragonminez.saiyan.form.godforms.super_saiyan_blue":  "Super Saiyan Blue",
     "race.dragonminez.saiyan.form.godforms.super_saiyan_rose":  "Super Saiyan Ros\u00e9",
     "race.dragonminez.saiyan.form.godforms.super_saiyan_blue_evolved":  "Super Saiyan Blue Evolved",
+    "race.dragonminez.saiyan.form.godforms.super_saiyan_rose_evolved":  "Super Saiyan Rosé Evolved",
     "class.dragonminez.kiadept": "\u00a73Ki Adept",
     "class.dragonminez.kiadept.passive": "Flowing Energy",
     "class.dragonminez.kiadept.passive.desc": "Ki techniques recover 18% faster and their secondary effects last 10% longer.",
@@ -102,5 +104,7 @@
     "class.dragonminez.vanguard.passive.desc": "Health regeneration increases by 25%, stamina regeneration by 10%, and incoming healing by 10%.",
     "class.dragonminez.tactician": "\u00a75Tactician",
     "class.dragonminez.tactician.passive": "Combat Rotation",
-    "class.dragonminez.tactician.passive.desc": "A Ki technique after a melee hit recovers 25% faster; a melee strike after Ki deals 18% more damage."
+    "class.dragonminez.tactician.passive.desc": "A Ki technique after a melee hit recovers 25% faster; a melee strike after Ki deals 18% more damage.",
+    "gui.dragonminez.config.halalMode": "Halal Mode",
+    "gui.dragonminez.config.halalMode.subtitle": "For my muslim fellows"
 }

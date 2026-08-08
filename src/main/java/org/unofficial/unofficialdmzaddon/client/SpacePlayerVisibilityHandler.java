@@ -18,7 +18,7 @@ public final class SpacePlayerVisibilityHandler {
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
         var player = Minecraft.getInstance().player;
-        if (player == null || !player.level().dimension().equals(SpaceDimension.KEY)
+        if (player == null || !SpaceDimension.isSpace(player.level().dimension())
                 || !org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_VISIBILITY_RECOVERY.get()) return;
         if (player.isInvisible() && !player.hasEffect(MobEffects.INVISIBILITY)) {
             player.setInvisible(false);

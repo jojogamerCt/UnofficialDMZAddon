@@ -22,6 +22,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.joml.Matrix4f;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;
+import org.unofficial.unofficialdmzaddon.space.SpaceCelestialSystem;
+import org.unofficial.unofficialdmzaddon.space.SpaceDimension;
 import org.unofficial.unofficialdmzaddon.space.SpacePlanetSystem;
 
 @Mod.EventBusSubscriber(modid = UnofficialDMZAddon.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -31,6 +33,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
     private static final int PLANET_LONGITUDE_SEGMENTS = 32;
     private static final int PLANET_LATITUDE_SEGMENTS = 16;
     private static final float SKY_RADIUS = 100.0F;
+    private static final double CELESTIAL_PRESENTATION_DISTANCE = 90.0D;
     public static final ResourceLocation EFFECTS = ResourceLocation.fromNamespaceAndPath(UnofficialDMZAddon.MODID, "space_effects");
     private static final ResourceLocation SKY = ResourceLocation.fromNamespaceAndPath(UnofficialDMZAddon.MODID, "textures/environment/anime_space.png");
     private static boolean skyFilterConfigured;
@@ -70,20 +73,16 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
     public boolean renderSky(ClientLevel level, int ticks, float partialTick, PoseStack poseStack, Camera camera,
                              Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog) {
         renderSpaceSky(poseStack);
-        renderSolarSystem(level, poseStack, camera, partialTick);
-        renderPlanets(level, poseStack, camera, partialTick);
+        renderNearbyStars(poseStack, camera);
+        Player player = Minecraft.getInstance().player;
+        if (player != null && SpaceDimension.isSolarSpace(level.dimension())) {
+            renderSolarSystem(level, poseStack, camera, partialTick);
+            renderPlanets(level, poseStack, camera, partialTick);
+        }
+        renderCurrentDomainCelestial(level, poseStack, camera, partialTick);
         renderMotionStreaks(level, poseStack, camera);
         restoreRenderState();
         return true;
-    }
-
-    /** A late, depth-safe pass used when shader renderers replace the normal custom-sky stage. */
-    public static void renderCompatibilityPass(ClientLevel level, PoseStack poseStack, Camera camera,
-                                               float partialTick) {
-        renderSpaceSkyDepthSafe(poseStack);
-        renderSolarSystem(level, poseStack, camera, partialTick);
-        renderPlanets(level, poseStack, camera, partialTick);
-        restoreRenderState();
     }
 
     private static void renderSpaceSky(PoseStack poseStack) {
@@ -102,23 +101,6 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
     }
-
-    private static void renderSpaceSkyDepthSafe(PoseStack poseStack) {
-        if (!skyFilterConfigured) {
-            Minecraft.getInstance().getTextureManager().getTexture(SKY).setFilter(true, true);
-            skyFilterConfigured = true;
-        }
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.disableCull();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, SKY);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        drawSphere(poseStack.last().pose(), Vec3.ZERO, SKY_RADIUS,
-                SKY_LONGITUDE_SEGMENTS, SKY_LATITUDE_SEGMENTS);
-        RenderSystem.depthMask(true);
-    }
-
 
     private static void renderSolarSystem(ClientLevel level, PoseStack poseStack, Camera camera, float partialTick) {
         Player player = Minecraft.getInstance().player;
@@ -144,9 +126,21 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         drawCube(matrix, sunRelative, (float) SpacePlanetSystem.SUN_RADIUS);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         drawOrbitRings(matrix, player, cameraPosition, level.getGameTime() + partialTick);
-        drawNearbyStars(matrix, player, cameraPosition);
 
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+        RenderSystem.disableBlend();
+        RenderSystem.enableCull();
+    }
+
+    private static void renderNearbyStars(PoseStack poseStack, Camera camera) {
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        drawNearbyStars(poseStack.last().pose(), player, camera.getPosition());
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
     }
@@ -240,8 +234,8 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
                             (float) placement.spinAngle());
                 } else {
                     RenderSystem.setShader(GameRenderer::getPositionColorShader);
-                    drawColoredCube(poseStack.last().pose(), relative,
-                            (float) placement.definition().radius(), 0, 0, 0,
+                    drawRotatingColoredCube(poseStack, relative,
+                            (float) placement.definition().radius(), (float) placement.spinAngle(), 0, 0, 0,
                             Math.max(0, Math.min(255, Math.round(visibility * 255.0F))));
                     drawLockedPlanetMarker(poseStack, camera, relative,
                             (float) placement.definition().radius(), visibility);
@@ -258,6 +252,51 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         }
 
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.disableBlend();
+        RenderSystem.enableCull();
+    }
+
+    private static void renderCurrentDomainCelestial(ClientLevel level, PoseStack poseStack, Camera camera,
+                                                     float partialTick) {
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+        Vec3 cameraPosition = camera.getPosition();
+        double renderTime = level.getGameTime() + partialTick;
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+
+        for (SpaceCelestialSystem.CelestialDefinition celestial
+                : SpaceCelestialSystem.visibleCelestials(level.dimension())) {
+            Vec3 relative = celestial.position().subtract(cameraPosition);
+            if (relative.lengthSqr() > 700.0D * 700.0D) continue;
+            double actualDistance = relative.length();
+            double presentationScale = actualDistance > CELESTIAL_PRESENTATION_DISTANCE
+                    ? CELESTIAL_PRESENTATION_DISTANCE / actualDistance : 1.0D;
+            Vec3 presentationRelative = relative.scale(presentationScale);
+            float pulse = SpaceCelestialSystem.scalePulse(celestial, renderTime);
+            // Keep the same apparent angular size while presenting far gateways inside the sky
+            // projection range. Collision and HUD distance still use the real world position.
+            float size = (float) (celestial.radius() * pulse * presentationScale);
+
+            RenderSystem.setShaderTexture(0, celestial.texture());
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.96F);
+            poseStack.pushPose();
+            poseStack.translate(presentationRelative.x, presentationRelative.y, presentationRelative.z);
+            poseStack.mulPose(camera.rotation());
+            if (celestial.kind() != SpaceCelestialSystem.CelestialKind.SOLAR_SYSTEM) {
+                poseStack.mulPose(Axis.ZP.rotation((float) SpaceCelestialSystem.spinAngle(celestial, renderTime)));
+            }
+            poseStack.scale(-size, size, size);
+            drawBillboard(poseStack.last().pose());
+            poseStack.popPose();
+        }
+
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
     }
@@ -284,8 +323,7 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         BufferBuilder buffer = Tesselator.getInstance().getBuilder();
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        // Seven-segment-style question mark. Geometry avoids the shader/text-render crash paths
-        // used by some Oculus and Sodium-derived renderers.
+        // Seven-segment-style question mark avoids font rendering inside the custom sky pass.
         markerQuad(buffer, matrix, -1.5F, -3.0F, 1.5F, -2.2F, alpha);
         markerQuad(buffer, matrix, 0.7F, -2.2F, 1.5F, -0.5F, alpha);
         markerQuad(buffer, matrix, -0.2F, -0.5F, 1.5F, 0.3F, alpha);
@@ -302,11 +340,30 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         buffer.vertex(matrix, x0, y1, 0.0F).color(255, 255, 255, alpha).endVertex();
     }
 
+    private static void drawBillboard(Matrix4f matrix) {
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.vertex(matrix, -1.0F, -1.0F, 0.0F).uv(0.0F, 1.0F).endVertex();
+        buffer.vertex(matrix, 1.0F, -1.0F, 0.0F).uv(1.0F, 1.0F).endVertex();
+        buffer.vertex(matrix, 1.0F, 1.0F, 0.0F).uv(1.0F, 0.0F).endVertex();
+        buffer.vertex(matrix, -1.0F, 1.0F, 0.0F).uv(0.0F, 0.0F).endVertex();
+        Tesselator.getInstance().end();
+    }
+
     private static void drawRotatingCube(PoseStack poseStack, Vec3 center, float halfSize, float yaw) {
         poseStack.pushPose();
         poseStack.translate(center.x, center.y, center.z);
         poseStack.mulPose(Axis.YP.rotation(yaw));
         drawCube(poseStack.last().pose(), Vec3.ZERO, halfSize);
+        poseStack.popPose();
+    }
+
+    private static void drawRotatingColoredCube(PoseStack poseStack, Vec3 center, float halfSize, float yaw,
+                                                 int red, int green, int blue, int alpha) {
+        poseStack.pushPose();
+        poseStack.translate(center.x, center.y, center.z);
+        poseStack.mulPose(Axis.YP.rotation(yaw));
+        drawColoredCube(poseStack.last().pose(), Vec3.ZERO, halfSize, red, green, blue, alpha);
         poseStack.popPose();
     }
 

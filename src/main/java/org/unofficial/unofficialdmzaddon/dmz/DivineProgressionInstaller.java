@@ -611,6 +611,11 @@ public final class DivineProgressionInstaller {
             String key = form.getName() == null ? "" : form.getName().toLowerCase();
             boolean mastered = key.contains("mastered");
             boolean trueUi = key.equals(UltraInstinctDefinitions.FORM_TRUE);
+            form.setStaminaDrain(trueUi
+                    ? UnofficialDMZConfig.UI_TRUE_STAMINA_DRAIN.get()
+                    : mastered
+                        ? UnofficialDMZConfig.UI_MASTERED_STAMINA_DRAIN.get()
+                        : UnofficialDMZConfig.UI_SIGN_STAMINA_DRAIN.get());
             form.setAuraType("god");
             form.setAuraLayer(-1);
             form.setAuraColor(trueUi ? "#D9CCFF" : mastered ? "#F8FCFF" : "#DDE8F2");
@@ -652,6 +657,7 @@ public final class DivineProgressionInstaller {
             current.setExtraAuraColor(aura.getExtraAuraColor());
             current.setHasLightnings(aura.getHasLightnings());
             current.setLightningColor(aura.getLightningColor());
+            current.setStaminaDrain(aura.getStaminaDrain());
         }
     }
 
@@ -664,6 +670,7 @@ public final class DivineProgressionInstaller {
         target.addProperty("extraAuraColor", aura.getExtraAuraColor());
         target.addProperty("hasLightnings", aura.getHasLightnings());
         target.addProperty("lightningColor", aura.getLightningColor());
+        target.addProperty("staminaDrain", aura.getStaminaDrain());
     }
     private static FormConfig makeIndependent(FormConfig group) {
         if (group == null) return null;

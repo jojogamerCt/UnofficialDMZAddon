@@ -41,6 +41,8 @@ public final class SpaceEnvironmentHandler {
     public static final String FLY_UNLOCK_TAG = "unofficialdmzaddon_has_fly";
     private static final long TRAVEL_COOLDOWN_TICKS = 60L;
     public static final String LAST_PLANET_POSITIONS_TAG = "unofficialdmzaddonLastPlanetPositions";
+    private static final String SPACE_MIGRATION_VERSION_TAG = "unofficialdmzaddonSpaceMigrationVersion";
+    private static final int CURRENT_SPACE_MIGRATION_VERSION = 1;
 
     private final Set<UUID> weightlessPlayers = new HashSet<>();
     private final Map<UUID, FlightAbilities> previousFlightAbilities = new HashMap<>();
@@ -64,16 +66,17 @@ public final class SpaceEnvironmentHandler {
 
         if (tickingPlayer.level().isClientSide || !(tickingPlayer instanceof ServerPlayer player)) return;
 
-        if (!player.level().dimension().equals(SpaceDimension.KEY)) {
+        if (!SpaceDimension.isSpace(player.level().dimension())) {
             positionAtSavedPlanetReturn(player);
             rememberPlanetPosition(player);
             recentlyRidingPod.put(player.getUUID(), player.getVehicle() instanceof SpacePodEntity);
         }
 
         UUID playerId = player.getUUID();
-        if (player.level().dimension().equals(SpaceDimension.KEY)
+        if (SpaceDimension.isSpace(player.level().dimension())
                 && org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_ENABLED.get()) {
             positionNearSourcePlanet(player);
+            if (migrateLegacySpacePlayer(player)) return;
             weightlessPlayers.add(playerId);
             previousFlightAbilities.putIfAbsent(playerId,
                     new FlightAbilities(player.getAbilities().mayfly, player.getAbilities().flying));
@@ -111,7 +114,7 @@ public final class SpaceEnvironmentHandler {
     @SubscribeEvent
     public void onLevelTick(TickEvent.LevelTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)
-                || !level.dimension().equals(SpaceDimension.KEY)) return;
+                || !SpaceDimension.isSpace(level.dimension())) return;
 
         long gameTime = level.getGameTime();
         List<AbstractKiProjectile> projectiles = new ArrayList<>();
@@ -129,21 +132,68 @@ public final class SpaceEnvironmentHandler {
                 } else {
                     pod.setDeltaMovement(Vec3.ZERO);
                 }
+                enforceSpaceBoundary(level, pod);
             } else if (entity instanceof AbstractKiProjectile projectile) {
                 projectiles.add(projectile);
             }
         }
 
         for (ServerPlayer player : List.copyOf(level.players())) {
+            if (!(player.getVehicle() instanceof SpacePodEntity)) {
+                enforceSpaceBoundary(level, player);
+            }
             processPlanets(level, player, projectiles, gameTime);
         }
+    }
+
+    /** Server-authoritative hard boundaries. Solar space has only floor/roof; deeper domains also have X/Z walls. */
+    private static void enforceSpaceBoundary(ServerLevel level, Entity entity) {
+        SpaceCelestialSystem.SpaceDomain domain = SpaceDimension.domain(level.dimension());
+        Vec3 center = SpaceCelestialSystem.center(domain);
+        double x = entity.getX();
+        double y = entity.getY();
+        double z = entity.getZ();
+        double safeX = x;
+        double safeY = y;
+        double safeZ = z;
+
+        boolean verticalBoundaries = org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_VERTICAL_BOUNDARIES.get();
+        double floor = org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_FLOOR_HEIGHT.get();
+        double roof = Math.max(floor + 8.0D,
+                org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_ROOF_HEIGHT.get());
+        if (verticalBoundaries) safeY = Math.max(floor, Math.min(roof, y));
+
+        boolean horizontalBoundaries = org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_DEEP_SPACE_WALLS.get()
+                && domain != SpaceCelestialSystem.SpaceDomain.SOLAR_SYSTEM
+                && (domain != SpaceCelestialSystem.SpaceDomain.GALAXY
+                    || org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_GALAXY_WALL_ENABLED.get())
+                && (domain != SpaceCelestialSystem.SpaceDomain.UNIVERSE_7
+                    || org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_UNIVERSE_WALL_ENABLED.get());
+        if (horizontalBoundaries) {
+            double distance = domain == SpaceCelestialSystem.SpaceDomain.GALAXY
+                    ? org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_GALAXY_WALL_RADIUS.get()
+                    : org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_UNIVERSE_WALL_RADIUS.get();
+            double inset = Math.max(1.0D, entity.getBbWidth() * 0.5D + 0.05D);
+            safeX = Math.max(center.x - distance + inset, Math.min(center.x + distance - inset, x));
+            safeZ = Math.max(center.z - distance + inset, Math.min(center.z + distance - inset, z));
+        }
+
+        if (safeX == x && safeY == y && safeZ == z) return;
+        entity.teleportTo(safeX, safeY, safeZ);
+        Vec3 movement = entity.getDeltaMovement();
+        double motionX = safeX != x && Math.signum(movement.x) == Math.signum(x - safeX) ? 0.0D : movement.x;
+        double motionY = safeY != y && Math.signum(movement.y) == Math.signum(y - safeY) ? 0.0D : movement.y;
+        double motionZ = safeZ != z && Math.signum(movement.z) == Math.signum(z - safeZ) ? 0.0D : movement.z;
+        entity.setDeltaMovement(motionX, motionY, motionZ);
+        entity.hurtMarked = true;
+        entity.fallDistance = 0.0F;
     }
 
     @SubscribeEvent
     public void onTravelToDimension(EntityTravelToDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
                 && event.getDimension().equals(SpaceDimension.KEY)
-                && !player.level().dimension().equals(SpaceDimension.KEY)) {
+                && !SpaceDimension.isSpace(player.level().dimension())) {
             rememberPlanetPosition(player);
             recentlyRidingPod.put(player.getUUID(), player.getVehicle() instanceof SpacePodEntity);
         }
@@ -152,10 +202,12 @@ public final class SpaceEnvironmentHandler {
     @SubscribeEvent
     public void onDimensionChanged(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            if (event.getTo().equals(SpaceDimension.KEY)) {
+            boolean fromSpace = SpaceDimension.isSpace(event.getFrom());
+            boolean toSpace = SpaceDimension.isSpace(event.getTo());
+            if (event.getTo().equals(SpaceDimension.KEY) && !fromSpace) {
                 pendingSpaceEntries.put(player.getUUID(), new SpaceEntry(event.getFrom().location(),
                         recentlyRidingPod.getOrDefault(player.getUUID(), false)));
-            } else if (event.getFrom().equals(SpaceDimension.KEY)) {
+            } else if (fromSpace && !toSpace) {
                 pendingPlanetEntries.put(player.getUUID(), event.getTo().location());
             }
         }
@@ -220,8 +272,74 @@ public final class SpaceEnvironmentHandler {
             pod.setDeltaMovement(Vec3.ZERO);
             if (player.serverLevel().addFreshEntity(pod)) player.startRiding(pod);
         }
+        player.getPersistentData().putString("unofficialdmzaddonSpaceDomain",
+                SpaceCelestialSystem.SpaceDomain.SOLAR_SYSTEM.name());
+        player.getPersistentData().putInt(SPACE_MIGRATION_VERSION_TAG, CURRENT_SPACE_MIGRATION_VERSION);
         lastTravel.put(player.getUUID(), player.serverLevel().getGameTime());
         previousTravelPositions.put(player.getUUID(), entryPosition);
+    }
+
+    /**
+     * Worlds saved before the hierarchy used real dimensions can contain players at obsolete
+     * coordinates or in a newly-created blank child dimension. Migrate them once to Earth orbit.
+     */
+    private boolean migrateLegacySpacePlayer(ServerPlayer player) {
+        if (player.getPersistentData().getInt(SPACE_MIGRATION_VERSION_TAG)
+                >= CURRENT_SPACE_MIGRATION_VERSION) return false;
+
+        ServerLevel solarSpace = player.server.getLevel(SpaceDimension.KEY);
+        if (solarSpace == null) return false;
+        Vec3 earthArrival = earthOrbitPosition(solarSpace);
+        float yRot = player.getYRot();
+        float xRot = player.getXRot();
+        Entity sourceVehicle = player.getVehicle();
+        boolean travellingWithPod = sourceVehicle instanceof SpacePodEntity;
+
+        if (player.serverLevel() == solarSpace) {
+            if (sourceVehicle instanceof SpacePodEntity pod) {
+                movePodAndPassenger(pod, player, earthArrival, yRot, xRot);
+            } else {
+                player.teleportTo(earthArrival.x, earthArrival.y, earthArrival.z);
+                player.setDeltaMovement(Vec3.ZERO);
+            }
+        } else {
+            player.stopRiding();
+            if (sourceVehicle instanceof SpacePodEntity sourcePod) sourcePod.discard();
+            player.teleportTo(solarSpace, earthArrival.x, earthArrival.y, earthArrival.z, yRot, xRot);
+            player.setDeltaMovement(Vec3.ZERO);
+            if (travellingWithPod) {
+                SpacePodEntity destinationPod = new SpacePodEntity(MainEntities.SPACE_POD.get(), solarSpace);
+                destinationPod.setOpenNave(false);
+                destinationPod.setPos(earthArrival.x, earthArrival.y, earthArrival.z);
+                destinationPod.setYRot(yRot);
+                destinationPod.setDeltaMovement(Vec3.ZERO);
+                if (solarSpace.addFreshEntity(destinationPod)) player.startRiding(destinationPod);
+            }
+        }
+
+        player.getPersistentData().putInt(SPACE_MIGRATION_VERSION_TAG, CURRENT_SPACE_MIGRATION_VERSION);
+        player.getPersistentData().putString("unofficialdmzaddonSpaceDomain",
+                SpaceCelestialSystem.SpaceDomain.SOLAR_SYSTEM.name());
+        lastTravel.put(player.getUUID(), solarSpace.getGameTime());
+        previousTravelPositions.put(player.getUUID(), earthArrival);
+        return true;
+    }
+
+    private static Vec3 earthOrbitPosition(ServerLevel solarSpace) {
+        SpacePlanetSystem.PlanetPlacement earth = SpacePlanetSystem.layout(Vec3.ZERO,
+                        solarSpace.getGameTime()).stream()
+                .filter(placement -> "earth".equals(placement.definition().id()))
+                .findFirst().orElse(null);
+        if (earth == null) {
+            return SpaceCelestialSystem.SOLAR_CENTER.add(0.0D,
+                    SpacePlanetSystem.SUN_RADIUS + 20.0D, 0.0D);
+        }
+        double clearance = earth.definition().radius()
+                + org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_SPAWN_CLEARANCE.get();
+        Vec3 position = earth.position().add(0.0D, clearance, 0.0D);
+        return new Vec3(position.x,
+                Math.max(org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_FLOOR_HEIGHT.get(),
+                        position.y), position.z);
     }
     private static void keepPodAboveFloor(SpacePodEntity pod) {
         if (pod.getY() < org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_FLOOR_HEIGHT.get()) pod.setPos(pod.getX(), org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_FLOOR_HEIGHT.get(), pod.getZ());
@@ -237,6 +355,11 @@ public final class SpaceEnvironmentHandler {
         long[] destroyed = destroyedPlanets.computeIfAbsent(playerId, ignored -> freshDestroyedArray());
         Vec3 travelPosition = player.getVehicle() instanceof SpacePodEntity pod ? pod.position() : player.position();
         Vec3 previousTravelPosition = previousTravelPositions.getOrDefault(playerId, travelPosition);
+        if (processCelestialTravel(space, player, previousTravelPosition, travelPosition, gameTime)) return;
+        if (!SpaceDimension.isSolarSpace(space.dimension())) {
+            previousTravelPositions.put(playerId, travelPosition);
+            return;
+        }
         List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(travelPosition, gameTime);
 
         for (SpacePlanetSystem.PlanetPlacement placement : placements) {
@@ -274,6 +397,41 @@ public final class SpaceEnvironmentHandler {
             }
         }
         previousTravelPositions.put(playerId, travelPosition);
+    }
+
+    private boolean processCelestialTravel(ServerLevel sourceLevel, ServerPlayer player,
+                                           Vec3 previousPosition, Vec3 travelPosition, long gameTime) {
+        if (!org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_CELESTIAL_TRAVEL.get()
+                || gameTime - lastTravel.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2L)
+                <= TRAVEL_COOLDOWN_TICKS) return false;
+        SpaceCelestialSystem.SpaceDomain destination = SpaceCelestialSystem.travelTarget(
+                sourceLevel.dimension(), previousPosition, travelPosition);
+        if (destination == null) return false;
+        ServerLevel targetLevel = sourceLevel.getServer().getLevel(SpaceDimension.key(destination));
+        if (targetLevel == null || targetLevel == sourceLevel) return false;
+
+        Vec3 arrival = destination == SpaceCelestialSystem.SpaceDomain.SOLAR_SYSTEM
+                ? earthOrbitPosition(targetLevel)
+                : SpaceCelestialSystem.center(destination);
+        Entity sourceVehicle = player.getVehicle();
+        boolean travellingWithPod = sourceVehicle instanceof SpacePodEntity;
+        player.stopRiding();
+        if (sourceVehicle instanceof SpacePodEntity sourcePod) sourcePod.discard();
+        player.teleportTo(targetLevel, arrival.x, arrival.y, arrival.z,
+                player.getYRot(), player.getXRot());
+        player.setDeltaMovement(Vec3.ZERO);
+        if (travellingWithPod) {
+            SpacePodEntity destinationPod = new SpacePodEntity(MainEntities.SPACE_POD.get(), targetLevel);
+            destinationPod.setOpenNave(false);
+            destinationPod.setPos(arrival.x, arrival.y, arrival.z);
+            destinationPod.setYRot(player.getYRot());
+            destinationPod.setDeltaMovement(Vec3.ZERO);
+            if (targetLevel.addFreshEntity(destinationPod)) player.startRiding(destinationPod);
+        }
+        player.getPersistentData().putString("unofficialdmzaddonSpaceDomain", destination.name());
+        lastTravel.put(player.getUUID(), gameTime);
+        previousTravelPositions.put(player.getUUID(), arrival);
+        return true;
     }
 
     private static boolean isPlanetUnlocked(ServerPlayer player, SpacePlanetDefinition planet) {
@@ -356,7 +514,7 @@ public final class SpaceEnvironmentHandler {
     }
 
     public static void rememberPlanetPosition(ServerPlayer player) {
-        if (player.level().dimension().equals(SpaceDimension.KEY)) return;
+        if (SpaceDimension.isSpace(player.level().dimension())) return;
         CompoundTag positions = player.getPersistentData().getCompound(LAST_PLANET_POSITIONS_TAG);
         CompoundTag position = new CompoundTag();
         position.putDouble("x", player.getX());

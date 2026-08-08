@@ -73,6 +73,7 @@ public abstract class DivineFormSelectionMixin {
         if (!UniversalDivineAndSaiyanInstaller.GOD_FORMS_GROUP.equalsIgnoreCase(group)) return true;
         int alignment = data.getResources().getAlignment();
         if ("super_saiyan_rose".equalsIgnoreCase(form)) return alignment <= 40;
+        if ("super_saiyan_rose_evolved".equalsIgnoreCase(form)) return alignment <= 40;
         if ("super_saiyan_blue".equalsIgnoreCase(form)) return alignment > 40;
         if ("super_saiyan_blue_evolved".equalsIgnoreCase(form)) return alignment > 40;
         return true;

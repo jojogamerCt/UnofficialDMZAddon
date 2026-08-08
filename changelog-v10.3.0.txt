@@ -5,19 +5,52 @@ Space progression
 - Locked worlds, including the Sacred Kai Dimension before its required progression, now appear as pitch-black cubes with a floating white question mark that always faces the player.
 - Locked planets cannot be entered or destroyed. They automatically reveal their normal texture and interactions as soon as the player satisfies DragonMineZ's original unlock condition.
 - Kept access server-authoritative and per-player in multiplayer: an unlocked player can enter a world while a nearby locked player still cannot.
-- Made each regional solar system shared between players instead of generating different planet positions from each player's UUID.
+- Made one fixed solar system shared between players instead of repeating solar systems by player or travel region.
 
 Solar-system animation and information
-- Added continuous orbital movement around the sun and independent self-rotation for every cubic planet.
+- Added continuous orbital movement around the sun and independent self-rotation for cubic planets.
+- Anchored Sacred Kai's Planet to its assigned solar-system position so it no longer slowly drifts along the widest orbit, while preserving self-rotation in both locked and unlocked states.
 - Matched projectile and atmospheric-entry collision to each planet's current orbit and rotated cube orientation.
 - Added a crosshair-targeted planet HUD with classification, access state, distance, orbital radius, atmosphere, environment, destination ID, and travel guidance.
 - Locked-world HUDs conceal the planet identity and telemetry until DragonMineZ progression unlocks the destination.
 
-Rendering compatibility
-- Added a late, depth-safe celestial fallback for Oculus/Iris and OptiFine-style shader loaders.
-- Replaced the locked-world text renderer with shader-safe question-mark geometry.
-- Kept all compatibility hooks optional and reflection-only so none of those rendering mods become required dependencies.
-- Added configuration switches for the planet HUD and shader fallback.
+Deep-space hierarchy
+- Added the first expandable galaxy and universe hierarchy without adding any new planets: North Galaxy and Universe 7.
+- Added AI-generated, background-free celestial textures for North Galaxy and Universe 7.
+- Restored the solar system to its original local star-field coordinates instead of displacing it into deep space.
+- Split the Solar System, North Galaxy and Universe 7 into isolated spatial layers connected by explicit celestial routes; child domains no longer occupy distant coordinates inside their parents.
+- Registered North Galaxy Space and Universe 7 Space as proper separate Minecraft dimensions instead of distant coordinate regions inside the solar Space dimension.
+- Corrected the hierarchy's travel direction: leaving now proceeds Solar System -> North Galaxy -> Universe 7, while entering proceeds Universe 7 -> North Galaxy -> Solar System.
+- Made outward travel happen by crossing the physical edge of the current Solar System or Galaxy instead of approaching a misleading parent-dimension billboard.
+- Added a new GPT Image 2 Solar System gateway texture for selecting the Solar System from North Galaxy; the old single-Sun return texture is no longer used.
+- Kept inward travel deliberate through visible child destinations: North Galaxy is selectable from Universe 7 and the Solar System is selectable from North Galaxy.
+- Redistributed the planets into evenly spaced orbital sectors around the Sun, preventing every world from appearing on the same side while the complete system continues rotating.
+- Restored the visible Universe 7 gateway in North Galaxy and fixed both the Universe 7 and North Galaxy gateway billboards being clipped before they could appear.
+- Moved celestial gateways into a reliable render-distance range while retaining the Galaxy outer boundary as a travel fallback.
+- Replaced the Solar System gateway's rotation with a smooth scale-down/scale-up breathing animation.
+- Replaced the bypassable soft spherical boundary with server-authoritative hard X/Z walls in Galaxy and Universe space for both players and space pods.
+- Added a configurable invisible floor and roof to Solar System, Galaxy, and Universe space; Solar space intentionally has no horizontal wall.
+- Boundary collisions cancel only motion aimed through the blocked face, allowing immediate movement back toward the playable area.
+- Kept the Galaxy-to-Universe route inside the Galaxy wall, with the wall acting as a safety fallback if celestial travel is disabled or delayed.
+- Set both Galaxy and Universe invisible-wall distances to 200 blocks from their navigation center.
+- Added separate Galaxy-wall and Universe-wall enable configs alongside the master deep-space wall toggle and independent distance settings.
+- Renamed the wall-distance config keys so worlds updating from the earlier 700/600-block defaults receive the new 200-block distances instead of retaining stale generated values.
+- Added a versioned migration for existing players saved anywhere in the former Space hierarchy. On their first load after updating, they and their occupied pod are safely moved to solar Space directly above Earth instead of entering a blank child dimension.
+- Added crosshair information panels for galaxies and universes with classification, containment, composition, distance, navigation state, and travel guidance.
+- Kept local parallax stars around every hierarchy layer so movement remains readable.
+- Removed all special shader compatibility code and configuration.
+
+Gameplay and accessibility
+- Added Halal Mode to DragonMineZ's in-game settings, with the subtitle "For my muslim fellows". It persistently replaces the whole words God/god with Frog/frog in localized game text.
+- Rebalanced Ultra Instinct exhaustion by tier: Sign now has the lowest stamina drain, Mastered has a moderate drain, and True Ultra Instinct has the highest but substantially reduced drain.
+- Added individual config values for every Ultra Instinct tier's stamina drain.
+- Folded Ki Adept, Duelist, Vanguard, and Tactician defense growth onto DragonMineZ's current class scale and automatically migrates their legacy over-scaled values.
+
+Saiyan transformations
+- Added Super Saiyan Rosé Evolved as the Evil-alignment equivalent of Super Saiyan Blue Evolved.
+- Set Super Saiyan Rosé to the exact Super Saiyan Blue base multiplier and Rosé Evolved to the exact Blue Evolved multiplier.
+- Recreated Super Saiyan Rage's anime aura with a yellow energy aura, cyan lightning, and a cyan light outline around the player model.
+- Added separate configuration for enabling or disabling Super Saiyan Rosé Evolved.
 
 Documentation
-- Updated the CurseForge description for the current 10.3.0 feature set and corrected the description of stationary unoccupied space pods.
+- Updated the CurseForge description for the current 10.3.0 galaxy, universe, and transformation feature set.

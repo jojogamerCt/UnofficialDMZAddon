@@ -33,7 +33,7 @@ public final class SpacePlanetClientState {
         if (event.phase != TickEvent.Phase.END) return;
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
-        if (player == null || !player.level().dimension().equals(SpaceDimension.KEY)) return;
+        if (player == null || !SpaceDimension.isSolarSpace(player.level().dimension())) return;
 
         long gameTime = player.level().getGameTime();
         List<SpacePlanetSystem.PlanetPlacement> placements = SpacePlanetSystem.layout(player.position(), gameTime);

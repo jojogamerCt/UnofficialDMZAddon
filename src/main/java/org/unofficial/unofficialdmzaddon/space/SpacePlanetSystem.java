@@ -12,16 +12,17 @@ import java.util.Random;
 public final class SpacePlanetSystem {
     public static final long RESPAWN_TICKS = 20L * 60L * 5L;
     public static final long FADE_TICKS = 40L;
-    public static final double REGION_SIZE = 640.0D;
     public static final double SOLAR_PLANE_Y = 160.0D;
     public static final double SUN_RADIUS = 16.0D;
+    public static final Vec3 SOLAR_CENTER = SpaceCelestialSystem.SOLAR_CENTER;
     public static final ResourceLocation EXPLOSION_TEXTURE = texture("planet_explosion");
     public static final ResourceLocation SUN_TEXTURE = texture("sun");
 
     private static final double[] ORBIT_RADII = {96.0D, 168.0D, 240.0D};
     private static final double[] ORBIT_HEIGHTS = {0.0D, 12.0D, -10.0D};
-    private static final double[] ORBIT_SPEEDS = {0.00045D, 0.00028D, 0.00018D};
+    private static final double SYSTEM_ORBIT_SPEED = 0.00028D;
     private static final double[] SPIN_SPEEDS = {0.015D, 0.011D, 0.008D};
+    private static final String SACRED_KAI_ID = "sacred_kai";
 
     public static final List<SpacePlanetDefinition> PLANETS = List.of(
             planet("earth", "Earth", "minecraft:overworld", 8.5D),
@@ -35,53 +36,55 @@ public final class SpacePlanetSystem {
     /** Planets occupy stable, separated orbital bands around the sector sun. */
     public static List<PlanetPlacement> layout(Vec3 playerPosition, double tickTime) {
         Vec3 sun = sunPosition(playerPosition);
-        long regionX = floorRegion(playerPosition.x);
-        long regionZ = floorRegion(playerPosition.z);
-        // The system is shared in multiplayer. Progression remains per-player, but every client sees
-        // the same planets in the same place instead of receiving a UUID-specific solar system.
-        long seed = solarSeed(regionX, regionZ);
+        // The solar system is global instead of repeating in every travel region. This leaves the
+        // distance beyond it available for the galaxy and universe hierarchy.
+        long seed = solarSeed(0L, 0L);
         Random random = new Random(seed);
-        double baseAngle = random.nextDouble() * Math.PI * 2.0D;
+        double fixedBaseAngle = random.nextDouble() * Math.PI * 2.0D;
+        double orbitingBaseAngle = fixedBaseAngle + tickTime * SYSTEM_ORBIT_SPEED;
+        double angularSpacing = Math.PI * 2.0D / PLANETS.size();
         List<PlanetPlacement> result = new ArrayList<>(PLANETS.size());
 
         for (int index = 0; index < PLANETS.size(); index++) {
-            double initialAngle = baseAngle + index * 2.18D + random.nextDouble() * 0.28D;
-            double angle = initialAngle + tickTime * ORBIT_SPEEDS[Math.min(index, ORBIT_SPEEDS.length - 1)];
-            double spin = tickTime * SPIN_SPEEDS[Math.min(index, SPIN_SPEEDS.length - 1)] + initialAngle;
+            // Stable equal sectors guarantee the worlds surround the Sun instead of periodically
+            // lining up on one side. The complete layout still revolves as a solar system.
+            SpacePlanetDefinition definition = PLANETS.get(index);
+            double assignedAngle = fixedBaseAngle + index * angularSpacing;
+            // Sacred Kai's Planet is a divine realm anchored at its assigned position. It spins
+            // like every other world but does not slowly translate around its wide orbital band.
+            double angle = SACRED_KAI_ID.equals(definition.id())
+                    ? assignedAngle
+                    : orbitingBaseAngle + index * angularSpacing;
+            double spin = tickTime * SPIN_SPEEDS[Math.min(index, SPIN_SPEEDS.length - 1)] + assignedAngle;
             double orbit = ORBIT_RADII[Math.min(index, ORBIT_RADII.length - 1)];
             Vec3 position = new Vec3(
                     sun.x + Math.cos(angle) * orbit,
                     SOLAR_PLANE_Y + ORBIT_HEIGHTS[Math.min(index, ORBIT_HEIGHTS.length - 1)],
                     sun.z + Math.sin(angle) * orbit);
-            result.add(new PlanetPlacement(index, PLANETS.get(index), position, orbit,
+            result.add(new PlanetPlacement(index, definition, position, orbit,
                     wrapRadians(angle), wrapRadians(spin)));
         }
         return result;
     }
 
     public static Vec3 sunPosition(Vec3 playerPosition) {
-        long regionX = floorRegion(playerPosition.x);
-        long regionZ = floorRegion(playerPosition.z);
-        return new Vec3((regionX + 0.5D) * REGION_SIZE, SOLAR_PLANE_Y,
-                (regionZ + 0.5D) * REGION_SIZE);
+        return SOLAR_CENTER;
     }
 
     /** Nearby fixed stars provide parallax, making even slow movement obvious. */
     public static List<StarPlacement> starLayout(Vec3 playerPosition) {
-        long regionX = floorRegion(playerPosition.x);
-        long regionZ = floorRegion(playerPosition.z);
-        Vec3 sun = sunPosition(playerPosition);
-        Random random = new Random(solarSeed(regionX, regionZ) ^ 0x5DEECE66DL);
-        List<StarPlacement> stars = new ArrayList<>(180);
-        for (int i = 0; i < 180; i++) {
+        Vec3 starFieldCenter = SpaceCelestialSystem.SOLAR_CENTER;
+        Random random = new Random(solarSeed(0L, 0L) ^ 0x5DEECE66DL);
+        List<StarPlacement> stars = new ArrayList<>(240);
+        for (int i = 0; i < 240; i++) {
             double angle = random.nextDouble() * Math.PI * 2.0D;
-            double distance = 24.0D + random.nextDouble() * 118.0D;
+            double distance = 24.0D + random.nextDouble() * 310.0D;
             double y = 105.0D + random.nextDouble() * 112.0D;
             double size = 0.10D + random.nextDouble() * 0.34D;
             int palette = random.nextInt(10);
             int color = palette < 6 ? 0xEAF6FF : palette < 8 ? 0x9CCBFF : palette == 8 ? 0xFFD89A : 0xD4B0FF;
-            Vec3 position = new Vec3(sun.x + Math.cos(angle) * distance, y,
-                    sun.z + Math.sin(angle) * distance);
+            Vec3 position = new Vec3(starFieldCenter.x + Math.cos(angle) * distance, y,
+                    starFieldCenter.z + Math.sin(angle) * distance);
             stars.add(new StarPlacement(position, size, color));
         }
         return stars;
@@ -138,10 +141,6 @@ public final class SpacePlanetSystem {
 
     public static boolean isDestroyed(long currentTick, long destroyedAt) {
         return destroyedAt >= 0L && currentTick - destroyedAt < RESPAWN_TICKS;
-    }
-
-    private static long floorRegion(double coordinate) {
-        return (long) Math.floor(coordinate / REGION_SIZE);
     }
 
     private static long solarSeed(long regionX, long regionZ) {

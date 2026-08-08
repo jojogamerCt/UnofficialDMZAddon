@@ -134,8 +134,9 @@ public final class UniversalDivineAndSaiyanInstaller {
         superGroup.getForms().remove("super_saiyan_god");
         superGroup.getForms().remove("super_saiyan_blue");
         superGroup.getForms().remove("super_saiyan_rose");
+        superGroup.getForms().remove("super_saiyan_rose_evolved");
         superGroup.getForms().put("super_saiyan_rage",
-                saiyanForm("super_saiyan_rage", 8, "ssj2", "#F4D34A", "#63DFFF", "#E8DB55", 3.25, 0.18, false));
+                superSaiyanRageForm());
 
         superGroup.getForms().remove("super_saiyan_blue_evolved");
         FormConfig godGroup = saiyan.get(GOD_FORMS_GROUP);
@@ -149,11 +150,31 @@ public final class UniversalDivineAndSaiyanInstaller {
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_BLUE_FORM.get()) forms.put("super_saiyan_blue",
                 saiyanForm("super_saiyan_blue", 2, "ssj", "#22CFE8", "#91F7FF", "#24DDF4", 2.75, 0.13, true));
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_ROSE_FORM.get()) forms.put("super_saiyan_rose",
-                saiyanForm("super_saiyan_rose", 2, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 3.05, 0.15, false));
+                saiyanForm("super_saiyan_rose", 2, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 2.75, 0.15, false));
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_BLUE_EVOLVED_FORM.get()) forms.put("super_saiyan_blue_evolved",
                 saiyanForm("super_saiyan_blue_evolved", 3, "ssj", "#1594C7", "#7FEAFF", "#148FCB", 4.55, 0.19, false));
+        if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_ROSE_EVOLVED_FORM.get()) forms.put("super_saiyan_rose_evolved",
+                saiyanForm("super_saiyan_rose_evolved", 3, "ssj", "#B72B79", "#FFB0E4", "#C52A87", 4.55, 0.19, false));
         godGroup.setForms(forms);
         saiyan.put(GOD_FORMS_GROUP, godGroup);
+    }
+
+    private static FormConfig.FormData superSaiyanRageForm() {
+        FormConfig.FormData rage = saiyanForm("super_saiyan_rage", 8, "ssj2", "#F4D34A",
+                "#63DFFF", "#FFD83D", 3.25, 0.18, false);
+        // Anime treatment: a thin cyan light contour hugs the fighter while the full aura stays yellow.
+        FormConfig.FormData.OutlineShaderConfig outline = new FormConfig.FormData.OutlineShaderConfig();
+        outline.setEnabled(true);
+        outline.setPrimaryColor("#37E8FF");
+        outline.setSecondaryColor("#B9FAFF");
+        outline.setOutlineThickness(1.85D);
+        rage.setOutlineShader(outline);
+        rage.setAuraType("kakarot");
+        rage.setAuraLayer(1);
+        rage.setAuraColor("#FFD83D");
+        rage.setHasLightnings(true);
+        rage.setLightningColor("#63E8FF");
+        return rage;
     }
 
     private static void configureBlueKaiokenOverlay() {

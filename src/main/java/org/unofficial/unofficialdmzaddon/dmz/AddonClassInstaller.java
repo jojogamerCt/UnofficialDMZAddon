@@ -24,6 +24,8 @@ import java.util.WeakHashMap;
 /** Adds addon classes to every DMZ race and registers their native class passives. */
 public final class AddonClassInstaller {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final double LEGACY_DEFENSE_SCALE_FOLD = 0.12D;
+    private static final String[] ADDON_CLASSES = {"kiadept", "duelist", "vanguard", "tactician"};
 
     private AddonClassInstaller() {}
 
@@ -43,27 +45,42 @@ public final class AddonClassInstaller {
         boolean changed = false;
         if (!config.getClasses().containsKey("kiadept")) {
             configure(config.getClassStats("kiadept"), 0, 0, 0, 5, 10, 10,
-                    0.65, 10.0, 7.0, 0.55, 0.8, 1.2, 1.4, 1.5, 2.4,
+                    0.65, 10.0, 7.0, 0.55, 0.8, 0.144, 1.4, 1.5, 2.4,
                     map("cooldownMultiplier", 0.82, "durationMultiplier", 1.10));
             changed = true;
         }
         if (!config.getClasses().containsKey("duelist")) {
             configure(config.getClassStats("duelist"), 5, 10, 0, 5, 0, 0,
-                    1.35, 4.0, 11.0, 1.0, 1.8, 0.9, 1.4, 0.7, 1.2,
+                    1.35, 4.0, 11.0, 1.0, 1.8, 0.108, 1.4, 0.7, 1.2,
                     map("strikeMultiplier", 1.10, "critBonus", 0.08, "armorPen", 0.05));
             changed = true;
         }
         if (!config.getClasses().containsKey("vanguard")) {
             configure(config.getClassStats("vanguard"), 5, 0, 10, 10, 0, 0,
-                    2.15, 5.0, 10.0, 0.8, 0.8, 1.65, 2.4, 0.55, 1.0,
+                    2.15, 5.0, 10.0, 0.8, 0.8, 0.198, 2.4, 0.55, 1.0,
                     map("healthRegen", 1.25, "staminaRegen", 1.10, "healingReceived", 1.10));
             changed = true;
         }
         if (!config.getClasses().containsKey("tactician")) {
             configure(config.getClassStats("tactician"), 5, 5, 5, 5, 5, 5,
-                    1.2, 7.0, 9.0, 1.0, 1.2, 1.2, 1.4, 1.25, 1.5,
+                    1.2, 7.0, 9.0, 1.0, 1.2, 0.144, 1.4, 1.25, 1.5,
                     map("meleeAfterKi", 1.18, "kiAfterMelee", 0.75, "windowTicks", 80.0));
             changed = true;
+        }
+        return migrateLegacyDefenseScaling(config) || changed;
+    }
+
+    /** DragonMineZ folded all class DEF growth by 0.12; migrate the addon's pre-fold values once. */
+    private static boolean migrateLegacyDefenseScaling(RaceStatsConfig config) {
+        boolean changed = false;
+        for (String classKey : ADDON_CLASSES) {
+            RaceStatsConfig.ClassStats stats = config.getClasses().get(classKey);
+            if (stats == null || stats.getStatScaling() == null) continue;
+            Double defense = stats.getStatScaling().getDefenseScaling();
+            if (defense != null && defense > 0.5D) {
+                stats.getStatScaling().setDefenseScaling(defense * LEGACY_DEFENSE_SCALE_FOLD);
+                changed = true;
+            }
         }
         return changed;
     }

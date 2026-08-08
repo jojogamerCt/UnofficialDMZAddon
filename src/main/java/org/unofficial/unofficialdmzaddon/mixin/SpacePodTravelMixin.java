@@ -76,7 +76,7 @@ public abstract class SpacePodTravelMixin {
             if (travellingToSpace) {
                 SpaceEnvironmentHandler.rememberPlanetPosition(player);
                 targetPosition = SpaceEnvironmentHandler.spaceEntryPosition(player, sourceLevel.dimension().location());
-            } else if (sourceLevel.dimension().equals(SpaceDimension.KEY)) {
+            } else if (SpaceDimension.isSpace(sourceLevel.dimension())) {
                 SpaceEnvironmentHandler.SavedPosition saved =
                         SpaceEnvironmentHandler.savedPlanetPosition(player, targetId);
                 if (saved != null) {

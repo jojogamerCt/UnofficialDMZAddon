@@ -14,7 +14,7 @@ public abstract class SpacePodIdleMixin {
     @Inject(method = {"travel(Lnet/minecraft/world/phys/Vec3;)V", "m_7023_(Lnet/minecraft/world/phys/Vec3;)V"}, at = @At("HEAD"), cancellable = true, remap = false)
     private void unofficialdmzaddon$holdUnoccupiedPodInSpace(Vec3 travelVector, CallbackInfo ci) {
         SpacePodEntity pod = (SpacePodEntity) (Object) this;
-        if (!pod.level().dimension().equals(SpaceDimension.KEY) || pod.getControllingPassenger() != null) return;
+        if (!SpaceDimension.isSpace(pod.level().dimension()) || pod.getControllingPassenger() != null) return;
 
         pod.setNoGravity(true);
         pod.setDeltaMovement(Vec3.ZERO);

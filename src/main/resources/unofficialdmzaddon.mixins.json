@@ -11,7 +11,8 @@
     "RemovedRaceFilterMixin",
     "TickHandlerAuraMixin",
     "SpacePodTravelMixin",
-    "SpacePodIdleMixin"
+    "SpacePodIdleMixin",
+    "GeneralUserConfigMixin"
   ],
   "client": [
     "AlienBuffedModelMixin",
@@ -23,7 +24,9 @@
     "RadialFormsMixin",
     "RadialLayoutStoreMixin",
     "UtilityMenuScreenMixin",
-    "PersistentDivineAuraMixin"
+    "PersistentDivineAuraMixin",
+    "ConfigMenuScreenMixin",
+    "LanguageMixin"
   ],
   "injectors": {
     "defaultRequire": 1
