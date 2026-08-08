@@ -5,6 +5,7 @@ import com.dragonminez.common.init.entities.SpacePodEntity;
 import com.dragonminez.common.init.entities.ki.AbstractKiProjectile;
 import com.dragonminez.common.network.NetworkHandler;
 import com.dragonminez.common.network.S2C.StatsSyncS2C;
+import com.dragonminez.common.spacepod.SpacePodDestinationRegistry;
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
 import net.minecraft.core.BlockPos;
@@ -241,6 +242,9 @@ public final class SpaceEnvironmentHandler {
             if (destroyed[index] >= 0L && gameTime - destroyed[index] >= SpacePlanetSystem.RESPAWN_TICKS) {
                 destroyed[index] = -1L;
             }
+            // Physical planets obey the same progression rules as DragonMineZ's destination menu.
+            // Locked worlds remain visible to the client, but cannot be destroyed or entered.
+            if (!isPlanetUnlocked(player, placement.definition())) continue;
             if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SPACE_PLANET_DESTRUCTION.get()
                     && !SpacePlanetSystem.isDestroyed(gameTime, destroyed[index])) {
                 for (AbstractKiProjectile projectile : projectiles) {
@@ -267,6 +271,15 @@ public final class SpaceEnvironmentHandler {
             }
         }
         previousTravelPositions.put(playerId, travelPosition);
+    }
+
+    private static boolean isPlanetUnlocked(ServerPlayer player, SpacePlanetDefinition planet) {
+        String dimension = planet.dimension().toString();
+        return SpacePodDestinationRegistry.getServerDestinations().stream()
+                .filter(destination -> destination.dimension().equals(dimension))
+                .findFirst()
+                .map(destination -> destination.unlockRules().test(player))
+                .orElse(true);
     }
 
     private static void putOnEvilPath(ServerPlayer player) {

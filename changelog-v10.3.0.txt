@@ -1,0 +1,9 @@
+Unofficial DMZ Addon 10.3.0
+
+Space progression
+- Connected physical planets to DragonMineZ's native space-pod destination unlock rules.
+- Locked worlds, including the Sacred Kai Dimension before its required progression, now appear as pitch-black cubes with a floating white question mark that always faces the player.
+- Locked planets cannot be entered or destroyed. They automatically reveal their normal texture and interactions as soon as the player satisfies DragonMineZ's original unlock condition.
+
+Documentation
+- Updated the CurseForge description for the 10.3.0 release and corrected the description of stationary unoccupied space pods.

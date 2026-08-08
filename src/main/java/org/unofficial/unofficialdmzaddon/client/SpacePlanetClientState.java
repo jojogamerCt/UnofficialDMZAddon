@@ -1,6 +1,7 @@
 package org.unofficial.unofficialdmzaddon.client;
 
 import com.dragonminez.common.init.entities.ki.AbstractKiProjectile;
+import com.dragonminez.common.spacepod.SpacePodDestinationRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -45,6 +46,7 @@ public final class SpacePlanetClientState {
                     && gameTime - DESTROYED_AT[index] >= SpacePlanetSystem.RESPAWN_TICKS) {
                 DESTROYED_AT[index] = -1L;
             }
+            if (!isUnlocked(player, placement)) continue;
             if (SpacePlanetSystem.isDestroyed(gameTime, DESTROYED_AT[index])) continue;
 
             for (AbstractKiProjectile projectile : projectiles) {
@@ -62,5 +64,14 @@ public final class SpacePlanetClientState {
 
     public static long destroyedAt(int index) {
         return DESTROYED_AT[index];
+    }
+
+    public static boolean isUnlocked(Player player, SpacePlanetSystem.PlanetPlacement placement) {
+        String dimension = placement.definition().dimension().toString();
+        return SpacePodDestinationRegistry.getClientDestinations().stream()
+                .filter(destination -> destination.dimension().equals(dimension))
+                .findFirst()
+                .map(destination -> destination.unlockRules().test(player))
+                .orElse(true);
     }
 }

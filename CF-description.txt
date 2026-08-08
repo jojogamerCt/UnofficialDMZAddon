@@ -2,13 +2,14 @@
 
 **![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Description.webp)**
 
-**Unofficial DMZ Addon 10.2.4** expands **DragonMine Z 2.1.3** with transformations, race progression, visuals, and mechanics built around DragonMineZ's native systems.
+**Unofficial DMZ Addon 10.3.0** expands **DragonMine Z 2.1.3** with transformations, race progression, visuals, and mechanics built around DragonMineZ's native systems.
 
 ### Current features
 
 * **Alien race**, with native character customization, the exclusive **Adaptive Physiology** passive, and the **Full Power** transformation. Repeated exposure builds up to 20% resistance to one damage type; Aliens are a distinct biological path and cannot become Androids.
 * **Dragon Ball-style Space**, unlocked through DragonMineZ's **Fly** skill and accessible from the native space-pod menu. Space provides visible weightless flight, no Earth weather or clouds, a seamless anime sky, widely separated cubic worlds with GPT Image 2 surface art, a bright textured sun, reliable high-speed planet travel, native DMZ ki trajectories with accurate planet impacts, Evil-path consequences, animated explosions, and five-minute world reformation.
-* **Persistent space-pod travel**. Piloted pods move at triple normal flight speed, close their doors during travel, and carry their rider into planets without duplication. The source pod is removed during transfer, the rider stays seated in the destination pod, and each planet returns the player to their last departure position. Players traveling without a pod arrive without one, while unoccupied pods left in Space remain saved there and visibly orbit their anchored position without falling.
+* **Persistent space-pod travel**. Piloted pods move at triple normal flight speed, close their doors during travel, and carry their rider into planets without duplication. The source pod is removed during transfer, the rider stays seated in the destination pod, and each planet returns the player to their last departure position. Players traveling without a pod arrive without one, while unoccupied pods left in Space remain saved and stationary without falling.
+* **Progression-aware planets**. Worlds locked by DragonMineZ progression, including the Sacred Kai Dimension, appear as pitch-black cubes with a floating camera-facing question mark and cannot be entered or destroyed until their native unlock condition is met.
 * **Safe planetary arrivals** that locate solid, dry ground with enough headroom instead of spawning players underground.
 * **Four new native classes for every race**: Ki Adept, Duelist, Vanguard, and Tactician. Their base stats, scaling, and passive values are stored per race in DragonMineZ `stats.json` files for modpack tuning.
 * **Universal Ultra Instinct progression** for every race: Sign, Mastered, and True Ultra Instinct. Successful dodges fully cancel incoming attacks and trigger synchronized particles, sound, displacement, and DragonMineZ's native randomized evasion animations. Dodge chance scales with form and mastery: **Sign 50-70%**, **Mastered 65-82%**, and **True 88-97%**. Higher tiers dodge farther and consume less energy.

@@ -7,11 +7,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Camera;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -199,17 +201,28 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
 
         for (SpacePlanetSystem.PlanetPlacement placement : SpacePlanetSystem.layout(player.getUUID(), player.position())) {
             long destroyedAt = SpacePlanetClientState.destroyedAt(placement.index());
-            float visibility = SpacePlanetSystem.visibility(gameTime, destroyedAt);
             Vec3 relative = placement.position().subtract(cameraPosition);
+            boolean unlocked = SpacePlanetClientState.isUnlocked(player, placement);
+            float visibility = unlocked ? SpacePlanetSystem.visibility(gameTime, destroyedAt) : 1.0F;
 
             if (visibility > 0.001F) {
-                RenderSystem.setShaderTexture(0, placement.definition().texture());
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, visibility);
-                drawCube(poseStack.last().pose(), relative, (float) placement.definition().radius());
+                if (unlocked) {
+                    RenderSystem.setShader(GameRenderer::getPositionTexShader);
+                    RenderSystem.setShaderTexture(0, placement.definition().texture());
+                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, visibility);
+                    drawCube(poseStack.last().pose(), relative, (float) placement.definition().radius());
+                } else {
+                    RenderSystem.setShader(GameRenderer::getPositionColorShader);
+                    drawColoredCube(poseStack.last().pose(), relative,
+                            (float) placement.definition().radius(), 0, 0, 0,
+                            Math.max(0, Math.min(255, Math.round(visibility * 255.0F))));
+                    drawLockedPlanetMarker(poseStack, camera, relative,
+                            (float) placement.definition().radius(), visibility);
+                }
             }
 
             long age = destroyedAt < 0L ? Long.MAX_VALUE : gameTime - destroyedAt;
-            if (age >= 0L && age < 30L) {
+            if (unlocked && age >= 0L && age < 30L) {
                 float progress = age / 30.0F;
                 float explosionAlpha = 1.0F - progress;
                 float explosionRadius = (float) placement.definition().radius() * (1.05F + progress * 1.4F);
@@ -220,6 +233,30 @@ public final class SpaceSpecialEffects extends DimensionSpecialEffects {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
+    }
+
+    private static void drawLockedPlanetMarker(PoseStack poseStack, Camera camera, Vec3 center,
+                                                float planetRadius, float visibility) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Font font = minecraft.font;
+        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
+        float scale = Math.max(0.35F, planetRadius * 0.18F);
+
+        poseStack.pushPose();
+        poseStack.translate(center.x, center.y, center.z);
+        poseStack.mulPose(camera.rotation());
+        poseStack.scale(-scale, -scale, scale);
+
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        int alpha = Math.max(0, Math.min(255, Math.round(visibility * 255.0F)));
+        int color = alpha << 24 | 0x00FFFFFF;
+        font.drawInBatch("?", -font.width("?") / 2.0F, -font.lineHeight / 2.0F, color, false,
+                poseStack.last().pose(), buffers, Font.DisplayMode.SEE_THROUGH, 0, LightTexture.FULL_BRIGHT);
+        buffers.endBatch();
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
+        poseStack.popPose();
     }
 
 
