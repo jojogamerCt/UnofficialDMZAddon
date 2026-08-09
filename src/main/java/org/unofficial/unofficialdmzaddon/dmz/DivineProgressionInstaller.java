@@ -258,20 +258,24 @@ public final class DivineProgressionInstaller {
         if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) {
             if (StackForms.ULTRAINSTINCT_SIGN.equals(formKey)) {
                 return (near(form.getStrMultiplier(), 1.50) && near(form.getSkpMultiplier(), 1.50))
-                        || (near(form.getStrMultiplier(), 1.35) && near(form.getSkpMultiplier(), 1.45));
+                        || (near(form.getStrMultiplier(), 1.35) && near(form.getSkpMultiplier(), 1.45))
+                        || (near(form.getStrMultiplier(), 3.50) && near(form.getSkpMultiplier(), 3.50));
             }
             if (StackForms.ULTRAINSTINCT_MASTERED.equals(formKey)) {
                 return (near(form.getStrMultiplier(), 2.00) && near(form.getSkpMultiplier(), 2.00))
-                        || (near(form.getStrMultiplier(), 1.55) && near(form.getSkpMultiplier(), 1.65));
+                        || (near(form.getStrMultiplier(), 1.55) && near(form.getSkpMultiplier(), 1.65))
+                        || (near(form.getStrMultiplier(), 5.00) && near(form.getSkpMultiplier(), 5.00));
             }
             if (UltraInstinctDefinitions.FORM_TRUE.equals(formKey)) {
-                return near(form.getStrMultiplier(), 1.88) && near(form.getSkpMultiplier(), 2.00);
+                return (near(form.getStrMultiplier(), 1.88) && near(form.getSkpMultiplier(), 2.00))
+                        || (near(form.getStrMultiplier(), 5.00) && near(form.getSkpMultiplier(), 5.00));
             }
         }
         if (StackForms.GROUP_ULTRAEGO.equals(groupName)
                 && StackForms.ULTRAEGO_MASTERED.equals(formKey)) {
             return (near(form.getStrMultiplier(), 2.00) && near(form.getSkpMultiplier(), 2.00))
-                    || (near(form.getStrMultiplier(), 1.82) && near(form.getSkpMultiplier(), 1.62));
+                    || (near(form.getStrMultiplier(), 1.82) && near(form.getSkpMultiplier(), 1.62))
+                    || (near(form.getStrMultiplier(), 5.00) && near(form.getSkpMultiplier(), 5.00));
         }
         return false;
     }
@@ -668,13 +672,13 @@ public final class DivineProgressionInstaller {
             String key = entry.getKey().toLowerCase();
             FormConfig.FormData form = entry.getValue();
             if (ultraInstinct && StackForms.ULTRAINSTINCT_SIGN.equals(key)) {
-                applyCombatProfile(form, 3.50, 3.50, 1.20, 3.50, 1.15, 3.50, 1.25, 1.55);
+                applyCombatProfile(form, 5.25, 5.25, 1.30, 5.00, 1.20, 5.25, 1.30, 1.60);
             } else if (ultraInstinct && StackForms.ULTRAINSTINCT_MASTERED.equals(key)) {
-                applyCombatProfile(form, 5.00, 5.00, 1.40, 4.75, 1.30, 5.00, 1.40, 1.65);
+                applyCombatProfile(form, 5.75, 5.75, 1.45, 5.50, 1.35, 5.75, 1.45, 1.70);
             } else if (ultraInstinct && UltraInstinctDefinitions.FORM_TRUE.equals(key)) {
-                applyCombatProfile(form, 5.00, 5.00, 1.68, 4.75, 1.52, 5.00, 1.52, 1.55);
+                applyCombatProfile(form, 6.25, 6.25, 1.68, 6.00, 1.52, 6.25, 1.52, 1.60);
             } else if (!ultraInstinct && StackForms.ULTRAEGO_MASTERED.equals(key)) {
-                applyCombatProfile(form, 5.00, 5.00, 1.70, 4.60, 1.45, 5.00, 1.45, 1.50);
+                applyCombatProfile(form, 6.25, 6.25, 1.75, 5.75, 1.50, 6.25, 1.50, 1.55);
             } else continue;
             form.setMaxStatsMultiplier(1.35);
         }

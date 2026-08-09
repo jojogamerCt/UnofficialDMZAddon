@@ -184,7 +184,7 @@ public final class TransformationInstaller {
                     "#B884FF",
                     "#F7D8FF",
                     new float[]{1.02f, 1.02f, 1.02f},
-                    5.00, 5.00, 1.80, 4.50, 1.35, 5.00, 1.45, 1.55,
+                    7.75, 7.75, 1.90, 7.00, 1.45, 7.75, 1.55, 1.65,
                     0.24, 1.55, 1.22,
                     0.0035, 0.018, 0.0032,
                     false, 3.0
@@ -240,7 +240,7 @@ public final class TransformationInstaller {
                     "#FF9C2E",
                     "#FFD37A",
                     new float[]{1.12f, 1.12f, 1.12f},
-                    5.00, 5.00, 2.20, 5.00, 1.70, 5.00, 1.35, 1.15,
+                    6.75, 6.75, 2.25, 6.75, 1.75, 6.75, 1.45, 1.25,
                     0.20, 1.20, 1.05,
                     0.0035, 0.017, 0.0030,
                     false, 1.0
@@ -297,7 +297,7 @@ public final class TransformationInstaller {
                     "#9B35FF",
                     "#FF4FCB",
                     new float[]{1.18f, 1.18f, 1.18f},
-                    5.00, 5.00, 2.00, 4.60, 1.45, 5.00, 1.65, 1.75,
+                    7.25, 7.25, 2.05, 6.70, 1.50, 7.25, 1.70, 1.80,
                     0.35, 1.40, 1.35,
                     0.0035, 0.025, 0.0040,
                     false, 1.0
@@ -546,7 +546,7 @@ public final class TransformationInstaller {
                         "", "", "", "ssj",
                         "#ECEBEA", "#D01C23", "#B884FF", "#F7D8FF",
                         new float[]{1.02f, 1.02f, 1.02f},
-                        5.00, 5.00, 1.80, 4.50, 1.35, 5.00, 1.45, 1.55,
+                        7.75, 7.75, 1.90, 7.00, 1.45, 7.75, 1.55, 1.65,
                         0.24, 1.55, 1.22,
                         0.0035, 0.018, 0.0032,
                         false, 3.0
@@ -564,7 +564,7 @@ public final class TransformationInstaller {
                         "#D9731F", "#BB4A1A", "#FFB764", "base",
                         "#FF7A18", "#FF7A18", "#FF9C2E", "#FFD37A",
                         new float[]{1.12f, 1.12f, 1.12f},
-                        5.00, 5.00, 2.20, 5.00, 1.70, 5.00, 1.35, 1.15,
+                        6.75, 6.75, 2.25, 6.75, 1.75, 6.75, 1.45, 1.25,
                         0.20, 1.20, 1.05,
                         0.0035, 0.017, 0.0030,
                         false, 1.0
@@ -600,7 +600,7 @@ public final class TransformationInstaller {
                         "#181821", "#6F2DA8", "#5E6472", "base",
                         "", "#FF4A4A", "#9B35FF", "#FF4FCB",
                         new float[]{1.18f, 1.18f, 1.18f},
-                        5.00, 5.00, 2.00, 4.60, 1.45, 5.00, 1.65, 1.75,
+                        7.25, 7.25, 2.05, 6.70, 1.50, 7.25, 1.70, 1.80,
                         0.35, 1.40, 1.35,
                         0.0035, 0.025, 0.0040,
                         false, 1.0
@@ -939,11 +939,14 @@ public final class TransformationInstaller {
     private static void migrateLegacySpecialBalance(FormConfig.FormData form, String formKey) {
         boolean legacy = switch (formKey) {
             case SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST ->
-                    near(form.getStrMultiplier(), 4.60D) && near(form.getSkpMultiplier(), 4.90D);
+                    (near(form.getStrMultiplier(), 4.60D) && near(form.getSkpMultiplier(), 4.90D))
+                            || (near(form.getStrMultiplier(), 5.00D) && near(form.getSkpMultiplier(), 5.00D));
             case SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE ->
-                    near(form.getStrMultiplier(), 4.10D) && near(form.getSkpMultiplier(), 4.00D);
+                    (near(form.getStrMultiplier(), 4.10D) && near(form.getSkpMultiplier(), 4.00D))
+                            || (near(form.getStrMultiplier(), 5.00D) && near(form.getSkpMultiplier(), 5.00D));
             case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK ->
-                    near(form.getStrMultiplier(), 5.80D) && near(form.getSkpMultiplier(), 6.20D);
+                    (near(form.getStrMultiplier(), 5.80D) && near(form.getSkpMultiplier(), 6.20D))
+                            || (near(form.getStrMultiplier(), 5.00D) && near(form.getSkpMultiplier(), 5.00D));
             case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN ->
                     (near(form.getStrMultiplier(), 2.75D) && near(form.getSkpMultiplier(), 2.75D))
                             || (near(form.getStrMultiplier(), 4.80D) && near(form.getSkpMultiplier(), 5.00D));
@@ -953,11 +956,11 @@ public final class TransformationInstaller {
 
         switch (formKey) {
             case SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST ->
-                    applyCombatProfile(form, 5.00D, 5.00D, 1.80D, 4.50D, 1.35D, 5.00D, 1.45D, 1.55D);
+                    applyCombatProfile(form, 7.75D, 7.75D, 1.90D, 7.00D, 1.45D, 7.75D, 1.55D, 1.65D);
             case SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE ->
-                    applyCombatProfile(form, 5.00D, 5.00D, 2.20D, 5.00D, 1.70D, 5.00D, 1.35D, 1.15D);
+                    applyCombatProfile(form, 6.75D, 6.75D, 2.25D, 6.75D, 1.75D, 6.75D, 1.45D, 1.25D);
             case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK ->
-                    applyCombatProfile(form, 5.00D, 5.00D, 2.00D, 4.60D, 1.45D, 5.00D, 1.65D, 1.75D);
+                    applyCombatProfile(form, 7.25D, 7.25D, 2.05D, 6.70D, 1.50D, 7.25D, 1.70D, 1.80D);
             case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN ->
                     applyCombatProfile(form, 4.25D, 4.25D, 1.25D, 3.91D, 1.20D, 4.4625D, 1.30D, 1.35D);
             default -> { }
@@ -980,11 +983,14 @@ public final class TransformationInstaller {
     private static boolean isLegacySpecialBalance(JsonObject form, String formKey) {
         return switch (formKey) {
             case SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST ->
-                    jsonNear(form, "strMultiplier", 4.60D) && jsonNear(form, "skpMultiplier", 4.90D);
+                    (jsonNear(form, "strMultiplier", 4.60D) && jsonNear(form, "skpMultiplier", 4.90D))
+                            || (jsonNear(form, "strMultiplier", 5.00D) && jsonNear(form, "skpMultiplier", 5.00D));
             case SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE ->
-                    jsonNear(form, "strMultiplier", 4.10D) && jsonNear(form, "skpMultiplier", 4.00D);
+                    (jsonNear(form, "strMultiplier", 4.10D) && jsonNear(form, "skpMultiplier", 4.00D))
+                            || (jsonNear(form, "strMultiplier", 5.00D) && jsonNear(form, "skpMultiplier", 5.00D));
             case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK ->
-                    jsonNear(form, "strMultiplier", 5.80D) && jsonNear(form, "skpMultiplier", 6.20D);
+                    (jsonNear(form, "strMultiplier", 5.80D) && jsonNear(form, "skpMultiplier", 6.20D))
+                            || (jsonNear(form, "strMultiplier", 5.00D) && jsonNear(form, "skpMultiplier", 5.00D));
             case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN ->
                     (jsonNear(form, "strMultiplier", 2.75D) && jsonNear(form, "skpMultiplier", 2.75D))
                             || (jsonNear(form, "strMultiplier", 4.80D) && jsonNear(form, "skpMultiplier", 5.00D));
