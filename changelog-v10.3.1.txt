@@ -19,4 +19,5 @@ Changes and fixes
 - Reworked the planet and celestial information HUD into a compact, wrapped, and clipped panel.
 - Kept Custom Forms hints and status messages wrapped within their panel backgrounds at every GUI scale.
 - Matched the Custom Forms menu icon cleanly to DragonMineZ's native button frame.
+- Preserved saved Custom Forms in the X-wheel after DragonMineZ synchronizes or reloads its form configuration.
 - Added automatic migration for existing default Golden, Black, and Orange form configurations while preserving customized values where possible.

@@ -22,6 +22,11 @@ public final class CustomFormsClientState {
         CustomFormManager.install(newOwner, copy);
     }
 
+    /** Reattaches custom groups after DragonMineZ replaces its client-side synced form registry. */
+    public static void reinstallAll() {
+        FORMS.forEach(CustomFormManager::install);
+    }
+
     public static List<CustomFormDefinition> forRace(String race) {
         if (race == null) return List.of();
         Minecraft minecraft = Minecraft.getInstance();

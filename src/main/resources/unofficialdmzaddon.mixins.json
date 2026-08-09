@@ -32,6 +32,7 @@
     "AuraLoopSoundMixin",
     "AuraRendererCacheMixin",
     "ConfigMenuScreenMixin",
+    "CustomFormsConfigSyncMixin",
     "LanguageMixin",
     "MinigamesScreenMixin",
     "BaseMenuCustomFormsMixin"
