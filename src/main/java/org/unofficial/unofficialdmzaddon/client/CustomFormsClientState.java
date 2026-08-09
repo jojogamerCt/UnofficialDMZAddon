@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.unofficial.unofficialdmzaddon.network.CustomFormSaveResultS2C;
 
 public final class CustomFormsClientState {
@@ -39,9 +40,13 @@ public final class CustomFormsClientState {
 
     public static String translatedName(String key) {
         if (key == null) return null;
-        String id = key.substring(key.lastIndexOf('.') + 1);
         for (Map.Entry<UUID, List<CustomFormDefinition>> entry : FORMS.entrySet()) {
-            if (!key.contains(".form." + CustomFormDefinition.group(entry.getKey()) + ".")) continue;
+            String group = CustomFormDefinition.group(entry.getKey());
+            if (key.endsWith(".group." + group)) {
+                return Component.translatable("gui.unofficialdmzaddon.custom_forms").getString();
+            }
+            if (!key.contains(".form." + group + ".")) continue;
+            String id = key.substring(key.lastIndexOf('.') + 1);
             return entry.getValue().stream().filter(form -> form.id().equals(id)).map(CustomFormDefinition::name).findFirst().orElse(null);
         }
         return null;

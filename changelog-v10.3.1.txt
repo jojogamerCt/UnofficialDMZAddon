@@ -21,4 +21,5 @@ Changes and fixes
 - Matched the Custom Forms menu icon cleanly to DragonMineZ's native button frame.
 - Preserved saved Custom Forms in the X-wheel after DragonMineZ synchronizes or reloads its form configuration.
 - Kept Snake's locked-form requirement wrapped inside the minigame information panel.
+- Displayed localized Custom Forms group names in DragonMineZ's form skill tree instead of internal player identifiers.
 - Added automatic migration for existing default Golden, Black, and Orange form configurations while preserving customized values where possible.
