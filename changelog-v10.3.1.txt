@@ -17,4 +17,6 @@ Changes and fixes
 - Preserved Namekian antennae, ears, and native head components in Orange Form.
 - Disabled Constant Addon Auras now suppresses passive aura layers, rocks, dust, sparks, lighting, and sounds without suppressing active charging or Aura Status effects.
 - Reworked the planet and celestial information HUD into a compact, wrapped, and clipped panel.
+- Kept Custom Forms hints and status messages wrapped within their panel backgrounds at every GUI scale.
+- Matched the Custom Forms menu icon cleanly to DragonMineZ's native button frame.
 - Added automatic migration for existing default Golden, Black, and Orange form configurations while preserving customized values where possible.

@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Player;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -442,7 +443,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         } else {
             centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.multiplier", format(multiplier)), left + 70, top + 57, 0xFFFFFFFF);
             centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.drain", String.format(Locale.US, "%.2f", drain)), left + 70, top + 94, 0xFFFFFFFF);
-            centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.balance_hint"), left + 70, top + 125, 0xFF9BFF9B);
+            centeredWrapped(graphics, tr("gui.unofficialdmzaddon.custom_forms.balance_hint"), left + 70, top + 119, 112, 0xFF9BFF9B);
         }
         centered(graphics, Component.literal(formName), right + 70, top + 44, 0xFFFFFFFF);
         centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.multiplier", format(multiplier)), right + 70, top + 61, 0xFF7CFDD6);
@@ -450,7 +451,10 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.cost", pendingCost()), right + 70, top + 103, pendingCost() <= availableTp() ? 0xFFFFD700 : 0xFFFF5555);
         centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.available", availableTp()), right + 70, top + 118, 0xFFFFFFFF);
         centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.page_count", page + 1, PAGE_COUNT), right + 70, top + 146, 0xFFAAAAAA);
-        if (!resultKey.isEmpty()) centered(graphics, tr(resultKey, resultCost), right + 70, top + 169, resultKey.contains("error") ? 0xFFFF5555 : 0xFF7CFDD6);
+        if (!resultKey.isEmpty()) {
+            centeredWrapped(graphics, tr(resultKey, resultCost), right + 70, top + 158, 116,
+                    resultKey.contains("error") ? 0xFFFF5555 : 0xFF7CFDD6);
+        }
     }
 
     private void renderPlayerPreview(GuiGraphics graphics, float partialTick) {
@@ -551,6 +555,12 @@ public final class CustomFormsScreen extends BaseMenuScreen {
     private String format(double value) { return String.format(Locale.US, "%.1f", value); }
     private void title(GuiGraphics graphics, Component text, int x, int y) { centered(graphics, text, x, y, 0xFFFFD700); }
     private void centered(GuiGraphics graphics, Component text, int x, int y, int color) { TextUtil.drawCenteredStringWithBorder(graphics, font, text, x, y, color); }
+    private void centeredWrapped(GuiGraphics graphics, Component text, int centerX, int y, int maxWidth, int color) {
+        List<FormattedCharSequence> lines = font.split(text, maxWidth);
+        for (int i = 0; i < lines.size(); i++) {
+            TextUtil.drawCenteredStringWithBorder(graphics, font, lines.get(i), centerX, y + i * (font.lineHeight + 1), color);
+        }
+    }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {

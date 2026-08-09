@@ -20,7 +20,13 @@ function Get-NativeFramePixel($buttons, $localX, $localY, $sourceV) {
         $counts[$argb] = 1 + [int]$counts[$argb]
     }
     $winner = $counts.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1
-    return [System.Drawing.Color]::FromArgb([int]$winner.Key)
+    $color = [System.Drawing.Color]::FromArgb([int]$winner.Key)
+    # Some DMZ menu glyphs share a green pixel at this otherwise-empty frame
+    # coordinate, so a straight majority mistakes it for part of the frame.
+    if ($localX -eq 11 -and $localY -eq 12 -and $color.G -gt $color.R + 20 -and $color.G -gt $color.B + 20) {
+        return [System.Drawing.Color]::FromArgb(255, 16, 17, 13)
+    }
+    return $color
 }
 
 function Draw-NativeFrame($atlas, $buttons, $glyph, $targetX, $sourceV) {
