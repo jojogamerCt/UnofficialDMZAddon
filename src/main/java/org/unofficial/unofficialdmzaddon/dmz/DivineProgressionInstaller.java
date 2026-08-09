@@ -180,6 +180,7 @@ public final class DivineProgressionInstaller {
         }
 
         migrateLegacyAddonDuplicates(existing, defaults, groupName);
+        migrateKnownDivineBalance(existing, defaults, groupName);
         if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) existing.getForms().remove("autonomous");
         if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) {
             FormConfig.FormData trueUi = existing.getFormByKey(UltraInstinctDefinitions.FORM_TRUE);
@@ -240,6 +241,57 @@ public final class DivineProgressionInstaller {
             }
         }
         return false;
+    }
+
+    private static void migrateKnownDivineBalance(FormConfig existing, FormConfig defaults, String groupName) {
+        if (existing.getForms() == null || defaults.getForms() == null) return;
+        for (Map.Entry<String, FormConfig.FormData> entry : defaults.getForms().entrySet()) {
+            FormConfig.FormData current = existing.getFormByKey(entry.getKey());
+            if (current != null && isKnownLegacyDivineBalance(groupName, entry.getKey(), current)) {
+                copyBalance(current, entry.getValue());
+            }
+        }
+    }
+
+    private static boolean isKnownLegacyDivineBalance(String groupName, String formKey,
+                                                       FormConfig.FormData form) {
+        if (StackForms.GROUP_ULTRAINSTINCT.equals(groupName)) {
+            if (StackForms.ULTRAINSTINCT_SIGN.equals(formKey)) {
+                return (near(form.getStrMultiplier(), 1.50) && near(form.getSkpMultiplier(), 1.50))
+                        || (near(form.getStrMultiplier(), 1.35) && near(form.getSkpMultiplier(), 1.45));
+            }
+            if (StackForms.ULTRAINSTINCT_MASTERED.equals(formKey)) {
+                return (near(form.getStrMultiplier(), 2.00) && near(form.getSkpMultiplier(), 2.00))
+                        || (near(form.getStrMultiplier(), 1.55) && near(form.getSkpMultiplier(), 1.65));
+            }
+            if (UltraInstinctDefinitions.FORM_TRUE.equals(formKey)) {
+                return near(form.getStrMultiplier(), 1.88) && near(form.getSkpMultiplier(), 2.00);
+            }
+        }
+        if (StackForms.GROUP_ULTRAEGO.equals(groupName)
+                && StackForms.ULTRAEGO_MASTERED.equals(formKey)) {
+            return (near(form.getStrMultiplier(), 2.00) && near(form.getSkpMultiplier(), 2.00))
+                    || (near(form.getStrMultiplier(), 1.82) && near(form.getSkpMultiplier(), 1.62));
+        }
+        return false;
+    }
+
+    private static boolean isKnownLegacyDivineBalance(String groupName, String formKey, JsonObject form) {
+        if (!form.has("strMultiplier") || !form.has("skpMultiplier")) return false;
+        FormConfig.FormData values = GSON.fromJson(form, FormConfig.FormData.class);
+        return isKnownLegacyDivineBalance(groupName, formKey, values);
+    }
+
+    private static void copyBalance(FormConfig.FormData target, FormConfig.FormData source) {
+        target.setStrMultiplier(source.getStrMultiplier());
+        target.setSkpMultiplier(source.getSkpMultiplier());
+        target.setStmMultiplier(source.getStmMultiplier());
+        target.setDefMultiplier(source.getDefMultiplier());
+        target.setVitMultiplier(source.getVitMultiplier());
+        target.setPwrMultiplier(source.getPwrMultiplier());
+        target.setEneMultiplier(source.getEneMultiplier());
+        target.setSpeedMultiplier(source.getSpeedMultiplier());
+        target.setMaxStatsMultiplier(source.getMaxStatsMultiplier());
     }
 
     private static boolean near(Double actual, double expected) {
@@ -486,6 +538,9 @@ public final class DivineProgressionInstaller {
 
             for (Map.Entry<String, FormConfig.FormData> entry : defaults.getForms().entrySet()) {
                 JsonObject form = forms.getAsJsonObject(entry.getKey());
+                if (form != null && isKnownLegacyDivineBalance(groupName, entry.getKey(), form)) {
+                    writeBalance(form, entry.getValue());
+                }
                 if (form != null) writeCanonicalAura(form, entry.getValue());
                 if (form != null && StackForms.GROUP_ULTRAINSTINCT.equals(groupName)
                         && UltraInstinctDefinitions.FORM_TRUE.equalsIgnoreCase(entry.getKey())) {
@@ -568,6 +623,7 @@ public final class DivineProgressionInstaller {
                         1.88, 2.00, 1.68, 1.76, 1.52, 2.00, 1.52, 1.55,
                         0.055, 0.085, 0.07, 0.08, 1.38,
                         StackForms.GROUP_ULTRAINSTINCT + "." + StackForms.ULTRAINSTINCT_MASTERED, 75.0));
+        applyBalancedDivineProfiles(group, true);
         configureUltraInstinctAuras(group);
         return group;
     }
@@ -601,8 +657,39 @@ public final class DivineProgressionInstaller {
                 ultraEgo.setUnlockOnMastery(0.0);
             }
         }
+        applyBalancedDivineProfiles(group, false);
         configureUltraEgoAuras(group);
         return group;
+    }
+
+    private static void applyBalancedDivineProfiles(FormConfig group, boolean ultraInstinct) {
+        if (group == null || group.getForms() == null) return;
+        for (Map.Entry<String, FormConfig.FormData> entry : group.getForms().entrySet()) {
+            String key = entry.getKey().toLowerCase();
+            FormConfig.FormData form = entry.getValue();
+            if (ultraInstinct && StackForms.ULTRAINSTINCT_SIGN.equals(key)) {
+                applyCombatProfile(form, 3.50, 3.50, 1.20, 3.50, 1.15, 3.50, 1.25, 1.55);
+            } else if (ultraInstinct && StackForms.ULTRAINSTINCT_MASTERED.equals(key)) {
+                applyCombatProfile(form, 5.00, 5.00, 1.40, 4.75, 1.30, 5.00, 1.40, 1.65);
+            } else if (ultraInstinct && UltraInstinctDefinitions.FORM_TRUE.equals(key)) {
+                applyCombatProfile(form, 5.00, 5.00, 1.68, 4.75, 1.52, 5.00, 1.52, 1.55);
+            } else if (!ultraInstinct && StackForms.ULTRAEGO_MASTERED.equals(key)) {
+                applyCombatProfile(form, 5.00, 5.00, 1.70, 4.60, 1.45, 5.00, 1.45, 1.50);
+            } else continue;
+            form.setMaxStatsMultiplier(1.35);
+        }
+    }
+
+    private static void applyCombatProfile(FormConfig.FormData form, double str, double skp, double stm,
+                                           double def, double vit, double pwr, double ene, double speed) {
+        form.setStrMultiplier(str);
+        form.setSkpMultiplier(skp);
+        form.setStmMultiplier(stm);
+        form.setDefMultiplier(def);
+        form.setVitMultiplier(vit);
+        form.setPwrMultiplier(pwr);
+        form.setEneMultiplier(ene);
+        form.setSpeedMultiplier(speed);
     }
 
     private static void configureUltraInstinctAuras(FormConfig group) {
@@ -671,6 +758,18 @@ public final class DivineProgressionInstaller {
         target.addProperty("hasLightnings", aura.getHasLightnings());
         target.addProperty("lightningColor", aura.getLightningColor());
         target.addProperty("staminaDrain", aura.getStaminaDrain());
+    }
+
+    private static void writeBalance(JsonObject target, FormConfig.FormData balance) {
+        target.addProperty("strMultiplier", balance.getStrMultiplier());
+        target.addProperty("skpMultiplier", balance.getSkpMultiplier());
+        target.addProperty("stmMultiplier", balance.getStmMultiplier());
+        target.addProperty("defMultiplier", balance.getDefMultiplier());
+        target.addProperty("vitMultiplier", balance.getVitMultiplier());
+        target.addProperty("pwrMultiplier", balance.getPwrMultiplier());
+        target.addProperty("eneMultiplier", balance.getEneMultiplier());
+        target.addProperty("speedMultiplier", balance.getSpeedMultiplier());
+        target.addProperty("maxStatsMultiplier", balance.getMaxStatsMultiplier());
     }
     private static FormConfig makeIndependent(FormConfig group) {
         if (group == null) return null;

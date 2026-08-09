@@ -166,6 +166,7 @@ public final class TransformationInstaller {
             if (beast != null) {
                 beast.setFormStackable(false);
                 beast.setStackDrainMultiplier(1.0);
+                migrateLegacySpecialBalance(beast, SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST);
                 return true;
             }
             beast = new FormConfig.FormData();
@@ -183,9 +184,9 @@ public final class TransformationInstaller {
                     "#B884FF",
                     "#F7D8FF",
                     new float[]{1.02f, 1.02f, 1.02f},
-                    4.60, 4.90, 1.80, 3.30, 1.35, 5.20, 1.45, 1.55,
+                    5.00, 5.00, 1.80, 4.50, 1.35, 5.00, 1.45, 1.55,
                     0.24, 1.55, 1.22,
-                    0.030, 0.018, 0.0032,
+                    0.0035, 0.018, 0.0032,
                     false, 3.0
             );
 
@@ -221,6 +222,7 @@ public final class TransformationInstaller {
                 orange.setFormStackable(false);
                 orange.setStackDrainMultiplier(1.0);
                 orange.setKeepBaseFormHeadBones(true);
+                migrateLegacySpecialBalance(orange, SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE);
                 return true;
             }
             orange = new FormConfig.FormData();
@@ -238,9 +240,9 @@ public final class TransformationInstaller {
                     "#FF9C2E",
                     "#FFD37A",
                     new float[]{1.12f, 1.12f, 1.12f},
-                    4.10, 4.00, 2.20, 3.90, 1.70, 3.80, 1.35, 1.05,
+                    5.00, 5.00, 2.20, 5.00, 1.70, 5.00, 1.35, 1.15,
                     0.20, 1.20, 1.05,
-                    0.028, 0.017, 0.0030,
+                    0.0035, 0.017, 0.0030,
                     false, 1.0
             );
             orange.setKeepBaseFormHeadBones(true);
@@ -276,6 +278,7 @@ public final class TransformationInstaller {
             if (black != null) {
                 black.setFormStackable(false);
                 black.setStackDrainMultiplier(1.0);
+                migrateLegacySpecialBalance(black, SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK);
                 migrateLegacyBlackColors(black);
                 return true;
             }
@@ -294,9 +297,9 @@ public final class TransformationInstaller {
                     "#9B35FF",
                     "#FF4FCB",
                     new float[]{1.18f, 1.18f, 1.18f},
-                    5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
+                    5.00, 5.00, 2.00, 4.60, 1.45, 5.00, 1.65, 1.75,
                     0.35, 1.40, 1.35,
-                    0.038, 0.025, 0.0040,
+                    0.0035, 0.025, 0.0040,
                     false, 1.0
             );
 
@@ -331,7 +334,7 @@ public final class TransformationInstaller {
             if (golden != null) {
                 golden.setFormStackable(false);
                 golden.setStackDrainMultiplier(1.0);
-                migrateLegacyGoldenBalance(golden);
+                migrateLegacySpecialBalance(golden, SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN);
                 return true;
             }
             golden = new FormConfig.FormData();
@@ -349,9 +352,9 @@ public final class TransformationInstaller {
                     "#FFD700",
                     "#FFE566",
                     new float[]{1.02f, 1.02f, 1.02f},
-                    2.75, 2.75, 1.25, 2.53, 1.20, 2.8875, 1.30, 1.35,
+                    4.25, 4.25, 1.25, 3.91, 1.20, 4.4625, 1.30, 1.35,
                     0.13, 0.0455, 1.26,
-                    0.030, 0.019, 0.0032,
+                    0.0035, 0.019, 0.0032,
                     false, 1.0
             );
 
@@ -543,9 +546,9 @@ public final class TransformationInstaller {
                         "", "", "", "ssj",
                         "#ECEBEA", "#D01C23", "#B884FF", "#F7D8FF",
                         new float[]{1.02f, 1.02f, 1.02f},
-                        4.60, 4.90, 1.80, 3.30, 1.35, 5.20, 1.45, 1.55,
+                        5.00, 5.00, 1.80, 4.50, 1.35, 5.00, 1.45, 1.55,
                         0.24, 1.55, 1.22,
-                        0.030, 0.018, 0.0032,
+                        0.0035, 0.018, 0.0032,
                         false, 3.0
                 )
         );
@@ -561,9 +564,9 @@ public final class TransformationInstaller {
                         "#D9731F", "#BB4A1A", "#FFB764", "base",
                         "#FF7A18", "#FF7A18", "#FF9C2E", "#FFD37A",
                         new float[]{1.12f, 1.12f, 1.12f},
-                        4.10, 4.00, 2.20, 3.90, 1.70, 3.80, 1.35, 1.05,
+                        5.00, 5.00, 2.20, 5.00, 1.70, 5.00, 1.35, 1.15,
                         0.20, 1.20, 1.05,
-                        0.028, 0.017, 0.0030,
+                        0.0035, 0.017, 0.0030,
                         false, 1.0
                 )
         );
@@ -579,9 +582,9 @@ public final class TransformationInstaller {
                         "#FFD700", "#E6B800", "#C99A00", "base",
                         "", "#D90B0B", "#FFD700", "#FFE566",
                         new float[]{1.02f, 1.02f, 1.02f},
-                        2.75, 2.75, 1.25, 2.53, 1.20, 2.8875, 1.30, 1.35,
+                        4.25, 4.25, 1.25, 3.91, 1.20, 4.4625, 1.30, 1.35,
                         0.13, 0.0455, 1.26,
-                        0.030, 0.019, 0.0032,
+                        0.0035, 0.019, 0.0032,
                         false, 1.0
                 )
         );
@@ -597,9 +600,9 @@ public final class TransformationInstaller {
                         "#181821", "#6F2DA8", "#5E6472", "base",
                         "", "#FF4A4A", "#9B35FF", "#FF4FCB",
                         new float[]{1.18f, 1.18f, 1.18f},
-                        5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
+                        5.00, 5.00, 2.00, 4.60, 1.45, 5.00, 1.65, 1.75,
                         0.35, 1.40, 1.35,
-                        0.038, 0.025, 0.0040,
+                        0.0035, 0.025, 0.0040,
                         false, 1.0
                 )
         );
@@ -733,12 +736,10 @@ public final class TransformationInstaller {
                 if (SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE.equals(formKey)) {
                     existing.addProperty("keepBaseFormHeadBones", true);
                 }
-                if (SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN.equals(formKey)
-                        && jsonNear(existing, "strMultiplier", 4.80D)
-                        && jsonNear(existing, "skpMultiplier", 5.00D)) {
+                if (isLegacySpecialBalance(existing, formKey)) {
                     copyProperties(formJson, existing, "strMultiplier", "skpMultiplier", "stmMultiplier",
                             "defMultiplier", "vitMultiplier", "pwrMultiplier", "eneMultiplier", "speedMultiplier",
-                            "energyDrain", "staminaDrain");
+                            "energyDrain", "staminaDrain", "maxStatsMultiplier");
                 }
                 if (SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK.equals(formKey)
                         && jsonEquals(existing, "bodyColor1", "#0E0E12")
@@ -935,18 +936,60 @@ public final class TransformationInstaller {
         }
     }
 
-    private static void migrateLegacyGoldenBalance(FormConfig.FormData form) {
-        if (!near(form.getStrMultiplier(), 4.80D) || !near(form.getSkpMultiplier(), 5.00D)) return;
-        form.setStrMultiplier(2.75D);
-        form.setSkpMultiplier(2.75D);
-        form.setStmMultiplier(1.25D);
-        form.setDefMultiplier(2.53D);
-        form.setVitMultiplier(1.20D);
-        form.setPwrMultiplier(2.8875D);
-        form.setEneMultiplier(1.30D);
-        form.setSpeedMultiplier(1.35D);
-        form.setEnergyDrain(0.13D);
-        form.setStaminaDrain(0.0455D);
+    private static void migrateLegacySpecialBalance(FormConfig.FormData form, String formKey) {
+        boolean legacy = switch (formKey) {
+            case SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST ->
+                    near(form.getStrMultiplier(), 4.60D) && near(form.getSkpMultiplier(), 4.90D);
+            case SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE ->
+                    near(form.getStrMultiplier(), 4.10D) && near(form.getSkpMultiplier(), 4.00D);
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK ->
+                    near(form.getStrMultiplier(), 5.80D) && near(form.getSkpMultiplier(), 6.20D);
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN ->
+                    (near(form.getStrMultiplier(), 2.75D) && near(form.getSkpMultiplier(), 2.75D))
+                            || (near(form.getStrMultiplier(), 4.80D) && near(form.getSkpMultiplier(), 5.00D));
+            default -> false;
+        };
+        if (!legacy) return;
+
+        switch (formKey) {
+            case SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST ->
+                    applyCombatProfile(form, 5.00D, 5.00D, 1.80D, 4.50D, 1.35D, 5.00D, 1.45D, 1.55D);
+            case SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE ->
+                    applyCombatProfile(form, 5.00D, 5.00D, 2.20D, 5.00D, 1.70D, 5.00D, 1.35D, 1.15D);
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK ->
+                    applyCombatProfile(form, 5.00D, 5.00D, 2.00D, 4.60D, 1.45D, 5.00D, 1.65D, 1.75D);
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN ->
+                    applyCombatProfile(form, 4.25D, 4.25D, 1.25D, 3.91D, 1.20D, 4.4625D, 1.30D, 1.35D);
+            default -> { }
+        }
+        form.setMaxStatsMultiplier(1.35D);
+    }
+
+    private static void applyCombatProfile(FormConfig.FormData form, double str, double skp, double stm,
+                                           double def, double vit, double pwr, double ene, double speed) {
+        form.setStrMultiplier(str);
+        form.setSkpMultiplier(skp);
+        form.setStmMultiplier(stm);
+        form.setDefMultiplier(def);
+        form.setVitMultiplier(vit);
+        form.setPwrMultiplier(pwr);
+        form.setEneMultiplier(ene);
+        form.setSpeedMultiplier(speed);
+    }
+
+    private static boolean isLegacySpecialBalance(JsonObject form, String formKey) {
+        return switch (formKey) {
+            case SpecialRaceFormsDefinitions.SAIYAN_FORM_BEAST ->
+                    jsonNear(form, "strMultiplier", 4.60D) && jsonNear(form, "skpMultiplier", 4.90D);
+            case SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE ->
+                    jsonNear(form, "strMultiplier", 4.10D) && jsonNear(form, "skpMultiplier", 4.00D);
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK ->
+                    jsonNear(form, "strMultiplier", 5.80D) && jsonNear(form, "skpMultiplier", 6.20D);
+            case SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN ->
+                    (jsonNear(form, "strMultiplier", 2.75D) && jsonNear(form, "skpMultiplier", 2.75D))
+                            || (jsonNear(form, "strMultiplier", 4.80D) && jsonNear(form, "skpMultiplier", 5.00D));
+            default -> false;
+        };
     }
 
     private static void migrateLegacyBlackColors(FormConfig.FormData form) {

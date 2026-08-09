@@ -25,3 +25,4 @@ Changes and fixes
 - Added automatic migration for existing default Golden, Black, and Orange form configurations while preserving customized values where possible.
 - Made addon aura hooks compatible with DragonMineZ's packaged production runtime as well as its development environment.
 - Kept persistent addon aura sounds stable when forms activate in packaged Forge clients.
+- Rebalanced transformation tiers: God now surpasses Ultimate and Rage, Blue and Golden share the same tier, and Mastered/True Ultra Instinct, Ultra Ego, Beast, Orange, and Black share an equal core endgame power ceiling while retaining distinct mechanics.

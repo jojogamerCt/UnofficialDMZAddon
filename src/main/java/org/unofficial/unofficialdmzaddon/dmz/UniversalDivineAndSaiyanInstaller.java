@@ -146,15 +146,15 @@ public final class UniversalDivineAndSaiyanInstaller {
         godGroup.setFormType(GOD_FORMS_GROUP);
         LinkedHashMap<String, FormConfig.FormData> forms = new LinkedHashMap<>();
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_GOD_FORM.get()) forms.put("super_saiyan_god",
-                saiyanForm("super_saiyan_god", 1, "base", "#D92F3D", "#FF655F", "#FF3B35", 2.35, 0.08, false));
+                saiyanForm("super_saiyan_god", 1, "base", "#D92F3D", "#FF655F", "#FF3B35", 3.60, 0.08, false));
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_BLUE_FORM.get()) forms.put("super_saiyan_blue",
-                saiyanForm("super_saiyan_blue", 2, "ssj", "#22CFE8", "#91F7FF", "#24DDF4", 2.75, 0.13, true));
+                saiyanForm("super_saiyan_blue", 2, "ssj", "#22CFE8", "#91F7FF", "#24DDF4", 4.25, 0.13, true));
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_ROSE_FORM.get()) forms.put("super_saiyan_rose",
-                saiyanForm("super_saiyan_rose", 2, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 2.75, 0.15, false));
+                saiyanForm("super_saiyan_rose", 2, "ssj", "#E146A8", "#FF9AD6", "#EE4DB2", 4.25, 0.15, false));
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_BLUE_EVOLVED_FORM.get()) forms.put("super_saiyan_blue_evolved",
-                saiyanForm("super_saiyan_blue_evolved", 3, "ssj", "#1594C7", "#7FEAFF", "#148FCB", 4.55, 0.19, false));
+                saiyanForm("super_saiyan_blue_evolved", 3, "ssj", "#1594C7", "#7FEAFF", "#148FCB", 5.00, 0.19, false));
         if (org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.SAIYAN_ROSE_EVOLVED_FORM.get()) forms.put("super_saiyan_rose_evolved",
-                saiyanForm("super_saiyan_rose_evolved", 3, "ssj", "#B72B79", "#FFB0E4", "#C52A87", 4.55, 0.19, false));
+                saiyanForm("super_saiyan_rose_evolved", 3, "ssj", "#B72B79", "#FFB0E4", "#C52A87", 5.00, 0.19, false));
         godGroup.setForms(forms);
         saiyan.put(GOD_FORMS_GROUP, godGroup);
     }
