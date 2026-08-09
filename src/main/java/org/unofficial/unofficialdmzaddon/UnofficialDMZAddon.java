@@ -14,11 +14,14 @@ import org.unofficial.unofficialdmzaddon.dmz.AddonClassInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.AlienCharacterSanitizer;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRacialPassiveHandler;
 import org.unofficial.unofficialdmzaddon.dmz.FormSpecialBuffHandler;
+import org.unofficial.unofficialdmzaddon.dmz.GodFormAlignmentGuard;
 import org.unofficial.unofficialdmzaddon.dmz.LegacyRaceCleanup;
 import org.unofficial.unofficialdmzaddon.dmz.UniversalDivineAndSaiyanInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.AlienRaceInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.TransformationInstaller;
 import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctCombatHandler;
+import org.unofficial.unofficialdmzaddon.dmz.UltraEgoAuraBurstHandler;
+import org.unofficial.unofficialdmzaddon.dmz.CustomFormManager;
 import org.unofficial.unofficialdmzaddon.network.AddonNetwork;
 import org.unofficial.unofficialdmzaddon.space.SpaceEnvironmentHandler;
 
@@ -38,11 +41,14 @@ public final class UnofficialDMZAddon {
 
         MinecraftForge.EVENT_BUS.addListener(AddonFormCommand::register);
         MinecraftForge.EVENT_BUS.register(new UltraInstinctCombatHandler());
+        MinecraftForge.EVENT_BUS.register(new UltraEgoAuraBurstHandler());
         MinecraftForge.EVENT_BUS.register(new AlienCharacterSanitizer());
         MinecraftForge.EVENT_BUS.register(new AlienRacialPassiveHandler());
         MinecraftForge.EVENT_BUS.register(new FormSpecialBuffHandler());
+        MinecraftForge.EVENT_BUS.register(new GodFormAlignmentGuard());
         MinecraftForge.EVENT_BUS.register(new AddonPlayerMigrationHandler());
         MinecraftForge.EVENT_BUS.register(new SpaceEnvironmentHandler());
+        MinecraftForge.EVENT_BUS.register(new CustomFormManager());
         // PlayerHudRenderer auto-registers via @Mod.EventBusSubscriber(value = Dist.CLIENT)
     }
 

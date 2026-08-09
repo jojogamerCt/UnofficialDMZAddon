@@ -1,45 +1,127 @@
-**![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_ADDON_Header.webp)**
+![Unofficial DragonMineZ Addon](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_ADDON_Header.webp)
 
-**![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Description.webp)**
+# Unofficial DMZ Addon 10.3.1
 
-**Unofficial DMZ Addon 10.3.0** expands **DragonMine Z 2.1.3** with transformations, race progression, visuals, and mechanics built around DragonMineZ's native systems.
+Unofficial DMZ Addon expands **DragonMineZ 2.1.3** on **Minecraft Forge 1.20.1**. Its transformations, races, classes, unlocks, menus, combat mechanics, and Space travel are integrated into DragonMineZ's existing systems.
 
-### Current features
+## Transformations
 
-* **Alien race**, with native character customization, the exclusive **Adaptive Physiology** passive, and the **Full Power** transformation. Repeated exposure builds up to 20% resistance to one damage type; Aliens are a distinct biological path and cannot become Androids.
-* **Dragon Ball-style Space**, unlocked through DragonMineZ's **Fly** skill and accessible from the native space-pod menu. Space provides visible weightless flight, no Earth weather or clouds, a seamless anime sky, one shared animated solar system, independently spinning cubic worlds with GPT Image 2 surface art, an anchored Sacred Kai's Planet, a bright textured sun, reliable high-speed planet travel, native DMZ ki trajectories with accurate planet impacts, Evil-path consequences, animated explosions, and five-minute world reformation.
-* **Expandable deep-space hierarchy**. The Solar System, **North Galaxy Space**, and **Universe 7 Space** are separately registered dimensions with a consistent direction: fly beyond the Solar System to leave for North Galaxy, enter Universe 7 through its visible gateway, and travel inward through the visible North Galaxy and Solar System gateways. Server-authoritative hard X/Z walls keep players and pods within the configurable 200-block Galaxy and Universe navigation areas, while every Space layer has a configurable invisible floor and roof. Solar space intentionally remains open horizontally. Gateways are kept within reliable navigation range, and the Solar System destination uses dedicated GPT Image 2 art with a breathing scale animation rather than a misleading rotating Sun icon. Space-pod travel is preserved across every route, each selectable destination exposes targeted HUD information, and existing coordinate-based saves receive a one-time safe migration into Earth orbit. This release intentionally adds no other galaxies, universes, or planets so future domains can be introduced cleanly.
-* **Persistent space-pod travel**. Piloted pods move at triple normal flight speed, close their doors during travel, and carry their rider into planets without duplication. The source pod is removed during transfer, the rider stays seated in the destination pod, and each planet returns the player to their last departure position. Players traveling without a pod arrive without one, while unoccupied pods left in Space remain saved and stationary without falling.
-* **Per-player progression-aware planets**. Worlds locked by DragonMineZ progression, including the Sacred Kai Dimension, appear as pitch-black cubes with a floating camera-facing question mark and cannot be entered or destroyed until that specific player meets the native unlock condition. Multiplayer clients share planet positions without sharing progression permissions.
-* **Planet analysis HUD**. Aim at a world to see its classification, access state, distance, orbital radius, atmosphere, environment, destination, and travel guidance. Locked planets keep their identity and telemetry hidden.
-* **Safe planetary arrivals** that locate solid, dry ground with enough headroom instead of spawning players underground.
-* **Four new native classes for every race**: Ki Adept, Duelist, Vanguard, and Tactician. Their defense growth is normalized to DragonMineZ's current class scale, including automatic migration of legacy over-scaled values. Base stats, scaling, and passive values remain stored per race in DragonMineZ `stats.json` files for modpack tuning.
-* **Universal Ultra Instinct progression** for every race: Sign, Mastered, and True Ultra Instinct. Successful dodges fully cancel incoming attacks and trigger synchronized particles, sound, displacement, and DragonMineZ's native randomized evasion animations. Dodge chance scales with form and mastery: **Sign 50-70%**, **Mastered 65-82%**, and **True 88-97%**. Exhaustion now scales progressively and fairly per tier, with each stamina-drain value configurable.
-* **Halal Mode** in DragonMineZ's in-game settings, subtitled "For my muslim fellows", persistently swaps the whole words God/god to Frog/frog throughout localized game text.
-* **Universal Ultra Ego** for every race as one lore-accurate form. UI has no persistent aura, while UE keeps its aggressive purple aura without changing Aura Status; persistent God Form auras survive Ki techniques without flashing.
-* **Saiyan transformations**: Super Saiyan God, Super Saiyan Blue, Super Saiyan Rosé, Super Saiyan Blue Evolved, Super Saiyan Rosé Evolved, Super Saiyan Rage, and Beast. Rosé matches Blue's multiplier, while Rosé Evolved is the Evil-alignment counterpart to Blue Evolved with the same multiplier. Rage uses its anime-style yellow aura, cyan lightning, and cyan light outline. Blue preserves its blue hair and aura beneath a separate red **Kaioken** overlay; Blue Evolved matches Blue with Kaioken x20 power and cannot stack with Kaioken.
-* **Race transformations** including Namekian Orange, Frost Demon Golden and Black, and Alien Full Power.
-* Transformation unlocks integrated into the appropriate native race skill trees with TP costs, mastery requirements, and prerequisite forms.
-* Every addon transformation is selectable through DragonMineZ's native **X-key transformation wheel**, including dedicated Ultra Instinct and Ultra Ego sections.
-* Ultra Instinct, Ultra Ego, Beast, Orange, Golden, Black, and Alien Full Power are independent forms and cannot activate while a conflicting transformation is active.
-* Hairless races display Ultra Instinct and Ultra Ego colors through their bodies while preserving ears and other native 3D head components.
-* Every active form receives combat benefits. Exact buffs are documented in the relevant skill descriptions without transformation chat spam.
-* Existing DragonMineZ Ultra Instinct and Ultra Ego forms and icons are reused rather than duplicated, and their values remain replaceable through DragonMineZ configuration files.
+### Every race
 
-DragonMineZ is required. Configuration files are generated under the normal DragonMineZ and Unofficial DMZ Addon config directories. Pack authors and server owners can toggle individual addon forms, dodges, auras, buffs, Alien passive behavior, Space systems, Fly requirements, planet and celestial travel, the analysis HUD, floor height, pod speed, collision margins, and arrival distance. UI and UE unlock from native race form skill trees rather than Goku or Vegeta.
+- **Ultra Instinct Sign** — entry UI form with autonomous dodging and the lowest exhaustion drain.
+- **Mastered Ultra Instinct** — stronger and more reliable dodging with a silver appearance.
+- **True Ultra Instinct** — highest UI dodge rate and a persistent God-form-style flame aura.
+- **Ultra Ego** — one independent, lore-accurate form whose purple aura bursts outward when the user takes damage.
 
-![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Socials.webp)
+UI and MUI use a subtle heat-haze visual instead of a solid constant aura. Hairless races receive equivalent body-color changes while preserving their native head parts.
 
-Click **SPOILER** to find PROFAKE's socials. Thank you to everyone who follows and supports the project!
+### Saiyan
 
-<div class="spoiler"><p>Discord:&nbsp;<a href="https://discord.gg/ghNhPG3rX6" target="_blank" rel="nofollow">https://discord.gg/ghNhPG3rX6</a></p><p>YouTube:&nbsp;<a href="https://www.youtube.com/@PRO_FAKE" target="_blank" rel="nofollow">https://www.youtube.com/@PRO_FAKE</a></p><p>TikTok:&nbsp;<a href="https://www.curseforge.com/linkout?remoteUrl=https://www.tiktok.com/@pro__fake" target="_blank" rel="nofollow">https://www.tiktok.com/@profake</a></p><p>Instagram:&nbsp;<a href="https://www.curseforge.com/linkout?remoteUrl=https://www.instagram.com/pro__fake/" target="_blank" rel="nofollow">https://www.instagram.com/pro__fake/</a></p><p>Website:&nbsp;<a href="https://profake.netlify.app/" target="_blank" rel="nofollow">https://profake.netlify.app/</a></p><p>Blog Site:&nbsp;<a href="https://profakeblog.netlify.app/" target="_blank" rel="nofollow">https://profakeblog.netlify.app/</a></p></div>
+- **Super Saiyan God**
+- **Super Saiyan Blue**
+- **Super Saiyan Rosé**
+- **Super Saiyan Blue Evolved**
+- **Super Saiyan Rosé Evolved**
+- **Super Saiyan Rage**
+- **Beast**
 
-Click **SPOILER** to find **Sh4d0wJ0J0's** socials.
+Blue and Blue Evolved are restricted to non-Evil alignment. Rosé and Rosé Evolved are their Evil-path counterparts. Blue can stack with Kaioken while preserving both its blue hair/aura and the red Kaioken overlay. Rage uses a yellow aura, cyan lightning, and a cyan light outline.
 
-<div class="spoiler"><p>YouTube: <a href="https://www.youtube.com/@sh4d0wj0j0" target="_blank" rel="nofollow">https://www.youtube.com/@sh4d0wj0j0</a></p></div>
+### Namekian
 
-![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Collaborations.webp)
+- **Orange Form**, with the native Namekian antennae and ears preserved.
 
-<p style="text-align:left">[![](https://media.forgecdn.net/attachments/description/1466486/description_1ee5aca5-51d4-4641-9d36-d1ca283bc328.png)](https://www.curseforge.com/members/sh4d0wj0j0/projects) [![Orion8TV Project Page](https://media.forgecdn.net/attachments/description/1466486/description_aa1249cd-4afc-4855-b3f7-28f17764a827.png)](https://www.curseforge.com/members/orion8tv/projects) [![](https://media.forgecdn.net/attachments/description/1466486/description_e74d65ed-000a-4cff-bac6-be0d253e2e4a.png)](https://www.curseforge.com/members/profake/projects)</p>
+### Frost Demon
 
-[![](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Promo.webp)](https://bisecthosting.com/PROFAKE)
+- **Golden Form**, balanced to Super Saiyan Blue's combat multiplier.
+- **Black Form**, with readable charcoal, violet, graphite, red, and magenta color separation.
+
+### Alien
+
+- **Full Power**, using the race's heavier transformed physique.
+
+## Alien race
+
+Alien is a complete playable race with DragonMineZ-style character customization and the exclusive **Adaptive Physiology** passive. Repeated exposure builds resistance to the dominant incoming damage type, up to 20%. Aliens are a biological race and cannot become Androids.
+
+## New classes
+
+- **Ki Adept** — faster Ki-technique recovery and longer secondary effects.
+- **Duelist** — improved strike damage, critical chance, and armor penetration.
+- **Vanguard** — stronger regeneration and incoming healing.
+- **Tactician** — rewards alternating between melee and Ki attacks.
+
+All four use DragonMineZ's current defense-growth scale and remain configurable through the race stat files.
+
+## Native progression and controls
+
+- Addon forms unlock through the appropriate race skill trees with TP costs, form prerequisites, and mastery requirements.
+- Forms appear in DragonMineZ's **X-key transformation wheel**, including dedicated God Forms, Ultra Instinct, and Ultra Ego sections.
+- Independent forms cannot be activated over incompatible transformations.
+- Existing DragonMineZ form icons and configuration structures are reused where appropriate.
+- Addon form buffs are shown through the transformation skill descriptions.
+- **Custom Forms** can be created for the player's selected race from a dedicated DragonMineZ character-menu tab. Players begin with one form slot and earn another for every completed DragonMineZ saga. The paged creator uses live color controls for hair, body, aura, and each eye, provides Saiyans with a dedicated tail color, and shows a live 3D preview. Power and Ki drain determine a server-enforced TP price, while definitions remain private to their creator.
+
+## Minigames
+
+- **Snake** joins DragonMineZ's minigames menu and awards TP for every collected apple.
+- It unlocks after the player earns a non-innate transformation for their current race; automatically available forms such as Oozaru do not count.
+- The snake grows with every apple and progressively speeds up until the run ends on a wall or self-collision.
+
+## Combat and aura systems
+
+- Successful Ultra Instinct dodges cancel the hit and use DragonMineZ's native randomized evasion animation.
+- Dodge rate and distance scale across Sign, Mastered, and True Ultra Instinct.
+- Ultra Instinct exhaustion is balanced separately for every tier.
+- Ultra Ego releases an aggressive purple aura burst when its user is hit instead of rendering constantly.
+- God-form auras remain visible through Ki attacks without flashing.
+- **Constant Addon Auras** can be enabled or disabled from DragonMineZ's in-game settings for God forms, Ultra Instinct, and Ultra Ego. Disabling it still allows aura effects while charging Ki or using DragonMineZ's Aura Status.
+- Every current addon form has specialized combat benefits.
+
+## Dragon Ball-style Space
+
+- Enter Space through DragonMineZ's space pod after unlocking **Fly**, or travel without a pod when permitted.
+- Piloted pods travel at triple normal flight speed, stay stable in zero gravity, and carry their rider through planetary travel without duplication.
+- The Solar System contains a bright Sun, rotating cubic planets, orbit rings, parallax stars, motion streaks, and an anime-style sky.
+- Earth, Namek, and Sacred Kai's Planet connect to their real DragonMineZ dimensions.
+- Sacred Kai's Planet stays anchored while rotating in both locked and unlocked states.
+- Locked destinations are enforced per player and appear as black planets with a camera-facing question mark.
+- Approaching an unlocked planet transfers the player safely to solid ground; returning uses the player's last departure position.
+- Ki attacks retain their native DragonMineZ trajectories and can destroy unlocked planets. Destroyed planets fade out, explode from their center, and reform after five minutes.
+- North Galaxy and Universe 7 are separate Space dimensions connected in both directions through visible gateways.
+- Galaxy and Universe layers have configurable hard navigation walls; every Space layer has a configurable floor and roof.
+- A compact crosshair HUD displays wrapped planet, galaxy, and universe information without covering a large part of the screen.
+
+## Settings and configuration
+
+The addon exposes configuration for individual forms, UI dodges and exhaustion, special buffs, Alien mechanics, aura behavior, Space travel, planet interaction, navigation boundaries, vehicle speed, destination entry, and the analysis HUD. Custom Forms additionally expose starting slots, saga milestone requirements and rewards, a hard slot cap, multiplier and Ki-drain limits, optional TP costs, and the complete TP pricing formula.
+
+DragonMineZ's in-game settings also include:
+
+- **Constant Addon Auras** — controls passive auras for God forms, Ultra Instinct, and Ultra Ego without suppressing Ki-charge or Aura Status effects.
+- **Halal Mode** — subtitled “For my muslim fellows”; swaps the whole words God/god with Frog/frog in localized text.
+
+Configuration files are generated in the normal `config/dragonminez` and `config/unofficialdmzaddon-common.toml` locations.
+
+## Requirements
+
+- Minecraft 1.20.1
+- Forge 47+
+- DragonMineZ 2.1.3
+
+## Links
+
+- [Discord](https://discord.gg/ghNhPG3rX6)
+- [YouTube](https://www.youtube.com/@PRO_FAKE)
+- [TikTok](https://www.tiktok.com/@pro__fake)
+- [Instagram](https://www.instagram.com/pro__fake/)
+- [Website](https://profake.netlify.app/)
+- [Blog](https://profakeblog.netlify.app/)
+
+## Collaborators
+
+- [Sh4d0wJ0J0](https://www.curseforge.com/members/sh4d0wj0j0/projects)
+- [Orion8TV](https://www.curseforge.com/members/orion8tv/projects)
+- [PROFAKE](https://www.curseforge.com/members/profake/projects)
+
+[![BisectHosting](https://www.bisecthosting.com/images/CF/UNOFFICIAL_DRAGONMINE_Z_R1/MP_DMZ_Promo.webp)](https://bisecthosting.com/PROFAKE)

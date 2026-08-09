@@ -20,11 +20,14 @@ import org.unofficial.unofficialdmzaddon.space.SpaceDimension;
 import org.unofficial.unofficialdmzaddon.space.SpacePlanetSystem;
 
 import java.util.Comparator;
+import net.minecraft.util.FormattedCharSequence;
+import java.util.List;
 
 /** Crosshair-targeted readout for planets, galaxies, and universes. */
 @Mod.EventBusSubscriber(modid = UnofficialDMZAddon.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class SpacePlanetHud {
-    private static final int PANEL_WIDTH = 236;
+    private static final int PANEL_WIDTH = 184;
+    private static final float TEXT_SCALE = 0.68F;
 
     private SpacePlanetHud() {
     }
@@ -62,9 +65,9 @@ public final class SpacePlanetHud {
 
         boolean unlocked = SpacePlanetClientState.isUnlocked(player, target);
         int width = Math.min(PANEL_WIDTH, screenWidth - 16);
-        int x = screenWidth - width - 8;
-        int y = Math.max(8, screenHeight / 10);
-        int height = unlocked ? 132 : 72;
+        int x = screenWidth - width - 6;
+        int y = 6;
+        int height = unlocked ? 104 : 58;
         Font font = minecraft.font;
 
         graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, 0xCC88B8FF);
@@ -74,46 +77,48 @@ public final class SpacePlanetHud {
         String prefix = "planet.unofficialdmzaddon." + target.definition().id();
         Component title = unlocked ? Component.translatable(prefix + ".name")
                 : Component.translatable("planet.unofficialdmzaddon.unknown");
-        graphics.drawString(font, title.copy().withStyle(ChatFormatting.BOLD), x + 10, y + 8,
-                unlocked ? 0xFF8CE7FF : 0xFFFFFFFF, true);
+        graphics.enableScissor(x + 5, y + 4, x + width - 5, y + height - 4);
+        int cursor = drawWrapped(graphics, font, title.copy().withStyle(ChatFormatting.BOLD),
+                x + 9, y + 6, width - 18, unlocked ? 0xFF8CE7FF : 0xFFFFFFFF, true);
 
-        int lineY = y + 23;
         if (!unlocked) {
-            drawLine(graphics, font, x, lineY, "hud.unofficialdmzaddon.planet.access",
+            cursor = drawLine(graphics, font, x, cursor + 2, width, "hud.unofficialdmzaddon.planet.access",
                     Component.translatable("hud.unofficialdmzaddon.planet.locked").withStyle(ChatFormatting.RED));
-            drawLine(graphics, font, x, lineY + 13, "hud.unofficialdmzaddon.planet.analysis",
+            cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.planet.analysis",
                     Component.translatable("hud.unofficialdmzaddon.planet.unavailable"));
-            graphics.drawString(font, Component.translatable("hud.unofficialdmzaddon.planet.unlock_hint"),
-                    x + 10, lineY + 30, 0xFFB8C5D9, false);
+            drawWrapped(graphics, font, Component.translatable("hud.unofficialdmzaddon.planet.unlock_hint"),
+                    x + 9, cursor + 2, width - 18, 0xFFB8C5D9, false);
+            graphics.disableScissor();
             return;
         }
 
         double distance = camera.getPosition().distanceTo(target.position());
-        drawLine(graphics, font, x, lineY, "hud.unofficialdmzaddon.planet.type",
+        cursor = drawLine(graphics, font, x, cursor + 2, width, "hud.unofficialdmzaddon.planet.type",
                 Component.translatable(prefix + ".type"));
-        drawLine(graphics, font, x, lineY + 13, "hud.unofficialdmzaddon.planet.access",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.planet.access",
                 Component.translatable("hud.unofficialdmzaddon.planet.unlocked").withStyle(ChatFormatting.GREEN));
-        drawLine(graphics, font, x, lineY + 26, "hud.unofficialdmzaddon.planet.distance",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.planet.distance",
                 Component.literal(Math.round(distance) + " blocks"));
-        drawLine(graphics, font, x, lineY + 39, "hud.unofficialdmzaddon.planet.orbit",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.planet.orbit",
                 Component.literal(Math.round(target.orbitRadius()) + " blocks"));
-        drawLine(graphics, font, x, lineY + 52, "hud.unofficialdmzaddon.planet.atmosphere",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.planet.atmosphere",
                 Component.translatable(prefix + ".atmosphere"));
-        drawLine(graphics, font, x, lineY + 65, "hud.unofficialdmzaddon.planet.environment",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.planet.environment",
                 Component.translatable(prefix + ".environment"));
-        drawLine(graphics, font, x, lineY + 78, "hud.unofficialdmzaddon.planet.destination",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.planet.destination",
                 Component.literal(target.definition().dimension().toString()));
-        graphics.drawString(font, Component.translatable("hud.unofficialdmzaddon.planet.travel_hint"),
-                x + 10, lineY + 95, 0xFF9FC7E8, false);
+        drawWrapped(graphics, font, Component.translatable("hud.unofficialdmzaddon.planet.travel_hint"),
+                x + 9, cursor + 2, width - 18, 0xFF9FC7E8, false);
+        graphics.disableScissor();
     }
 
     private static void renderCelestialHud(Minecraft minecraft, GuiGraphics graphics, Camera camera,
                                            SpaceCelestialSystem.CelestialDefinition target,
                                            int screenWidth, int screenHeight) {
         int width = Math.min(PANEL_WIDTH, screenWidth - 16);
-        int x = screenWidth - width - 8;
-        int y = Math.max(8, screenHeight / 10);
-        int height = 112;
+        int x = screenWidth - width - 6;
+        int y = 6;
+        int height = 88;
         Font font = minecraft.font;
         String prefix = "celestial.unofficialdmzaddon." + target.id();
 
@@ -125,28 +130,45 @@ public final class SpacePlanetHud {
             case UNIVERSE -> 0xFFAE78FF;
         };
         graphics.fill(x, y, x + 4, y + height, accent);
-        graphics.drawString(font, Component.translatable(prefix + ".name").withStyle(ChatFormatting.BOLD),
-                x + 10, y + 8, 0xFFCFD8FF, true);
+        graphics.enableScissor(x + 5, y + 4, x + width - 5, y + height - 4);
+        int cursor = drawWrapped(graphics, font,
+                Component.translatable(prefix + ".name").withStyle(ChatFormatting.BOLD),
+                x + 9, y + 6, width - 18, 0xFFCFD8FF, true);
 
-        int lineY = y + 23;
-        drawLine(graphics, font, x, lineY, "hud.unofficialdmzaddon.celestial.classification",
+        cursor = drawLine(graphics, font, x, cursor + 2, width, "hud.unofficialdmzaddon.celestial.classification",
                 Component.translatable(prefix + ".type"));
-        drawLine(graphics, font, x, lineY + 13, "hud.unofficialdmzaddon.celestial.parent",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.celestial.parent",
                 Component.translatable(prefix + ".parent"));
-        drawLine(graphics, font, x, lineY + 26, "hud.unofficialdmzaddon.celestial.distance",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.celestial.distance",
                 Component.literal(Math.round(camera.getPosition().distanceTo(target.position())) + " blocks"));
-        drawLine(graphics, font, x, lineY + 39, "hud.unofficialdmzaddon.celestial.composition",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.celestial.composition",
                 Component.translatable(prefix + ".composition"));
-        drawLine(graphics, font, x, lineY + 52, "hud.unofficialdmzaddon.celestial.status",
+        cursor = drawLine(graphics, font, x, cursor, width, "hud.unofficialdmzaddon.celestial.status",
                 Component.translatable("hud.unofficialdmzaddon.celestial.charted").withStyle(ChatFormatting.AQUA));
-        graphics.drawString(font, Component.translatable(prefix + ".travel_hint"),
-                x + 10, lineY + 70, 0xFFB8C9F2, false);
+        drawWrapped(graphics, font, Component.translatable(prefix + ".travel_hint"),
+                x + 9, cursor + 2, width - 18, 0xFFB8C9F2, false);
+        graphics.disableScissor();
     }
 
-    private static void drawLine(GuiGraphics graphics, Font font, int x, int y, String labelKey,
-                                 Component value) {
+    private static int drawLine(GuiGraphics graphics, Font font, int x, int y, int width, String labelKey,
+                                Component value) {
         Component line = Component.translatable(labelKey).append(Component.literal(": ")).append(value);
-        graphics.drawString(font, line, x + 10, y, 0xFFE8F1FF, false);
+        return drawWrapped(graphics, font, line, x + 9, y, width - 18, 0xFFE8F1FF, false);
+    }
+
+    private static int drawWrapped(GuiGraphics graphics, Font font, Component text, int x, int y,
+                                   int width, int color, boolean shadow) {
+        int logicalWidth = Math.max(1, (int) Math.floor(width / TEXT_SCALE));
+        List<FormattedCharSequence> lines = font.split(text, logicalWidth);
+        graphics.pose().pushPose();
+        graphics.pose().scale(TEXT_SCALE, TEXT_SCALE, 1.0F);
+        int logicalX = Math.round(x / TEXT_SCALE);
+        int logicalY = Math.round(y / TEXT_SCALE);
+        for (int i = 0; i < lines.size(); i++) {
+            graphics.drawString(font, lines.get(i), logicalX, logicalY + i * font.lineHeight, color, shadow);
+        }
+        graphics.pose().popPose();
+        return y + Math.max(1, Math.round(lines.size() * font.lineHeight * TEXT_SCALE));
     }
 
     private static SpacePlanetSystem.PlanetPlacement targetedPlanet(Player player, Camera camera,

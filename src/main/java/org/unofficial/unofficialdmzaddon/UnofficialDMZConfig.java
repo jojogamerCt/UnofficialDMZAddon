@@ -14,7 +14,6 @@ public final class UnofficialDMZConfig {
     public static final ForgeConfigSpec.DoubleValue UI_MASTERED_STAMINA_DRAIN;
     public static final ForgeConfigSpec.DoubleValue UI_TRUE_STAMINA_DRAIN;
     public static final ForgeConfigSpec.BooleanValue PERSISTENT_GOD_AURAS;
-    public static final ForgeConfigSpec.BooleanValue PERSISTENT_ULTRA_EGO_AURA;
     public static final ForgeConfigSpec.BooleanValue SPECIAL_FORM_BUFFS;
     public static final ForgeConfigSpec.BooleanValue SAIYAN_BEAST_FORM;
     public static final ForgeConfigSpec.BooleanValue SAIYAN_RAGE_FORM;
@@ -46,6 +45,24 @@ public final class UnofficialDMZConfig {
     public static final ForgeConfigSpec.DoubleValue SPACE_SPAWN_CLEARANCE;
     public static final ForgeConfigSpec.DoubleValue SPACE_GALAXY_WALL_RADIUS;
     public static final ForgeConfigSpec.DoubleValue SPACE_UNIVERSE_WALL_RADIUS;
+    public static final ForgeConfigSpec.BooleanValue SNAKE_MINIGAME_ENABLED;
+    public static final ForgeConfigSpec.IntValue SNAKE_BASE_MOVE_TICKS;
+    public static final ForgeConfigSpec.IntValue SNAKE_MIN_MOVE_TICKS;
+    public static final ForgeConfigSpec.IntValue SNAKE_APPLES_PER_SPEEDUP;
+    public static final ForgeConfigSpec.BooleanValue CUSTOM_FORMS_ENABLED;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_STARTING_SLOTS;
+    public static final ForgeConfigSpec.BooleanValue CUSTOM_FORMS_SAGA_SLOT_UNLOCKS;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_SAGAS_PER_SLOT_MILESTONE;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_SLOTS_PER_SAGA_MILESTONE;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_MAX_PER_PLAYER;
+    public static final ForgeConfigSpec.DoubleValue CUSTOM_FORMS_MAX_MULTIPLIER;
+    public static final ForgeConfigSpec.DoubleValue CUSTOM_FORMS_MAX_ENERGY_DRAIN;
+    public static final ForgeConfigSpec.BooleanValue CUSTOM_FORMS_TP_COSTS_ENABLED;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_BASE_TP_COST;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_LINEAR_POWER_TP_COST;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_QUADRATIC_POWER_TP_COST;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_MIN_TP_COST;
+    public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_MAX_TP_COST;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -68,7 +85,6 @@ public final class UnofficialDMZConfig {
         UI_TRUE_STAMINA_DRAIN = builder.comment("Stamina/exhaustion drain for True Ultra Instinct")
                 .defineInRange("true_ultra_instinct_stamina_drain", 0.045D, 0.0D, 0.5D);
         PERSISTENT_GOD_AURAS = builder.define("persistent_god_form_auras", true);
-        PERSISTENT_ULTRA_EGO_AURA = builder.define("persistent_ultra_ego_aura", true);
         SPECIAL_FORM_BUFFS = builder.define("special_form_buffs", true);
         SAIYAN_BEAST_FORM = builder.define("saiyan_beast", true);
         SAIYAN_RAGE_FORM = builder.define("saiyan_super_saiyan_rage", true);
@@ -110,6 +126,47 @@ public final class UnofficialDMZConfig {
                 .defineInRange("galaxy_invisible_wall_distance", 200.0D, 96.0D, 8192.0D);
         SPACE_UNIVERSE_WALL_RADIUS = builder.comment("Distance in blocks from a universe's navigation center")
                 .defineInRange("universe_invisible_wall_distance", 200.0D, 96.0D, 8192.0D);
+        builder.pop();
+
+        builder.comment("Addon minigames and TP training options").push("minigames");
+        SNAKE_MINIGAME_ENABLED = builder.comment("Add Snake to DragonMineZ's minigames menu")
+                .define("snake_enabled", true);
+        SNAKE_BASE_MOVE_TICKS = builder.comment("Game ticks between moves when a Snake run starts")
+                .defineInRange("snake_base_move_ticks", 8, 3, 20);
+        SNAKE_MIN_MOVE_TICKS = builder.comment("Fastest movement interval Snake can reach")
+                .defineInRange("snake_min_move_ticks", 2, 1, 10);
+        SNAKE_APPLES_PER_SPEEDUP = builder.comment("Apples required for each speed increase")
+                .defineInRange("snake_apples_per_speedup", 3, 1, 20);
+        builder.pop();
+
+        builder.comment("Player-created race form options").push("custom_forms");
+        CUSTOM_FORMS_ENABLED = builder.define("enabled", true);
+        CUSTOM_FORMS_STARTING_SLOTS = builder.comment("Slots available before completing any saga")
+                .defineInRange("starting_form_slots", 1, 0, 64);
+        CUSTOM_FORMS_SAGA_SLOT_UNLOCKS = builder.comment("Allow completed DragonMineZ sagas to unlock more slots")
+                .define("saga_slot_unlocks_enabled", true);
+        CUSTOM_FORMS_SAGAS_PER_SLOT_MILESTONE = builder.comment("Completed sagas required for each slot-unlock milestone")
+                .defineInRange("completed_sagas_per_slot_milestone", 1, 1, 64);
+        CUSTOM_FORMS_SLOTS_PER_SAGA_MILESTONE = builder.comment("Slots granted whenever a saga milestone is reached")
+                .defineInRange("slots_per_saga_milestone", 1, 0, 64);
+        CUSTOM_FORMS_MAX_PER_PLAYER = builder.comment("Absolute cap after starting and saga-earned slots are combined")
+                .defineInRange("maximum_forms_per_player", 12, 1, 64);
+        CUSTOM_FORMS_MAX_MULTIPLIER = builder.comment("Highest selectable custom-form power multiplier")
+                .defineInRange("maximum_power_multiplier", 5.0D, 1.0D, 20.0D);
+        CUSTOM_FORMS_MAX_ENERGY_DRAIN = builder.comment("Highest selectable custom-form Ki drain")
+                .defineInRange("maximum_ki_drain", 0.5D, 0.0D, 2.0D);
+        CUSTOM_FORMS_TP_COSTS_ENABLED = builder.comment("Charge TP when creating or upgrading custom forms")
+                .define("tp_costs_enabled", true);
+        CUSTOM_FORMS_BASE_TP_COST = builder.comment("Base value used by the power-cost formula")
+                .defineInRange("base_tp_cost", 250, 0, 1_000_000);
+        CUSTOM_FORMS_LINEAR_POWER_TP_COST = builder.comment("Linear TP cost per multiplier point above x1")
+                .defineInRange("linear_power_tp_cost", 700, 0, 1_000_000);
+        CUSTOM_FORMS_QUADRATIC_POWER_TP_COST = builder.comment("Quadratic TP cost per squared multiplier point above x1")
+                .defineInRange("quadratic_power_tp_cost", 900, 0, 1_000_000);
+        CUSTOM_FORMS_MIN_TP_COST = builder.comment("Minimum final TP price after Ki-drain balancing")
+                .defineInRange("minimum_tp_cost", 250, 0, 1_000_000);
+        CUSTOM_FORMS_MAX_TP_COST = builder.comment("Maximum final TP price")
+                .defineInRange("maximum_tp_cost", 250_000, 0, 10_000_000);
         builder.pop();
         SPEC = builder.build();
     }

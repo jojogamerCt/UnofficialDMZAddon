@@ -12,7 +12,9 @@
     "TickHandlerAuraMixin",
     "SpacePodTravelMixin",
     "SpacePodIdleMixin",
-    "GeneralUserConfigMixin"
+    "GeneralUserConfigMixin",
+    "TrainingRewardSnakeMixin",
+    "CustomFormOwnershipMixin"
   ],
   "client": [
     "AlienBuffedModelMixin",
@@ -25,8 +27,14 @@
     "RadialLayoutStoreMixin",
     "UtilityMenuScreenMixin",
     "PersistentDivineAuraMixin",
+    "ClientStatsAuraMixin",
+    "AuraSoundMixin",
+    "AuraLoopSoundMixin",
+    "AuraRendererCacheMixin",
     "ConfigMenuScreenMixin",
-    "LanguageMixin"
+    "LanguageMixin",
+    "MinigamesScreenMixin",
+    "BaseMenuCustomFormsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

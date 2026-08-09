@@ -220,6 +220,7 @@ public final class TransformationInstaller {
             if (orange != null) {
                 orange.setFormStackable(false);
                 orange.setStackDrainMultiplier(1.0);
+                orange.setKeepBaseFormHeadBones(true);
                 return true;
             }
             orange = new FormConfig.FormData();
@@ -242,6 +243,7 @@ public final class TransformationInstaller {
                     0.028, 0.017, 0.0030,
                     false, 1.0
             );
+            orange.setKeepBaseFormHeadBones(true);
 
             group.getForms().put(SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE, orange);
             return true;
@@ -274,6 +276,7 @@ public final class TransformationInstaller {
             if (black != null) {
                 black.setFormStackable(false);
                 black.setStackDrainMultiplier(1.0);
+                migrateLegacyBlackColors(black);
                 return true;
             }
             black = new FormConfig.FormData();
@@ -282,14 +285,14 @@ public final class TransformationInstaller {
                     black,
                     SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK,
                     SpecialRaceFormsDefinitions.FROST_DEMON_BLACK_UNLOCK_LEVEL,
-                    "#0E0E12",
-                    "#4F0F26",
-                    "#1A1A24",
+                    "#181821",
+                    "#6F2DA8",
+                    "#5E6472",
                     "base",
                     "",
-                    "#D90B0B",
-                    "#7A0CFF",
-                    "#FF2E9C",
+                    "#FF4A4A",
+                    "#9B35FF",
+                    "#FF4FCB",
                     new float[]{1.18f, 1.18f, 1.18f},
                     5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
                     0.35, 1.40, 1.35,
@@ -328,6 +331,7 @@ public final class TransformationInstaller {
             if (golden != null) {
                 golden.setFormStackable(false);
                 golden.setStackDrainMultiplier(1.0);
+                migrateLegacyGoldenBalance(golden);
                 return true;
             }
             golden = new FormConfig.FormData();
@@ -345,8 +349,8 @@ public final class TransformationInstaller {
                     "#FFD700",
                     "#FFE566",
                     new float[]{1.02f, 1.02f, 1.02f},
-                    4.80, 5.00, 1.65, 2.80, 1.22, 5.90, 1.35, 1.50,
-                    0.50, 1.50, 1.26,
+                    2.75, 2.75, 1.25, 2.53, 1.20, 2.8875, 1.30, 1.35,
+                    0.13, 0.0455, 1.26,
                     0.030, 0.019, 0.0032,
                     false, 1.0
             );
@@ -575,8 +579,8 @@ public final class TransformationInstaller {
                         "#FFD700", "#E6B800", "#C99A00", "base",
                         "", "#D90B0B", "#FFD700", "#FFE566",
                         new float[]{1.02f, 1.02f, 1.02f},
-                        4.80, 5.00, 1.65, 2.80, 1.22, 5.90, 1.35, 1.50,
-                        0.50, 1.50, 1.26,
+                        2.75, 2.75, 1.25, 2.53, 1.20, 2.8875, 1.30, 1.35,
+                        0.13, 0.0455, 1.26,
                         0.030, 0.019, 0.0032,
                         false, 1.0
                 )
@@ -590,8 +594,8 @@ public final class TransformationInstaller {
                 createSpecialFormJson(
                         SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK,
                         SpecialRaceFormsDefinitions.FROST_DEMON_BLACK_UNLOCK_LEVEL,
-                        "#0E0E12", "#4F0F26", "#1A1A24", "base",
-                        "", "#D90B0B", "#7A0CFF", "#FF2E9C",
+                        "#181821", "#6F2DA8", "#5E6472", "base",
+                        "", "#FF4A4A", "#9B35FF", "#FF4FCB",
                         new float[]{1.18f, 1.18f, 1.18f},
                         5.80, 6.20, 2.00, 3.80, 1.45, 7.50, 1.65, 1.75,
                         0.35, 1.40, 1.35,
@@ -726,6 +730,22 @@ public final class TransformationInstaller {
                 JsonObject existing = forms.getAsJsonObject(formKey);
                 existing.addProperty("formStackable", false);
                 existing.addProperty("stackDrainMultiplier", 1.0);
+                if (SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE.equals(formKey)) {
+                    existing.addProperty("keepBaseFormHeadBones", true);
+                }
+                if (SpecialRaceFormsDefinitions.FROST_DEMON_FORM_GOLDEN.equals(formKey)
+                        && jsonNear(existing, "strMultiplier", 4.80D)
+                        && jsonNear(existing, "skpMultiplier", 5.00D)) {
+                    copyProperties(formJson, existing, "strMultiplier", "skpMultiplier", "stmMultiplier",
+                            "defMultiplier", "vitMultiplier", "pwrMultiplier", "eneMultiplier", "speedMultiplier",
+                            "energyDrain", "staminaDrain");
+                }
+                if (SpecialRaceFormsDefinitions.FROST_DEMON_FORM_BLACK.equals(formKey)
+                        && jsonEquals(existing, "bodyColor1", "#0E0E12")
+                        && jsonEquals(existing, "bodyColor3", "#1A1A24")) {
+                    copyProperties(formJson, existing, "bodyColor1", "bodyColor2", "bodyColor3",
+                            "eye1Color", "eye2Color", "auraColor", "lightningColor");
+                }
                 if (SpecialRaceFormsDefinitions.ALIEN_FORM_FULL_POWER.equals(formKey)) {
                     existing.addProperty("customModel", "");
                     existing.add("modelScaling", GSON.toJsonTree(new float[]{1.4f, 1.3f, 1.4f}));
@@ -783,6 +803,9 @@ public final class TransformationInstaller {
                                                     double kaiokenDrainMultiplier) {
         JsonObject form = new JsonObject();
         form.addProperty("name", formName);
+        if (SpecialRaceFormsDefinitions.NAMEKIAN_FORM_ORANGE.equals(formName)) {
+            form.addProperty("keepBaseFormHeadBones", true);
+        }
         form.addProperty("unlockOnSkillLevel", unlockLevel);
         form.addProperty("customModel", usesFrostDemonFinalModel(formName) ? "frostdemon_final" : "");
         form.addProperty("bodyColor1", bodyColor1);
@@ -910,6 +933,48 @@ public final class TransformationInstaller {
                     race, file, e.getMessage());
             return false;
         }
+    }
+
+    private static void migrateLegacyGoldenBalance(FormConfig.FormData form) {
+        if (!near(form.getStrMultiplier(), 4.80D) || !near(form.getSkpMultiplier(), 5.00D)) return;
+        form.setStrMultiplier(2.75D);
+        form.setSkpMultiplier(2.75D);
+        form.setStmMultiplier(1.25D);
+        form.setDefMultiplier(2.53D);
+        form.setVitMultiplier(1.20D);
+        form.setPwrMultiplier(2.8875D);
+        form.setEneMultiplier(1.30D);
+        form.setSpeedMultiplier(1.35D);
+        form.setEnergyDrain(0.13D);
+        form.setStaminaDrain(0.0455D);
+    }
+
+    private static void migrateLegacyBlackColors(FormConfig.FormData form) {
+        if (!"#0E0E12".equalsIgnoreCase(form.getBodyColor1())
+                || !"#1A1A24".equalsIgnoreCase(form.getBodyColor3())) return;
+        form.setBodyColor1("#181821");
+        form.setBodyColor2("#6F2DA8");
+        form.setBodyColor3("#5E6472");
+        form.setEye1Color("#FF4A4A");
+        form.setEye2Color("#FF4A4A");
+        form.setAuraColor("#9B35FF");
+        form.setLightningColor("#FF4FCB");
+    }
+
+    private static boolean near(Double actual, double expected) {
+        return actual != null && Math.abs(actual - expected) < 0.000001D;
+    }
+
+    private static boolean jsonNear(JsonObject object, String key, double expected) {
+        return object.has(key) && Math.abs(object.get(key).getAsDouble() - expected) < 0.000001D;
+    }
+
+    private static boolean jsonEquals(JsonObject object, String key, String expected) {
+        return object.has(key) && expected.equalsIgnoreCase(object.get(key).getAsString());
+    }
+
+    private static void copyProperties(JsonObject source, JsonObject target, String... keys) {
+        for (String key : keys) if (source.has(key)) target.add(key, source.get(key).deepCopy());
     }
     private static Integer[] buildUpgradedCosts(Integer[] existing,
                                             int minimumLength,

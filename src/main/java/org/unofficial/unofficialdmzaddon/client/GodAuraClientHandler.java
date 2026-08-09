@@ -16,6 +16,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;
 
+import java.util.UUID;
+
 @Mod.EventBusSubscriber(modid = UnofficialDMZAddon.MODID, value = Dist.CLIENT)
 public final class GodAuraClientHandler {
     private GodAuraClientHandler() {}
@@ -26,35 +28,61 @@ public final class GodAuraClientHandler {
         var level = Minecraft.getInstance().level;
         if (level == null) return;
         level.players().forEach(player -> StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(data -> {
-            if ("ultraego".equalsIgnoreCase(data.getCharacter().getActiveFormGroup())) {
-                spawnDivineSignature(player, data.getCharacter().getActiveFormGroup(), data.getCharacter().getActiveForm());
+            if (AddonAuraPolicy.shouldShowAddonAura(data)
+                    && DivineAuraHelper.isUltraInstinct(data)
+                    && !DivineAuraHelper.isTrueUltraInstinct(data)) {
+                spawnUltraInstinctHeatHaze(player, data);
             }
         }));
     }
 
-    private static void spawnDivineSignature(Player player, String group, String form) {
-        if (group == null || player.getRandom().nextFloat() > 0.72f) return;
-        boolean ue = "ultraego".equalsIgnoreCase(group);
-        if (!ue) return;
-        int tier = 2;
-        int color = 0xF04CFF;
+    /** Sparse, pale rising motes simulate the refractive heat shimmer seen around UI and MUI. */
+    private static void spawnUltraInstinctHeatHaze(Player player, StatsData data) {
+        if (player.getRandom().nextFloat() > 0.58F) return;
+        boolean mastered = data.getCharacter().getActiveForm() != null
+                && data.getCharacter().getActiveForm().toLowerCase().contains("mastered");
+        int color = mastered ? 0xEAFBFF : 0xC8D8DF;
         float r = ((color >> 16) & 255) / 255f;
         float g = ((color >> 8) & 255) / 255f;
         float b = (color & 255) / 255f;
-        double radius = 0.18 + player.getRandom().nextDouble() * 0.45;
+        double radius = 0.28 + player.getRandom().nextDouble() * 0.42;
         double angle = player.getRandom().nextDouble() * Math.PI * 2.0;
         double x = player.getX() + Math.cos(angle) * radius;
         double z = player.getZ() + Math.sin(angle) * radius;
-        double y = player.getY() + player.getRandom().nextDouble() * player.getBbHeight();
+        double y = player.getY() + 0.1D + player.getRandom().nextDouble() * player.getBbHeight();
         Particle particle = Minecraft.getInstance().particleEngine.createParticle(
-                MainParticles.AURA.get(), x, y, z, r, g, b);
+                MainParticles.DIVINE.get(), x, y, z, r, g, b);
         if (particle instanceof DivineParticle divine) {
-            divine.resize(0.85f + tier * 0.18f);
-            divine.setParticleSpeed(0, 0.025 + player.getRandom().nextDouble() * 0.025, 0);
-        } else if (particle instanceof AuraParticle aura) {
-            aura.resize(0.95f + tier * 0.25f);
-            aura.setParticleSpeed(Math.cos(angle) * 0.018, 0.045 + player.getRandom().nextDouble() * 0.045,
-                    Math.sin(angle) * 0.018);
+            divine.resize(mastered ? 0.58F : 0.45F);
+            divine.setParticleSpeed(Math.cos(angle) * 0.003D,
+                    0.018D + player.getRandom().nextDouble() * 0.014D, Math.sin(angle) * 0.003D);
+        }
+    }
+
+    public static void spawnUltraEgoBurst(UUID playerId) {
+        var level = Minecraft.getInstance().level;
+        if (level == null) return;
+        Player player = level.getPlayerByUUID(playerId);
+        if (player == null) return;
+        for (int i = 0; i < 36; i++) {
+            double angle = Math.PI * 2.0D * i / 36.0D + player.getRandom().nextDouble() * 0.18D;
+            double height = player.getRandom().nextDouble() * player.getBbHeight();
+            double radius = 0.18D + player.getRandom().nextDouble() * 0.32D;
+            double x = player.getX() + Math.cos(angle) * radius;
+            double y = player.getY() + height;
+            double z = player.getZ() + Math.sin(angle) * radius;
+            Particle particle = Minecraft.getInstance().particleEngine.createParticle(
+                    i % 3 == 0 ? MainParticles.DIVINE.get() : MainParticles.AURA.get(),
+                    x, y, z, 0.94D, 0.22D, 1.0D);
+            double outward = 0.055D + player.getRandom().nextDouble() * 0.07D;
+            if (particle instanceof DivineParticle divine) {
+                divine.resize(1.25F);
+                divine.setParticleSpeed(Math.cos(angle) * outward, 0.05D, Math.sin(angle) * outward);
+            } else if (particle instanceof AuraParticle aura) {
+                aura.resize(1.55F);
+                aura.setParticleSpeed(Math.cos(angle) * outward,
+                        0.04D + player.getRandom().nextDouble() * 0.08D, Math.sin(angle) * outward);
+            }
         }
     }
 }

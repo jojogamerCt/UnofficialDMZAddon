@@ -10,7 +10,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.unofficial.unofficialdmzaddon.dmz.SpecialRaceFormsDefinitions;
+import org.unofficial.unofficialdmzaddon.dmz.GodFormAlignment;
 import org.unofficial.unofficialdmzaddon.dmz.UniversalDivineAndSaiyanInstaller;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Keeps addon transformations mutually exclusive with other active transformation groups. */
 @Mixin(value = TransformationsHelper.class, remap = false)
@@ -68,15 +72,20 @@ public abstract class DivineFormSelectionMixin {
         }
         cir.setReturnValue(null);
     }
+
+    @Inject(method = "getSelectableFormNames", at = @At("RETURN"), cancellable = true)
+    private static void unofficialdmzaddon$hideWrongAlignmentBranch(
+            StatsData data, String race, String group, CallbackInfoReturnable<List<String>> cir) {
+        List<String> forms = cir.getReturnValue();
+        if (forms == null || forms.isEmpty()
+                || !UniversalDivineAndSaiyanInstaller.GOD_FORMS_GROUP.equalsIgnoreCase(group)) return;
+        List<String> filtered = new ArrayList<>(forms);
+        filtered.removeIf(form -> !GodFormAlignment.isAllowed(data, group, form));
+        cir.setReturnValue(filtered);
+    }
+
     private static boolean isGodPathAllowed(StatsData data, String group, String form) {
-        if (data == null || data.getResources() == null || group == null || form == null) return true;
-        if (!UniversalDivineAndSaiyanInstaller.GOD_FORMS_GROUP.equalsIgnoreCase(group)) return true;
-        int alignment = data.getResources().getAlignment();
-        if ("super_saiyan_rose".equalsIgnoreCase(form)) return alignment <= 40;
-        if ("super_saiyan_rose_evolved".equalsIgnoreCase(form)) return alignment <= 40;
-        if ("super_saiyan_blue".equalsIgnoreCase(form)) return alignment > 40;
-        if ("super_saiyan_blue_evolved".equalsIgnoreCase(form)) return alignment > 40;
-        return true;
+        return GodFormAlignment.isAllowed(data, group, form);
     }
     private static boolean isBlockedByCurrentTransformation(StatsData data, String targetGroup) {
         if (data == null || data.getCharacter() == null) return false;

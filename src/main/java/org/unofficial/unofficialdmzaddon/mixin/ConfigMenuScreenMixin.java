@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;
 import org.unofficial.unofficialdmzaddon.client.HalalModeConfigAccess;
+import org.unofficial.unofficialdmzaddon.client.GodAuraConfigAccess;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
@@ -42,6 +43,13 @@ public abstract class ConfigMenuScreenMixin {
             // Keep the camera action last, just like DragonMineZ does for its own options.
             unofficialdmzaddon$halalOptionIndex = Math.max(0, configOptions.size() - 1);
             configOptions.add(unofficialdmzaddon$halalOptionIndex, option);
+
+            GodAuraConfigAccess auraAccess = (GodAuraConfigAccess) (Object) ConfigManager.getUserConfig();
+            Consumer<Float> auraSetter = value -> auraAccess.unofficialdmzaddon$setConstantGodFormAuras(value > 0.0F);
+            Object auraOption = constructor.newInstance("config.constantGodFormAuras", booleanType,
+                    auraAccess.unofficialdmzaddon$constantGodFormAuras() ? 1.0F : 0.0F,
+                    0.0F, 1.0F, auraSetter);
+            configOptions.add(Math.max(0, configOptions.size() - 1), auraOption);
         } catch (ReflectiveOperationException | ClassCastException e) {
             UnofficialDMZAddon.LOGGER.warn("[Unofficial DMZ Addon] Could not add Halal Mode to DMZ settings: {}", e.getMessage());
         }

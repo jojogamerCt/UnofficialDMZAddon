@@ -617,10 +617,10 @@ public final class DivineProgressionInstaller {
                         ? UnofficialDMZConfig.UI_MASTERED_STAMINA_DRAIN.get()
                         : UnofficialDMZConfig.UI_SIGN_STAMINA_DRAIN.get());
             form.setAuraType("god");
-            form.setAuraLayer(-1);
+            form.setAuraLayer(trueUi ? 1 : -1);
             form.setAuraColor(trueUi ? "#D9CCFF" : mastered ? "#F8FCFF" : "#DDE8F2");
             form.setExtraAuraType("kakarot");
-            form.setExtraAuraLayer(-1);
+            form.setExtraAuraLayer(trueUi ? 2 : -1);
             form.setExtraAuraColor(trueUi ? "#A993FF" : mastered ? "#AEEBFF" : "#BFD8E8");
             form.setHasLightnings(false);
             form.setLightningColor(trueUi ? "#D9C7FF" : "#C7F2FF");

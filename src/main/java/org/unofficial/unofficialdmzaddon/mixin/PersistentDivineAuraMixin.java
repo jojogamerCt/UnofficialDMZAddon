@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.unofficial.unofficialdmzaddon.dmz.DivineAuraHelper;
+import org.unofficial.unofficialdmzaddon.client.AddonAuraPolicy;
+import com.dragonminez.client.render.util.PlayerEffectQueue;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 
 /** Queues UI/UE aura rendering without mutating DragonMineZ's Aura Status. */
@@ -20,9 +22,18 @@ public abstract class PersistentDivineAuraMixin {
     private boolean unofficialdmzaddon$renderIndependentDivineAura(
             boolean original, PoseStack poseStack, AbstractClientPlayer player,
             BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource) {
-        if (original) return true;
         return StatsProvider.get(StatsCapability.INSTANCE, player)
-                .map(DivineAuraHelper::hasPersistentAura)
-                .orElse(false);
+                .map(data -> original || AddonAuraPolicy.hasConstantAddonAura(data))
+                .orElse(original);
+    }
+
+    @org.spongepowered.asm.mixin.injection.Redirect(method = "render", at = @At(value = "INVOKE",
+            target = "Lcom/dragonminez/client/render/util/PlayerEffectQueue;addSpark(Lnet/minecraft/client/player/AbstractClientPlayer;Lsoftware/bernie/geckolib/cache/object/BakedGeoModel;Lcom/mojang/blaze3d/vertex/PoseStack;FI)V"))
+    private void unofficialdmzaddon$gatePassiveSparks(AbstractClientPlayer player, BakedGeoModel model,
+                                                       PoseStack poseStack, float partialTick, int packedLight) {
+        boolean allowed = StatsProvider.get(StatsCapability.INSTANCE, player)
+                .map(AddonAuraPolicy::shouldQueueSparks)
+                .orElse(true);
+        if (allowed) PlayerEffectQueue.addSpark(player, model, poseStack, partialTick, packedLight);
     }
 }

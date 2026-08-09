@@ -1,0 +1,20 @@
+Unofficial DMZ Addon 10.3.1
+
+Additions
+- Added Custom Forms for every race through a native DragonMineZ character-menu tab. The creator includes paged editing, a live 3D character and aura preview, selectable hair, independent left and right eye colors, body and aura colors, Saiyan-only tail colors, custom power and Ki drain, server-authoritative TP pricing, private ownership, selection, editing, and deletion.
+- Added progressive Custom Form capacity. Players receive configurable starting slots and can earn configurable slot rewards at completed-saga milestones, up to a configurable hard cap.
+- Added Custom Form configuration for availability, starting slots, saga progression, milestone frequency and rewards, maximum slots, power, Ki drain, optional TP charging, and base, linear, quadratic, minimum, and maximum TP prices.
+- Added Snake to DragonMineZ's minigames menu. It awards TP for collected apples, becomes progressively faster, and unlocks after the player earns a non-innate form for their current race.
+- Added Constant Addon Auras to DragonMineZ's settings for God forms, Ultra Instinct, and Ultra Ego. Aura effects remain available while charging Ki or using DragonMineZ's Aura Status when constant rendering is disabled.
+- Added a synchronized purple aura burst when an Ultra Ego user takes damage.
+- Added heat-haze visuals to Ultra Instinct Sign and Mastered Ultra Instinct.
+- Added a persistent God-form-style flame aura and loop sound to True Ultra Instinct.
+
+Changes and fixes
+- Balanced Frost Demon Golden Form to Super Saiyan Blue's combat multiplier profile.
+- Improved Black Form's charcoal, violet, graphite, red, and magenta color separation.
+- Restricted Super Saiyan Blue and Blue Evolved to non-Evil alignment and Super Saiyan Rosé and Rosé Evolved to Evil alignment.
+- Preserved Namekian antennae, ears, and native head components in Orange Form.
+- Disabled Constant Addon Auras now suppresses passive aura layers, rocks, dust, sparks, lighting, and sounds without suppressing active charging or Aura Status effects.
+- Reworked the planet and celestial information HUD into a compact, wrapped, and clipped panel.
+- Added automatic migration for existing default Golden, Black, and Orange form configurations while preserving customized values where possible.
