@@ -68,16 +68,16 @@ public abstract class MinigamesScreenMixin {
     }
 
     @Redirect(method = "renderRightPanel", at = @At(value = "INVOKE",
-            target = "Lcom/dragonminez/client/util/TextUtil;drawCenteredStringWithBorder(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIII)V",
+            target = "Lcom/dragonminez/client/util/TextUtil;drawCenteredStringWithBorder(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V",
             ordinal = 1))
     private void unofficialdmzaddon$wrapUnlockRequirement(GuiGraphics graphics, Font font, Component text,
-                                                           int centerX, int y, int textColor, int borderColor) {
+                                                           int centerX, int y, int textColor) {
         List<FormattedCharSequence> lines = font.split(text, 112);
         int lineHeight = font.lineHeight + 1;
         int firstY = y - (lines.size() - 1) * lineHeight;
         for (int i = 0; i < lines.size(); i++) {
             TextUtil.drawCenteredStringWithBorder(graphics, font, lines.get(i), centerX,
-                    firstY + i * lineHeight, textColor, borderColor);
+                    firstY + i * lineHeight, textColor);
         }
     }
 
