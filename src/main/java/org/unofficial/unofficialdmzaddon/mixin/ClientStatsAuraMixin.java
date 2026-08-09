@@ -11,7 +11,8 @@ import org.unofficial.unofficialdmzaddon.client.AddonAuraPolicy;
 @Mixin(value = ClientStatsEvents.class, remap = false)
 public abstract class ClientStatsAuraMixin {
     @Redirect(method = "onClientTick", at = @At(value = "INVOKE",
-            target = "Lcom/dragonminez/common/util/TransformationsHelper;hasGodFormActive(Lcom/dragonminez/common/stats/StatsData;)Z"))
+            target = "Lcom/dragonminez/common/util/TransformationsHelper;hasGodFormActive(Lcom/dragonminez/common/stats/StatsData;)Z"),
+            require = 0)
     private static boolean unofficialdmzaddon$gatePassiveParticles(StatsData data) {
         return AddonAuraPolicy.hasConstantAddonAura(data);
     }
