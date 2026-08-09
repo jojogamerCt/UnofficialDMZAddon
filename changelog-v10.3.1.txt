@@ -24,3 +24,4 @@ Changes and fixes
 - Displayed localized Custom Forms group names in DragonMineZ's form skill tree instead of internal player identifiers.
 - Added automatic migration for existing default Golden, Black, and Orange form configurations while preserving customized values where possible.
 - Made addon aura hooks compatible with DragonMineZ's packaged production runtime as well as its development environment.
+- Kept persistent addon aura sounds stable when forms activate in packaged Forge clients.

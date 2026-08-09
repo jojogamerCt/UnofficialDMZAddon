@@ -17,8 +17,9 @@ import org.unofficial.unofficialdmzaddon.client.AddonAuraPolicy;
 public abstract class AuraLoopSoundMixin {
     @Shadow @Final private Player player;
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE",
-            target = "Lcom/dragonminez/common/stats/character/Status;isPermanentAura()Z"))
+    @Redirect(method = {"tick()V", "m_7788_()V"}, at = @At(value = "INVOKE",
+            target = "Lcom/dragonminez/common/stats/character/Status;isPermanentAura()Z"),
+            remap = false)
     private boolean unofficialdmzaddon$keepConstantAddonSoundAlive(Status status) {
         return status.isPermanentAura() || StatsProvider.get(StatsCapability.INSTANCE, player)
                 .map(AddonAuraPolicy::hasConstantAddonAura)
