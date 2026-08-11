@@ -30,10 +30,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class CustomFormManager {
     private static final String DATA_KEY = "unofficialdmzaddonCustomForms";
+    private static final Map<UUID, List<CustomFormDefinition>> INSTALLED_DEFINITIONS = new ConcurrentHashMap<>();
 
     @SubscribeEvent
     public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -151,17 +154,19 @@ public final class CustomFormManager {
     }
 
     public static void install(UUID owner, List<CustomFormDefinition> definitions) {
+        List<CustomFormDefinition> installed = List.copyOf(definitions == null ? List.of() : definitions);
+        INSTALLED_DEFINITIONS.put(owner, installed);
         String groupName = CustomFormDefinition.group(owner);
         for (Map<String, FormConfig> raceForms : ConfigManager.getAllForms().values()) raceForms.remove(groupName);
         Map<String, List<CustomFormDefinition>> byRace = new LinkedHashMap<>();
-        definitions.forEach(form -> byRace.computeIfAbsent(form.race().toLowerCase(), ignored -> new ArrayList<>()).add(form));
+        installed.forEach(form -> byRace.computeIfAbsent(form.race().toLowerCase(), ignored -> new ArrayList<>()).add(form));
         byRace.forEach((race, forms) -> {
             Map<String, FormConfig> raceForms = ConfigManager.getAllFormsForRace(race);
             if (raceForms == null) return;
             FormConfig group = new FormConfig();
             group.setConfigVersion(FormConfig.CURRENT_VERSION);
             group.setGroupName(groupName);
-            group.setFormType("superforms");
+            group.setFormType("customforms");
             LinkedHashMap<String, FormConfig.FormData> data = new LinkedHashMap<>();
             forms.forEach(form -> data.put(form.id(), form.toFormData()));
             group.setForms(data);
@@ -171,6 +176,21 @@ public final class CustomFormManager {
 
     public static boolean ownsGroup(UUID player, String group) {
         return group != null && group.equals(CustomFormDefinition.group(player));
+    }
+
+    public static Optional<CustomFormDefinition> getActiveDefinition(StatsData data) {
+        if (data == null || data.getPlayer() == null || data.getCharacter() == null) return Optional.empty();
+        UUID owner = data.getPlayer().getUUID();
+        if (!ownsGroup(owner, data.getCharacter().getActiveFormGroup())) return Optional.empty();
+        String activeForm = data.getCharacter().getActiveForm();
+        if (activeForm == null || activeForm.isEmpty()) return Optional.empty();
+        return INSTALLED_DEFINITIONS.getOrDefault(owner, List.of()).stream()
+                .filter(form -> form.id().equalsIgnoreCase(activeForm))
+                .findFirst();
+    }
+
+    public static boolean hasActiveCustomForm(StatsData data) {
+        return getActiveDefinition(data).isPresent();
     }
 
     /** Applies the configured base slots and completed-saga milestone progression. */

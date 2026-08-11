@@ -57,6 +57,8 @@ public final class UnofficialDMZConfig {
     public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_SAGAS_PER_SLOT_MILESTONE;
     public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_SLOTS_PER_SAGA_MILESTONE;
     public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_MAX_PER_PLAYER;
+    public static final ForgeConfigSpec.BooleanValue CUSTOM_FORMS_ALLOW_CONSTANT_AURA;
+    public static final ForgeConfigSpec.BooleanValue CUSTOM_FORMS_ALLOW_AURA_OUTLINE;
     public static final ForgeConfigSpec.DoubleValue CUSTOM_FORMS_MAX_MULTIPLIER;
     public static final ForgeConfigSpec.DoubleValue CUSTOM_FORMS_MAX_ENERGY_DRAIN;
     public static final ForgeConfigSpec.BooleanValue CUSTOM_FORMS_TP_COSTS_ENABLED;
@@ -156,7 +158,11 @@ public final class UnofficialDMZConfig {
         CUSTOM_FORMS_SLOTS_PER_SAGA_MILESTONE = builder.comment("Slots granted whenever a saga milestone is reached")
                 .defineInRange("slots_per_saga_milestone", 1, 0, 64);
         CUSTOM_FORMS_MAX_PER_PLAYER = builder.comment("Absolute cap after starting and saga-earned slots are combined")
-                .defineInRange("maximum_forms_per_player", 12, 1, 64);
+                .defineInRange("maximum_forms_per_player", 5, 1, 64);
+        CUSTOM_FORMS_ALLOW_CONSTANT_AURA = builder.comment("Allow creators to make a custom form's aura remain active")
+                .define("allow_constant_aura", true);
+        CUSTOM_FORMS_ALLOW_AURA_OUTLINE = builder.comment("Allow creators to add the SSJ Rage-style light outline to custom forms")
+                .define("allow_aura_outline", true);
         CUSTOM_FORMS_MAX_MULTIPLIER = builder.comment("Highest selectable custom-form power multiplier")
                 .defineInRange("maximum_power_multiplier", 5.0D, 1.0D, 20.0D);
         CUSTOM_FORMS_MAX_ENERGY_DRAIN = builder.comment("Highest selectable custom-form Ki drain")

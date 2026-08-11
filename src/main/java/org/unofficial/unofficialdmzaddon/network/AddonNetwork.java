@@ -8,7 +8,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;
 
 public final class AddonNetwork {
-    private static final String PROTOCOL = "5";
+    private static final String PROTOCOL = "6";
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(UnofficialDMZAddon.MODID, "main"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);

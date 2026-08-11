@@ -14,6 +14,6 @@ public abstract class ClientStatsAuraMixin {
             target = "Lcom/dragonminez/common/util/TransformationsHelper;hasGodFormActive(Lcom/dragonminez/common/stats/StatsData;)Z"),
             require = 0)
     private static boolean unofficialdmzaddon$gatePassiveParticles(StatsData data) {
-        return AddonAuraPolicy.hasConstantAddonAura(data);
+        return AddonAuraPolicy.shouldSpawnPassiveDivineParticles(data);
     }
 }

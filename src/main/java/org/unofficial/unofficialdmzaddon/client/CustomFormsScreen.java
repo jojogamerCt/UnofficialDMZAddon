@@ -49,7 +49,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
     private static final String PREVIEW_GROUP = "unofficialdmzaddon_custom_form_preview";
     private static final String PREVIEW_FORM = "preview";
     private static final String[] HAIR_TYPES = {"base", "ssj", "ssj2", "ssj3"};
-    private static final int PAGE_COUNT = 5;
+    private static final int PAGE_COUNT = 6;
 
     private boolean editing;
     private int page;
@@ -63,6 +63,9 @@ public final class CustomFormsScreen extends BaseMenuScreen {
     private String auraColor = "#FFFFFF";
     private String bodyColor = "#FFFFFF";
     private String tailColor = "#572117";
+    private boolean constantAura;
+    private boolean auraOutlineEnabled;
+    private String auraOutlineColor = "#37E8FF";
     private double multiplier = 1.5D;
     private double drain = 0.05D;
     private String colorTarget = "hair";
@@ -136,6 +139,22 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             addRenderableWidget(colorButton(left + 34, top + 55, "aura"));
             if (isSaiyan()) addRenderableWidget(colorButton(left + 34, top + 84, "tail"));
             initColorSliders(left + 21, top + 126);
+        } else if (page == 4) {
+            addRenderableWidget(textButton(left + 34, top + 47,
+                    tr(constantAura
+                            ? "gui.unofficialdmzaddon.custom_forms.constant_aura.on"
+                            : "gui.unofficialdmzaddon.custom_forms.constant_aura.off"),
+                    () -> { if (UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_CONSTANT_AURA.get()) constantAura = !constantAura; rebuildWidgets(); }));
+            addRenderableWidget(textButton(left + 34, top + 72,
+                    tr(auraOutlineEnabled
+                            ? "gui.unofficialdmzaddon.custom_forms.outline.on"
+                            : "gui.unofficialdmzaddon.custom_forms.outline.off"),
+                    () -> { if (UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) auraOutlineEnabled = !auraOutlineEnabled; rebuildWidgets(); }));
+            if (auraOutlineEnabled && UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) {
+                colorTarget = "outline";
+                addRenderableWidget(colorButton(left + 34, top + 97, "outline"));
+                initColorSliders(left + 21, top + 132);
+            }
         } else {
             addRenderableWidget(arrow(left + 20, top + 54, true,
                     () -> { multiplier = Mth.clamp(multiplier - 0.1D, 1.0D, UnofficialDMZConfig.CUSTOM_FORMS_MAX_MULTIPLIER.get()); updateSaveButton(); }));
@@ -274,7 +293,8 @@ public final class CustomFormsScreen extends BaseMenuScreen {
 
     private CustomFormDefinition draft() {
         return new CustomFormDefinition(editingId, formName, race(), HAIR_TYPES[hairIndex], hairColor,
-                eye1Color, eye2Color, auraColor, bodyColor, tailColor, multiplier, drain);
+                eye1Color, eye2Color, auraColor, bodyColor, tailColor,
+                constantAura, auraOutlineEnabled, auraOutlineColor, multiplier, drain);
     }
 
     private void loadDraft(CustomFormDefinition form) {
@@ -288,6 +308,9 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         auraColor = form.auraColor();
         bodyColor = form.bodyColor();
         tailColor = form.tailColor();
+        constantAura = form.constantAura();
+        auraOutlineEnabled = form.auraOutlineEnabled();
+        auraOutlineColor = form.auraOutlineColor();
         multiplier = form.multiplier();
         drain = form.energyDrain();
         colorTarget = "hair";
@@ -304,6 +327,9 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         auraColor = "#FFFFFF";
         bodyColor = "#FFFFFF";
         tailColor = "#572117";
+        constantAura = false;
+        auraOutlineEnabled = false;
+        auraOutlineColor = "#37E8FF";
         multiplier = 1.5D;
         drain = 0.05D;
         colorTarget = "hair";
@@ -344,6 +370,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             case "body" -> bodyColor;
             case "aura" -> auraColor;
             case "tail" -> tailColor;
+            case "outline" -> auraOutlineColor;
             default -> hairColor;
         };
     }
@@ -357,6 +384,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             case "body" -> bodyColor = color;
             case "aura" -> auraColor = color;
             case "tail" -> tailColor = color;
+            case "outline" -> auraOutlineColor = color;
             default -> hairColor = color;
         }
     }
@@ -442,6 +470,13 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.colors_hint"), left + 70,
                     top + (page == 2 ? 119 : 109), 0xFF9BFF9B);
             centered(graphics, Component.literal(targetColor()), left + 70, top + 180, 0xFFFFFFFF);
+        } else if (page == 4) {
+            if (auraOutlineEnabled && UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) {
+                centered(graphics, Component.literal(auraOutlineColor), left + 70, top + 180, 0xFFFFFFFF);
+            } else {
+                centeredWrapped(graphics, tr("gui.unofficialdmzaddon.custom_forms.aura_effects_hint"),
+                        left + 70, top + 112, 112, 0xFF9BFF9B);
+            }
         } else {
             centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.multiplier", format(multiplier)), left + 70, top + 57, 0xFFFFFFFF);
             centered(graphics, tr("gui.unofficialdmzaddon.custom_forms.drain", String.format(Locale.US, "%.2f", drain)), left + 70, top + 94, 0xFFFFFFFF);
@@ -498,7 +533,9 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         graphics.pose().translate(0, 0, 320);
         DMZSkinLayer.PREVIEW_MODE = true;
         try {
-            if (editing && page == 3) renderAuraPreview(graphics, player, preview, centerX, baseY, scale, partialTick);
+            if (editing && (page == 3 || page == 4)) {
+                renderAuraPreview(graphics, player, preview, centerX, baseY, scale, partialTick);
+            }
             InventoryScreen.renderEntityInInventory(graphics, centerX, baseY, scale, pose, camera, player);
             graphics.flush();
         } finally {
@@ -519,9 +556,8 @@ public final class CustomFormsScreen extends BaseMenuScreen {
     }
 
     /**
-     * Draws an animated aura frame with additive blending. The source spritesheet has an opaque
-     * black background, so additive blending keeps black pixels invisible and avoids the solid
-     * rectangle produced when the world aura shader is used in some scaled menu configurations.
+     * Draws an animated aura frame without exposing the spritesheet's opaque black background.
+     * Colored auras use additive blending; black uses a mask-like darkening blend so it remains visible.
      */
     private void renderAuraPreview(GuiGraphics graphics, Player player, CustomFormDefinition preview,
                                    int centerX, int baseY, int modelScale, float partialTick) {
@@ -537,12 +573,21 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         int x = centerX - width / 2;
         int y = baseY - height + Math.round(modelScale * 0.45F);
         float[] rgb = ColorUtils.hexToRgb(preview.auraColor());
+        boolean blackAura = Math.max(rgb[0], Math.max(rgb[1], rgb[2])) <= 0.02F;
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, frame, 0.82F * (1.0F - frameBlend));
-        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, nextFrame, 0.82F * frameBlend);
+        if (blackAura) {
+            // Pure black adds no light, so additive blending made it disappear. This blend darkens
+            // only the non-black pixels in DMZ's grayscale aura mask and keeps its background clear.
+            RenderSystem.blendFunc(GL11.GL_ZERO, GL11.GL_ONE_MINUS_SRC_COLOR);
+            drawBlackAuraPreviewFrame(graphics, x, y, width, height, frame, 0.82F * (1.0F - frameBlend));
+            drawBlackAuraPreviewFrame(graphics, x, y, width, height, nextFrame, 0.82F * frameBlend);
+        } else {
+            RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+            drawAuraPreviewFrame(graphics, rgb, x, y, width, height, frame, 0.82F * (1.0F - frameBlend));
+            drawAuraPreviewFrame(graphics, rgb, x, y, width, height, nextFrame, 0.82F * frameBlend);
+        }
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.defaultBlendFunc();
     }
@@ -551,6 +596,15 @@ public final class CustomFormsScreen extends BaseMenuScreen {
                                       int width, int height, int frame, float alpha) {
         if (alpha <= 0.001F) return;
         RenderSystem.setShaderColor(rgb[0], rgb[1], rgb[2], alpha);
+        graphics.blit(AURA_PREVIEW, x, y, width, height,
+                frame * AURA_FRAME_SIZE, 0.0F, AURA_FRAME_SIZE, AURA_FRAME_SIZE,
+                AURA_SHEET_WIDTH, AURA_FRAME_SIZE);
+    }
+
+    private void drawBlackAuraPreviewFrame(GuiGraphics graphics, int x, int y,
+                                           int width, int height, int frame, float strength) {
+        if (strength <= 0.001F) return;
+        RenderSystem.setShaderColor(strength, strength, strength, 1.0F);
         graphics.blit(AURA_PREVIEW, x, y, width, height,
                 frame * AURA_FRAME_SIZE, 0.0F, AURA_FRAME_SIZE, AURA_FRAME_SIZE,
                 AURA_SHEET_WIDTH, AURA_FRAME_SIZE);
@@ -577,7 +631,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         FormConfig group = new FormConfig();
         group.setConfigVersion(FormConfig.CURRENT_VERSION);
         group.setGroupName(PREVIEW_GROUP);
-        group.setFormType("superforms");
+        group.setFormType("customforms");
         FormConfig.FormData data = preview.toFormData();
         data.setName(PREVIEW_FORM);
         LinkedHashMap<String, FormConfig.FormData> forms = new LinkedHashMap<>();

@@ -62,20 +62,9 @@ public final class UltraInstinctCombatHandler {
             // guarantees no health loss, hurt animation, invulnerability frames, or damage numbers.
             event.setCanceled(true);
 
-            Vec3 direction = victim.position().subtract(attacker.position());
-            if (direction.lengthSqr() < 1.0E-4) {
-                direction = victim.getLookAngle().scale(-1.0);
-            }
-            direction = direction.normalize();
-
-            // Set authoritative velocity instead of adding knockback. Player input can no longer
-            // erase the dodge before the server synchronizes it to the client.
-            Vec3 currentMovement = victim.getDeltaMovement();
-            victim.setDeltaMovement(
-                    direction.x * profile.distance(),
-                    Math.max(currentMovement.y, profile.verticalLift()),
-                    direction.z * profile.distance()
-            );
+            // Cancellation already prevents vanilla knockback. Keep successful UI evasions rooted
+            // in place so simultaneous attackers cannot chain the old dodge impulses into a fling.
+            victim.setDeltaMovement(Vec3.ZERO);
             victim.hurtMarked = true;
             boolean leanRight = victim.getPersistentData().getBoolean("unofficialdmzaddon:ui_dodge_side");
             victim.getPersistentData().putBoolean("unofficialdmzaddon:ui_dodge_side", !leanRight);
@@ -182,9 +171,6 @@ public final class UltraInstinctCombatHandler {
     private static DodgeProfile dodgeProfile(int tier, double masteryRatio) {
         double chanceAtZeroMastery;
         double chanceAtFullMastery;
-        double distanceAtZeroMastery;
-        double distanceAtFullMastery;
-        double verticalLift;
         double energyCostAtZeroMastery;
         double energyCostAtFullMastery;
 
@@ -192,36 +178,24 @@ public final class UltraInstinctCombatHandler {
             case 1 -> {
                 chanceAtZeroMastery = 0.50;
                 chanceAtFullMastery = 0.70;
-                distanceAtZeroMastery = 0.80;
-                distanceAtFullMastery = 1.05;
-                verticalLift = 0.12;
                 energyCostAtZeroMastery = 0.025;
                 energyCostAtFullMastery = 0.018;
             }
             case 2 -> {
                 chanceAtZeroMastery = 0.65;
                 chanceAtFullMastery = 0.82;
-                distanceAtZeroMastery = 1.00;
-                distanceAtFullMastery = 1.30;
-                verticalLift = 0.15;
                 energyCostAtZeroMastery = 0.021;
                 energyCostAtFullMastery = 0.014;
             }
             case 3 -> {
                 chanceAtZeroMastery = 0.78;
                 chanceAtFullMastery = 0.91;
-                distanceAtZeroMastery = 1.25;
-                distanceAtFullMastery = 1.60;
-                verticalLift = 0.18;
                 energyCostAtZeroMastery = 0.017;
                 energyCostAtFullMastery = 0.010;
             }
             default -> {
                 chanceAtZeroMastery = 0.88;
                 chanceAtFullMastery = 0.97;
-                distanceAtZeroMastery = 1.50;
-                distanceAtFullMastery = 1.90;
-                verticalLift = 0.22;
                 energyCostAtZeroMastery = 0.013;
                 energyCostAtFullMastery = 0.007;
             }
@@ -229,13 +203,11 @@ public final class UltraInstinctCombatHandler {
 
         return new DodgeProfile(
                 lerp(chanceAtZeroMastery, chanceAtFullMastery, masteryRatio),
-                lerp(distanceAtZeroMastery, distanceAtFullMastery, masteryRatio),
-                verticalLift,
                 lerp(energyCostAtZeroMastery, energyCostAtFullMastery, masteryRatio)
         );
     }
 
-    private record DodgeProfile(float chance, float distance, double verticalLift, float energyCostRatio) {
+    private record DodgeProfile(float chance, float energyCostRatio) {
     }
 
     private static float lerp(double min, double max, double ratio) {

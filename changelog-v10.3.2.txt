@@ -7,3 +7,9 @@ Changes and fixes
 - Added the missing VIT multiplier to player-created Custom Forms.
 - Added transformation-scoped Ultra Ego growth: taking damage progressively increases all stats, while death or detransformation resets the bonus before the next activation.
 - Prevented DragonMineZ space pods from travelling directly to dimensions whose corresponding planet is currently destroyed.
+- Expanded Custom Forms with optional persistent auras and selectable SSJ Rage-style outline lighting, including correctly visible black auras.
+- Added a dedicated Custom Forms section to the X-key Utility Menu and a configurable five-form default limit.
+- Added six canon techniques integrated with DragonMineZ progression: Tri-Beam, Hellzone Grenade, Planet Burst, Jan-Ken Fist, Spirit Sword Rush, and Sadistic 18.
+- Made contact with the sun instantly lethal, including in Creative mode.
+- Made repeated planet-to-space travel restore the correct source-planet orbit and space pod instead of leaving the player in empty space.
+- Made successful Ultra Instinct dodges hold the player in place so simultaneous attacks cannot fling them away.

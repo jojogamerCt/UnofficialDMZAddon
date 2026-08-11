@@ -95,6 +95,12 @@ public abstract class SpacePodTravelMixin {
                 targetPosition = destination.resolvePosition(player.position());
             }
 
+            if (travellingToSpace) {
+                // Queue the handoff while the source dimension and pod are still authoritative.
+                // Forge's dimension events run after DMZ begins dismantling the source vehicle.
+                SpaceEnvironmentHandler.queueSpaceEntry(player,
+                        sourceLevel.dimension().location(), travellingWithPod);
+            }
             player.stopRiding();
             if (sourceVehicle instanceof SpacePodEntity sourcePod) sourcePod.discard();
             player.teleportTo(targetLevel, targetPosition.x, targetPosition.y, targetPosition.z,

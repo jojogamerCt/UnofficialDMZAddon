@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 public record CustomFormDefinition(String id, String name, String race, String hairType,
                                    String hairColor, String eye1Color, String eye2Color,
                                    String auraColor, String bodyColor, String tailColor,
+                                   boolean constantAura, boolean auraOutlineEnabled, String auraOutlineColor,
                                    double multiplier, double energyDrain) {
     private static final Pattern HEX = Pattern.compile("#[0-9A-Fa-f]{6}");
     private static final Pattern SAFE_ID = Pattern.compile("[a-z0-9_]{1,32}");
@@ -31,10 +32,13 @@ public record CustomFormDefinition(String id, String name, String race, String h
             default -> "base";
         };
         String eye1 = color(input.eye1Color(), "#00FFFF");
+        boolean constantAura = UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_CONSTANT_AURA.get() && input.constantAura();
+        boolean auraOutline = UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get() && input.auraOutlineEnabled();
         return new CustomFormDefinition(id, name, serverRace.toLowerCase(Locale.ROOT), hair,
                 color(input.hairColor(), "#FFFFFF"), eye1, color(input.eye2Color(), eye1),
                 color(input.auraColor(), "#FFFFFF"), color(input.bodyColor(), "#FFFFFF"),
                 color(input.tailColor(), "#572117"),
+                constantAura, auraOutline, color(input.auraOutlineColor(), "#37E8FF"),
                 Mth.clamp(input.multiplier(), 1.0D, UnofficialDMZConfig.CUSTOM_FORMS_MAX_MULTIPLIER.get()),
                 Mth.clamp(input.energyDrain(), 0.0D, UnofficialDMZConfig.CUSTOM_FORMS_MAX_ENERGY_DRAIN.get()));
     }
@@ -75,6 +79,7 @@ public record CustomFormDefinition(String id, String name, String race, String h
         form.setBodyColor3(bodyColor);
         form.setKeepBaseFormHeadBones(true);
         form.setFormStackable(false);
+        form.setAllowFreeTransformOnMastery(0.0D);
         form.setStrMultiplier(multiplier);
         form.setSkpMultiplier(multiplier);
         form.setDefMultiplier(Math.max(1.0D, multiplier * 0.82D));
@@ -85,7 +90,27 @@ public record CustomFormDefinition(String id, String name, String race, String h
         form.setMaxStatsMultiplier(multiplier);
         form.setMaxCostMultiplier(Math.max(0.2D, 1.0D / multiplier));
         form.setTransformationAnimation("transf.generic");
+        if (auraOutlineEnabled && UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) {
+            String primary = color(auraOutlineColor, "#37E8FF");
+            FormConfig.FormData.OutlineShaderConfig outline = new FormConfig.FormData.OutlineShaderConfig();
+            outline.setEnabled(true);
+            outline.setPrimaryColor(primary);
+            outline.setSecondaryColor(brighten(primary));
+            outline.setOutlineThickness(1.85D);
+            form.setOutlineShader(outline);
+        }
         return form;
+    }
+
+    private static String brighten(String value) {
+        int rgb = Integer.parseInt(value.substring(1), 16);
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        r += Math.round((255 - r) * 0.55F);
+        g += Math.round((255 - g) * 0.55F);
+        b += Math.round((255 - b) * 0.55F);
+        return String.format(Locale.ROOT, "#%02X%02X%02X", r, g, b);
     }
 
     public CompoundTag save() {
@@ -94,6 +119,8 @@ public record CustomFormDefinition(String id, String name, String race, String h
         tag.putString("HairType", hairType); tag.putString("HairColor", hairColor);
         tag.putString("Eye1Color", eye1Color); tag.putString("Eye2Color", eye2Color);
         tag.putString("AuraColor", auraColor); tag.putString("BodyColor", bodyColor); tag.putString("TailColor", tailColor);
+        tag.putBoolean("ConstantAura", constantAura); tag.putBoolean("AuraOutlineEnabled", auraOutlineEnabled);
+        tag.putString("AuraOutlineColor", auraOutlineColor);
         tag.putDouble("Multiplier", multiplier); tag.putDouble("EnergyDrain", energyDrain);
         return tag;
     }
@@ -104,9 +131,11 @@ public record CustomFormDefinition(String id, String name, String race, String h
         String eye2 = tag.contains("Eye2Color") ? tag.getString("Eye2Color") : legacyEye;
         String tail = tag.contains("TailColor") ? tag.getString("TailColor") :
                 (tag.contains("BodyColor") ? tag.getString("BodyColor") : "#572117");
+        String outlineColor = tag.contains("AuraOutlineColor") ? tag.getString("AuraOutlineColor") : "#37E8FF";
         return new CustomFormDefinition(tag.getString("Id"), tag.getString("Name"), tag.getString("Race"),
                 tag.getString("HairType"), tag.getString("HairColor"), eye1, eye2,
                 tag.getString("AuraColor"), tag.getString("BodyColor"), tail,
+                tag.getBoolean("ConstantAura"), tag.getBoolean("AuraOutlineEnabled"), outlineColor,
                 tag.getDouble("Multiplier"), tag.getDouble("EnergyDrain"));
     }
 }

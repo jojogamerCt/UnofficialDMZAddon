@@ -42,13 +42,16 @@ public final class SpaceEnvironmentHandler {
     private static final long TRAVEL_COOLDOWN_TICKS = 60L;
     public static final String LAST_PLANET_POSITIONS_TAG = "unofficialdmzaddonLastPlanetPositions";
     private static final String SPACE_MIGRATION_VERSION_TAG = "unofficialdmzaddonSpaceMigrationVersion";
+    private static final String PENDING_SPACE_ENTRY_TAG = "unofficialdmzaddonPendingSpaceEntry";
+    private static final String PENDING_SPACE_SOURCE_TAG = "SourceDimension";
+    private static final String PENDING_SPACE_WITH_POD_TAG = "WithPod";
     private static final int CURRENT_SPACE_MIGRATION_VERSION = 1;
 
     private final Set<UUID> weightlessPlayers = new HashSet<>();
     private final Map<UUID, FlightAbilities> previousFlightAbilities = new HashMap<>();
     private static final Map<UUID, long[]> DESTROYED_PLANETS = new HashMap<>();
     private final Map<UUID, Long> lastTravel = new HashMap<>();
-    private final Map<UUID, SpaceEntry> pendingSpaceEntries = new HashMap<>();
+    private static final Map<UUID, SpaceEntry> PENDING_SPACE_ENTRIES = new HashMap<>();
     private final Map<UUID, ResourceLocation> pendingPlanetEntries = new HashMap<>();
     private final Map<UUID, Boolean> recentlyRidingPod = new HashMap<>();
     private final Map<UUID, Vec3> previousTravelPositions = new HashMap<>();
@@ -205,12 +208,48 @@ public final class SpaceEnvironmentHandler {
             boolean fromSpace = SpaceDimension.isSpace(event.getFrom());
             boolean toSpace = SpaceDimension.isSpace(event.getTo());
             if (event.getTo().equals(SpaceDimension.KEY) && !fromSpace) {
-                pendingSpaceEntries.put(player.getUUID(), new SpaceEntry(event.getFrom().location(),
-                        recentlyRidingPod.getOrDefault(player.getUUID(), false)));
+                SpaceEntry fallback = new SpaceEntry(event.getFrom().location(),
+                        recentlyRidingPod.getOrDefault(player.getUUID(), false));
+                SpaceEntry entry = PENDING_SPACE_ENTRIES.putIfAbsent(player.getUUID(), fallback);
+                if (entry == null) {
+                    writePendingSpaceEntry(player, fallback);
+                }
             } else if (fromSpace && !toSpace) {
                 pendingPlanetEntries.put(player.getUUID(), event.getTo().location());
             }
         }
+    }
+
+    /**
+     * Records an authoritative per-trip handoff before DragonMineZ removes the source pod. The NBT
+     * copy survives dimension-event ordering and a disconnect during the loading screen.
+     */
+    public static void queueSpaceEntry(ServerPlayer player, ResourceLocation sourceDimension, boolean withPod) {
+        SpaceEntry entry = new SpaceEntry(sourceDimension, withPod);
+        PENDING_SPACE_ENTRIES.put(player.getUUID(), entry);
+        writePendingSpaceEntry(player, entry);
+    }
+
+    private static void writePendingSpaceEntry(ServerPlayer player, SpaceEntry entry) {
+        CompoundTag pending = new CompoundTag();
+        pending.putString(PENDING_SPACE_SOURCE_TAG, entry.sourceDimension().toString());
+        pending.putBoolean(PENDING_SPACE_WITH_POD_TAG, entry.withPod());
+        player.getPersistentData().put(PENDING_SPACE_ENTRY_TAG, pending);
+    }
+
+    private static SpaceEntry readPendingSpaceEntry(ServerPlayer player) {
+        CompoundTag persistent = player.getPersistentData();
+        if (!persistent.contains(PENDING_SPACE_ENTRY_TAG, Tag.TAG_COMPOUND)) return null;
+        CompoundTag pending = persistent.getCompound(PENDING_SPACE_ENTRY_TAG);
+        ResourceLocation sourceDimension = ResourceLocation.tryParse(
+                pending.getString(PENDING_SPACE_SOURCE_TAG));
+        return sourceDimension == null ? null : new SpaceEntry(sourceDimension,
+                pending.getBoolean(PENDING_SPACE_WITH_POD_TAG));
+    }
+
+    private static void clearPendingSpaceEntry(ServerPlayer player) {
+        PENDING_SPACE_ENTRIES.remove(player.getUUID());
+        player.getPersistentData().remove(PENDING_SPACE_ENTRY_TAG);
     }
 
     public static Vec3 spaceEntryPosition(ServerPlayer player, ResourceLocation sourceDimension) {
@@ -234,7 +273,11 @@ public final class SpaceEnvironmentHandler {
                 entryPosition.z);
     }
     private void positionNearSourcePlanet(ServerPlayer player) {
-        SpaceEntry entry = pendingSpaceEntries.remove(player.getUUID());
+        SpaceEntry entry = PENDING_SPACE_ENTRIES.get(player.getUUID());
+        if (entry == null) {
+            entry = readPendingSpaceEntry(player);
+            if (entry != null) PENDING_SPACE_ENTRIES.put(player.getUUID(), entry);
+        }
         if (entry == null) return;
         ResourceLocation sourceDimension = entry.sourceDimension();
 
@@ -272,6 +315,11 @@ public final class SpaceEnvironmentHandler {
             pod.setDeltaMovement(Vec3.ZERO);
             if (player.serverLevel().addFreshEntity(pod)) player.startRiding(pod);
         }
+        if (player.position().distanceToSqr(entryPosition) > 4.0D) return;
+
+        // Consume the handoff only after the target position is authoritative. Until then the
+        // persistent marker lets the next server tick retry instead of leaving the player in void.
+        clearPendingSpaceEntry(player);
         player.getPersistentData().putString("unofficialdmzaddonSpaceDomain",
                 SpaceCelestialSystem.SpaceDomain.SOLAR_SYSTEM.name());
         player.getPersistentData().putInt(SPACE_MIGRATION_VERSION_TAG, CURRENT_SPACE_MIGRATION_VERSION);
@@ -355,6 +403,19 @@ public final class SpaceEnvironmentHandler {
         long[] destroyed = DESTROYED_PLANETS.computeIfAbsent(playerId, ignored -> freshDestroyedArray());
         Vec3 travelPosition = player.getVehicle() instanceof SpacePodEntity pod ? pod.position() : player.position();
         Vec3 previousTravelPosition = previousTravelPositions.getOrDefault(playerId, travelPosition);
+        if (SpaceDimension.isSolarSpace(space.dimension())) {
+            Entity traveller = player.getVehicle() instanceof SpacePodEntity pod ? pod : player;
+            double collisionMargin = Math.max(0.5D,
+                    Math.max(traveller.getBbWidth(), traveller.getBbHeight()) * 0.5D);
+            if (SpacePlanetSystem.segmentIntersectsCube(previousTravelPosition, travelPosition,
+                    SpacePlanetSystem.sunPosition(Vec3.ZERO),
+                    SpacePlanetSystem.SUN_RADIUS + collisionMargin)) {
+                // ServerPlayer.kill() bypasses Creative invulnerability, matching /kill semantics.
+                if (player.isAlive()) player.kill();
+                previousTravelPositions.remove(playerId);
+                return;
+            }
+        }
         if (processCelestialTravel(space, player, previousTravelPosition, travelPosition, gameTime)) return;
         if (!SpaceDimension.isSolarSpace(space.dimension())) {
             previousTravelPositions.put(playerId, travelPosition);
@@ -585,7 +646,7 @@ public final class SpaceEnvironmentHandler {
         if (weightlessPlayers.remove(playerId)) restorePlayer(event.getEntity());
         DESTROYED_PLANETS.remove(playerId);
         lastTravel.remove(playerId);
-        pendingSpaceEntries.remove(playerId);
+        PENDING_SPACE_ENTRIES.remove(playerId);
         pendingPlanetEntries.remove(playerId);
         recentlyRidingPod.remove(playerId);
         previousTravelPositions.remove(playerId);
