@@ -536,6 +536,10 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             if (editing && (page == 3 || page == 4)) {
                 renderAuraPreview(graphics, player, preview, centerX, baseY, scale, partialTick);
             }
+            if (editing && page == 4 && preview.auraOutlineEnabled()
+                    && UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) {
+                renderOutlinePreview(graphics, player, preview, centerX, baseY, scale, partialTick);
+            }
             InventoryScreen.renderEntityInInventory(graphics, centerX, baseY, scale, pose, camera, player);
             graphics.flush();
         } finally {
@@ -608,6 +612,32 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         graphics.blit(AURA_PREVIEW, x, y, width, height,
                 frame * AURA_FRAME_SIZE, 0.0F, AURA_FRAME_SIZE, AURA_FRAME_SIZE,
                 AURA_SHEET_WIDTH, AURA_FRAME_SIZE);
+    }
+
+    /**
+     * The world outline is a post-process applied to the main framebuffer, so it cannot surround
+     * InventoryScreen's separate GUI entity render. A tight, additive pass from the same clean DMZ
+     * aura mask provides the creator with an immediate and color-accurate preview of that border.
+     */
+    private void renderOutlinePreview(GuiGraphics graphics, Player player, CustomFormDefinition preview,
+                                      int centerX, int baseY, int modelScale, float partialTick) {
+        float animation = (player.tickCount + partialTick) * 0.7F;
+        int frame = Math.floorMod((int) Math.floor(animation), 4);
+        int nextFrame = (frame + 1) % 4;
+        float blend = animation - (float) Math.floor(animation);
+        int width = Math.round(modelScale * 2.35F);
+        int height = Math.round(modelScale * 3.2F);
+        int x = centerX - width / 2;
+        int y = baseY - height + Math.round(modelScale * 0.25F);
+        float[] rgb = ColorUtils.hexToRgb(preview.auraOutlineColor());
+
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, frame, 0.95F * (1.0F - blend));
+        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, nextFrame, 0.95F * blend);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.defaultBlendFunc();
     }
 
     private void resetGuiRenderState(GuiGraphics graphics) {

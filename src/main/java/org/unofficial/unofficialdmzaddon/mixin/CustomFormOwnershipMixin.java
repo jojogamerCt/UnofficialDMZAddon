@@ -29,4 +29,21 @@ public abstract class CustomFormOwnershipMixin {
                 ? List.of()
                 : new ArrayList<>(customGroup.getForms().values()));
     }
+
+    /**
+     * Custom forms are purchased when they are created, not through a synthetic DMZ skill.
+     * DMZ's charging preview asks this method directly, so owner forms must remain available
+     * even while an older player's stats are still being migrated to the display-only skill.
+     */
+    @Inject(method = "getNextAvailableForm", at = @At("RETURN"), cancellable = true)
+    private static void unofficialdmzaddon$allowOwnedCustomTransform(StatsData data,
+                                                                      CallbackInfoReturnable<FormConfig.FormData> cir) {
+        if (cir.getReturnValue() != null || data == null || data.getPlayer() == null) return;
+        String group = data.getCharacter().getSelectedFormGroup();
+        if (!CustomFormManager.ownsGroup(data.getPlayer().getUUID(), group)) return;
+        FormConfig customGroup = ConfigManager.getFormGroup(data.getCharacter().getRaceName(), group);
+        if (customGroup == null) return;
+        FormConfig.FormData selected = customGroup.getForm(data.getCharacter().getSelectedForm());
+        if (selected != null) cir.setReturnValue(selected);
+    }
 }

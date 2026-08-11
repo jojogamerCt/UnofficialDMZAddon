@@ -163,10 +163,18 @@
     "gui.unofficialdmzaddon.custom_forms.error.limit": "Form limit reached - complete a saga for another slot",
     "gui.unofficialdmzaddon.custom_forms.error.race": "This form belongs to another race",
     "gui.unofficialdmzaddon.custom_forms.error.disabled": "Custom forms are disabled",
+    "skill.dragonminez.customforms": "Custom Forms",
+    "skill.dragonminez.customforms.desc": "Player-created transformations for your current race.",
     "technique.unofficialdmzaddon.tri_beam": "Tri-Beam",
     "technique.unofficialdmzaddon.hellzone_grenade": "Hellzone Grenade",
     "technique.unofficialdmzaddon.planet_burst": "Planet Burst",
     "technique.unofficialdmzaddon.jan_ken_fist": "Jan-Ken Fist",
     "technique.unofficialdmzaddon.spirit_sword_rush": "Spirit Sword Rush",
-    "technique.unofficialdmzaddon.sadistic_18": "Sadistic 18"
+    "technique.unofficialdmzaddon.sadistic_18": "Sadistic 18",
+    "technique.dragonminez.tri_beam": "Tri-Beam",
+    "technique.dragonminez.hellzone_grenade": "Hellzone Grenade",
+    "technique.dragonminez.planet_burst": "Planet Burst",
+    "technique.dragonminez.jan_ken_fist": "Jan-Ken Fist",
+    "technique.dragonminez.spirit_sword_rush": "Spirit Sword Rush",
+    "technique.dragonminez.sadistic_18": "Sadistic 18"
 }

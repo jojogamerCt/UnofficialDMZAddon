@@ -43,6 +43,10 @@ public final class CustomFormManager {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         List<CustomFormDefinition> forms = load(player);
         install(player.getUUID(), forms);
+        StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(data -> {
+            ensureDisplaySkill(data);
+            NetworkHandler.sendToTrackingEntityAndSelf(new StatsSyncS2C(player), player);
+        });
         // The owner can edit these definitions; other clients only need them to render that player correctly.
         for (ServerPlayer online : player.server.getPlayerList().getPlayers()) {
             List<CustomFormDefinition> onlineForms = load(online);
@@ -67,6 +71,7 @@ public final class CustomFormManager {
             return;
         }
         StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(data -> {
+            ensureDisplaySkill(data);
             String race = data.getCharacter().getRaceName();
             List<CustomFormDefinition> forms = load(player);
             CustomFormDefinition form = CustomFormDefinition.validated(requested, race);
@@ -131,6 +136,7 @@ public final class CustomFormManager {
         CustomFormDefinition selected = forms.stream().filter(form -> form.id().equals(id)).findFirst().orElse(null);
         if (selected == null) return;
         StatsProvider.get(StatsCapability.INSTANCE, player).ifPresent(data -> {
+            ensureDisplaySkill(data);
             if (!selected.race().equalsIgnoreCase(data.getCharacter().getRaceName())) return;
             String group = CustomFormDefinition.group(player.getUUID());
             data.getCharacter().setSelectedFormGroup(group);
@@ -191,6 +197,10 @@ public final class CustomFormManager {
 
     public static boolean hasActiveCustomForm(StatsData data) {
         return getActiveDefinition(data).isPresent();
+    }
+
+    private static void ensureDisplaySkill(StatsData data) {
+        if (!data.getSkills().hasSkill("customforms")) data.getSkills().setSkillLevel("customforms", 0);
     }
 
     /** Applies the configured base slots and completed-saga milestone progression. */

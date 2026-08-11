@@ -13,3 +13,6 @@ Changes and fixes
 - Made contact with the sun instantly lethal, including in Creative mode.
 - Made repeated planet-to-space travel restore the correct source-planet orbit and space pod instead of leaving the player in empty space.
 - Made successful Ultra Instinct dodges hold the player in place so simultaneous attacks cannot fling them away.
+- Fixed hold-to-transform for player-created forms and migrated their form-tree access automatically.
+- Added the missing Custom Forms skill-tree label, official transformation icon, and technique-name translations.
+- Added a real-time colored outline preview to the Custom Forms Creator.
