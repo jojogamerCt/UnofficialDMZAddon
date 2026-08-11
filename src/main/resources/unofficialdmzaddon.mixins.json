@@ -14,7 +14,9 @@
     "SpacePodIdleMixin",
     "GeneralUserConfigMixin",
     "TrainingRewardSnakeMixin",
-    "CustomFormOwnershipMixin"
+    "CustomFormOwnershipMixin",
+    "TechniqueDispatcherMixin",
+    "StrikeAttackHandlerMixin"
   ],
   "client": [
     "AlienBuffedModelMixin",
@@ -35,7 +37,8 @@
     "CustomFormsConfigSyncMixin",
     "LanguageMixin",
     "MinigamesScreenMixin",
-    "BaseMenuCustomFormsMixin"
+    "BaseMenuCustomFormsMixin",
+    "DMZPlayerModelAnimationMixin"
   ],
   "injectors": {
     "defaultRequire": 1

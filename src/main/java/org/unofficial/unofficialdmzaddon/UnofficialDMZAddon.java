@@ -24,6 +24,8 @@ import org.unofficial.unofficialdmzaddon.dmz.UltraEgoAuraBurstHandler;
 import org.unofficial.unofficialdmzaddon.dmz.CustomFormManager;
 import org.unofficial.unofficialdmzaddon.network.AddonNetwork;
 import org.unofficial.unofficialdmzaddon.space.SpaceEnvironmentHandler;
+import org.unofficial.unofficialdmzaddon.technique.AddonEntities;
+import org.unofficial.unofficialdmzaddon.technique.CanonTechniqueHandler;
 
 @Mod(UnofficialDMZAddon.MODID)
 public final class UnofficialDMZAddon {
@@ -33,6 +35,7 @@ public final class UnofficialDMZAddon {
 
     public UnofficialDMZAddon() {
         var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        AddonEntities.ENTITIES.register(modEventBus);
         modEventBus.addListener(this::onCommonSetup);
 
         // Register the config before anything else reads it
@@ -49,6 +52,7 @@ public final class UnofficialDMZAddon {
         MinecraftForge.EVENT_BUS.register(new AddonPlayerMigrationHandler());
         MinecraftForge.EVENT_BUS.register(new SpaceEnvironmentHandler());
         MinecraftForge.EVENT_BUS.register(new CustomFormManager());
+        MinecraftForge.EVENT_BUS.register(new CanonTechniqueHandler());
         // PlayerHudRenderer auto-registers via @Mod.EventBusSubscriber(value = Dist.CLIENT)
     }
 

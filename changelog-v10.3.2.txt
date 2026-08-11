@@ -16,3 +16,4 @@ Changes and fixes
 - Fixed hold-to-transform for player-created forms and migrated their form-tree access automatically.
 - Added the missing Custom Forms skill-tree label, official transformation icon, and technique-name translations.
 - Added a real-time colored outline preview to the Custom Forms Creator.
+- Gave all six addon techniques their own canon-inspired choreography and effects: a widening triangular Tri-Beam, configurable staged Hellzone Grenade convergence, one-arm Planet Burst casting, Jan-Ken's three-part combo, Spirit Sword Rush's Ki blade, and Sadistic 18's kick, slam, and finishing-blast sequence.

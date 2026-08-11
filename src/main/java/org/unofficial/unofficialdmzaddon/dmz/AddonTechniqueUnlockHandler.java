@@ -87,6 +87,7 @@ public final class AddonTechniqueUnlockHandler {
             if (quests == null) return;
 
             boolean changed = false;
+            changed |= AddonTechniqueInstaller.refreshOwnedTechniques(data);
             if (quests.isQuestCompleted(QUEST_TIEN_TRAINING)) {
                 changed |= unlock(data, AddonTechniqueInstaller.TRI_BEAM);
             }

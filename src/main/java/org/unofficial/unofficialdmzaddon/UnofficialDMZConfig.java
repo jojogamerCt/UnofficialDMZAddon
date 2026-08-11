@@ -67,6 +67,11 @@ public final class UnofficialDMZConfig {
     public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_QUADRATIC_POWER_TP_COST;
     public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_MIN_TP_COST;
     public static final ForgeConfigSpec.IntValue CUSTOM_FORMS_MAX_TP_COST;
+    public static final ForgeConfigSpec.BooleanValue CANON_TECHNIQUE_BEHAVIOR;
+    public static final ForgeConfigSpec.IntValue HELLZONE_GATHER_DELAY_TICKS;
+    public static final ForgeConfigSpec.IntValue HELLZONE_SPHERE_COUNT;
+    public static final ForgeConfigSpec.DoubleValue HELLZONE_SCATTER_RADIUS;
+    public static final ForgeConfigSpec.DoubleValue CUSTOM_STRIKE_TARGET_RANGE;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -179,6 +184,19 @@ public final class UnofficialDMZConfig {
                 .defineInRange("minimum_tp_cost", 250, 0, 1_000_000);
         CUSTOM_FORMS_MAX_TP_COST = builder.comment("Maximum final TP price")
                 .defineInRange("maximum_tp_cost", 250_000, 0, 10_000_000);
+        builder.pop();
+
+        builder.comment("Canon addon technique behavior and visuals").push("addon_techniques");
+        CANON_TECHNIQUE_BEHAVIOR = builder.comment("Use dedicated canon sequences, models and effects for addon techniques")
+                .define("canon_behavior_enabled", true);
+        HELLZONE_GATHER_DELAY_TICKS = builder.comment("Ticks that Hellzone Grenade's Ki spheres remain suspended before converging (20 ticks = 1 second)")
+                .defineInRange("hellzone_gather_delay_ticks", 50, 5, 400);
+        HELLZONE_SPHERE_COUNT = builder.comment("Number of suspended Ki spheres created by Hellzone Grenade")
+                .defineInRange("hellzone_sphere_count", 18, 6, 48);
+        HELLZONE_SCATTER_RADIUS = builder.comment("Radius of the Hellzone Grenade constellation around its target zone")
+                .defineInRange("hellzone_scatter_radius", 6.0D, 2.0D, 16.0D);
+        CUSTOM_STRIKE_TARGET_RANGE = builder.comment("Maximum lock-on distance for the addon's canon strike sequences")
+                .defineInRange("custom_strike_target_range", 10.0D, 3.0D, 32.0D);
         builder.pop();
         SPEC = builder.build();
     }

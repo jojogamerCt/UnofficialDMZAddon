@@ -6,6 +6,8 @@ import com.dragonminez.common.config.TechniqueConfig;
 import com.dragonminez.common.stats.techniques.KiAttackData;
 import com.dragonminez.common.stats.techniques.PredefinedTechniques;
 import com.dragonminez.common.stats.techniques.StrikeAttackData;
+import com.dragonminez.common.stats.techniques.TechniqueData;
+import com.dragonminez.common.stats.StatsData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -72,22 +74,17 @@ public final class AddonTechniqueInstaller {
 
                 registerKi(TRI_BEAM, "Tenshinhan", KiAttackData.KiType.BEAM,
                         2.25F, 0xFFF4A3, 0xF6D34A, 0xFFFBE6,
-                        1.25F, 1.50F, 12, 15, "ki.finalflash");
+                        1.25F, 1.50F, 12, 15, "addon.tri_beam");
                 registerKi(HELLZONE_GRENADE, "Piccolo", KiAttackData.KiType.BARRAGE,
                         2.15F, 0xFFE55C, 0xF5B52E, 0xFFF4B0,
-                        0.45F, 1.35F, 5, 16, "ki.barrage");
+                        0.45F, 1.35F, 5, 16, "addon.hellzone_grenade");
                 registerKi(PLANET_BURST, "Majin Buu", KiAttackData.KiType.GIANT_BALL,
                         3.25F, 0xFF9BEF, 0xD929CF, 0xFFE2FF,
-                        5.00F, 0.50F, 15, 20, "ki.large_ball");
+                        5.00F, 0.50F, 15, 20, "addon.planet_burst");
 
-                // Existing DMZ animations keep every strike functional until bespoke addon
-                // animations are supplied. The technique IDs remain unique and use generic
-                // StrikeAttackHandler timing/damage behavior.
-                // Twenty ticks yields DMZ's opening hit, one follow-up, and the finisher: the
-                // canonical Rock/Scissors/Paper three-hit sequence rather than a generic long rush.
-                registerStrike(JAN_KEN_FIST, "Son Goku", 1.30F, 20, "skp.deadly_dance");
-                registerStrike(SPIRIT_SWORD_RUSH, "Vegetto", 2.15F, 48, "skp.deadly_dance_vegetto");
-                registerStrike(SADISTIC_18, "Android 18", 1.85F, 48, "skp.meteor");
+                registerStrike(JAN_KEN_FIST, "Son Goku", 1.30F, 28, "addon.jan_ken_fist");
+                registerStrike(SPIRIT_SWORD_RUSH, "Vegetto", 2.15F, 38, "addon.spirit_sword_rush");
+                registerStrike(SADISTIC_18, "Android 18", 1.85F, 38, "addon.sadistic_18");
 
                 boolean skillsChanged = false;
                 skillsChanged |= ensureId(skills.getKiSkills(), TRI_BEAM);
@@ -218,6 +215,26 @@ public final class AddonTechniqueInstaller {
 
     private static String nameKey(String id) {
         return "technique." + UnofficialDMZAddon.MODID + "." + id;
+    }
+
+    /** Migrates saved copies so existing worlds receive the final animations and durations. */
+    public static boolean refreshOwnedTechniques(StatsData stats) {
+        boolean changed = false;
+        for (String id : List.of(TRI_BEAM, HELLZONE_GRENADE, PLANET_BURST, JAN_KEN_FIST, SPIRIT_SWORD_RUSH, SADISTIC_18)) {
+            TechniqueData owned = stats.getTechniques().getUnlockedTechniques().get(id);
+            TechniqueData template = owned instanceof StrikeAttackData ? PredefinedTechniques.STRIKE_REGISTRY.get(id) : PredefinedTechniques.REGISTRY.get(id);
+            if (owned == null || template == null) continue;
+            int experience = owned.getExperience();
+            if (owned instanceof KiAttackData ownedKi && template instanceof KiAttackData templateKi) {
+                if (!templateKi.getAnimation().equals(ownedKi.getAnimation())) { ownedKi.setAnimation(templateKi.getAnimation()); changed = true; }
+            } else if (owned instanceof StrikeAttackData ownedStrike && template instanceof StrikeAttackData templateStrike) {
+                if (!templateStrike.getAnimationId().equals(ownedStrike.getAnimationId()) || templateStrike.getDurationTicks() != ownedStrike.getDurationTicks()) {
+                    ownedStrike.setAnimationId(templateStrike.getAnimationId()); ownedStrike.setDurationTicks(templateStrike.getDurationTicks()); changed = true;
+                }
+            }
+            owned.setExperience(experience);
+        }
+        return changed;
     }
 
     private static boolean persist(String fileName, Object config) {
