@@ -1,0 +1,9 @@
+Unofficial DMZ Addon 10.3.2
+
+Changes and fixes
+
+- Restored full control of DragonMineZ's first-person character model to its official in-game setting while retaining the space-pod camera safety behavior.
+- Replaced the Custom Forms Creator's shader-dependent aura preview with a correctly sized, smoothly animated color preview that does not render an opaque rectangle.
+- Added the missing VIT multiplier to player-created Custom Forms.
+- Added transformation-scoped Ultra Ego growth: taking damage progressively increases all stats, while death or detransformation resets the bonus before the next activation.
+- Prevented DragonMineZ space pods from travelling directly to dimensions whose corresponding planet is currently destroyed.

@@ -13,6 +13,8 @@ public final class UnofficialDMZConfig {
     public static final ForgeConfigSpec.DoubleValue UI_SIGN_STAMINA_DRAIN;
     public static final ForgeConfigSpec.DoubleValue UI_MASTERED_STAMINA_DRAIN;
     public static final ForgeConfigSpec.DoubleValue UI_TRUE_STAMINA_DRAIN;
+    public static final ForgeConfigSpec.DoubleValue ULTRA_EGO_DAMAGE_POWER_GAIN;
+    public static final ForgeConfigSpec.DoubleValue ULTRA_EGO_DAMAGE_POWER_CAP;
     public static final ForgeConfigSpec.BooleanValue PERSISTENT_GOD_AURAS;
     public static final ForgeConfigSpec.BooleanValue SPECIAL_FORM_BUFFS;
     public static final ForgeConfigSpec.BooleanValue SAIYAN_BEAST_FORM;
@@ -84,6 +86,10 @@ public final class UnofficialDMZConfig {
                 .defineInRange("mastered_ultra_instinct_stamina_drain", 0.032D, 0.0D, 0.5D);
         UI_TRUE_STAMINA_DRAIN = builder.comment("Stamina/exhaustion drain for True Ultra Instinct")
                 .defineInRange("true_ultra_instinct_stamina_drain", 0.045D, 0.0D, 0.5D);
+        ULTRA_EGO_DAMAGE_POWER_GAIN = builder.comment("Stat bonus accumulated after taking damage equal to the user's maximum health")
+                .defineInRange("ultra_ego_damage_power_gain", 0.075D, 0.0D, 2.0D);
+        ULTRA_EGO_DAMAGE_POWER_CAP = builder.comment("Maximum accumulated Ultra Ego stat bonus; the default preserves Orange Form's higher tier")
+                .defineInRange("ultra_ego_damage_power_cap", 0.075D, 0.0D, 2.0D);
         PERSISTENT_GOD_AURAS = builder.define("persistent_god_form_auras", true);
         SPECIAL_FORM_BUFFS = builder.define("special_form_buffs", true);
         SAIYAN_BEAST_FORM = builder.define("saiyan_beast", true);

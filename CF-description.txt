@@ -16,7 +16,7 @@
 ### Transformations and progression
 
 * **Universal Ultra Instinct** for every race: Sign, Mastered, and True Ultra Instinct. Successful dodges cancel incoming attacks and use synchronized effects with DragonMineZ's native randomized evasion animations. Dodge reliability improves with each tier, while exhaustion is balanced separately per form.
-* **Universal Ultra Ego** for every race as one independent form. Its power rises as health falls, and its aggressive purple aura bursts outward when the user is hit.
+* **Universal Ultra Ego** for every race as one independent form. Taking damage progressively raises its stats for the current transformation, resetting on death or detransformation, while its aggressive purple aura bursts outward when the user is hit.
 * **Saiyan forms**: Super Saiyan God, Super Saiyan Blue, Super Saiyan Rosé, Super Saiyan Blue Evolved, Super Saiyan Rosé Evolved, Super Saiyan Rage, and Beast. Blue and Blue Evolved belong to the non-Evil path; Rosé and Rosé Evolved are their Evil-path counterparts. Blue can combine its native blue visuals with a separate Kaioken overlay, while Blue Evolved and Rosé Evolved do not stack with Kaioken.
 * **Race forms**: Namekian Orange, Frost Demon Golden and Black, and Alien Full Power.
 * **Ascending endgame balance**: Blue Evolved and Rosé Evolved lead into Ultra Instinct Sign, Mastered Ultra Instinct, True Ultra Instinct and Ultra Ego, Orange, Black, and finally Beast. Their shared mastery scale preserves that order at every mastery level.

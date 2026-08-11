@@ -78,6 +78,7 @@ public record CustomFormDefinition(String id, String name, String race, String h
         form.setStrMultiplier(multiplier);
         form.setSkpMultiplier(multiplier);
         form.setDefMultiplier(Math.max(1.0D, multiplier * 0.82D));
+        form.setVitMultiplier(multiplier);
         form.setPwrMultiplier(multiplier);
         form.setSpeedMultiplier(Math.min(2.0D, 1.0D + (multiplier - 1.0D) * 0.2D));
         form.setEnergyDrain(energyDrain);

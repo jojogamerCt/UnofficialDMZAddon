@@ -61,7 +61,8 @@ public abstract class SpacePodTravelMixin {
                 // The scoreboard tag used by the menu can briefly be stale after a return trip.
                 // Authorize repeated travel from the authoritative DMZ skill and refresh the tag.
                 player.addTag(SpaceEnvironmentHandler.FLY_UNLOCK_TAG);
-            } else if (!destination.unlockRules().test(player)) {
+            } else if (!destination.unlockRules().test(player)
+                    || SpaceEnvironmentHandler.isPlanetDestroyed(player, targetId)) {
                 return;
             }
             ServerLevel targetLevel = player.server.getLevel(targetKey);

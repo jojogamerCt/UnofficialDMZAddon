@@ -5,7 +5,6 @@ import com.dragonminez.client.gui.buttons.ColorSlider;
 import com.dragonminez.client.gui.buttons.CustomTextureButton;
 import com.dragonminez.client.gui.buttons.TexturedTextButton;
 import com.dragonminez.client.gui.character.util.BaseMenuScreen;
-import com.dragonminez.client.render.effects.AuraRenderer;
 import com.dragonminez.client.render.layer.DMZSkinLayer;
 import com.dragonminez.client.util.ColorUtils;
 import com.dragonminez.client.util.TextUtil;
@@ -24,7 +23,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Player;
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZConfig;
@@ -44,6 +42,10 @@ import java.util.UUID;
 public final class CustomFormsScreen extends BaseMenuScreen {
     private static final ResourceLocation MENU_BIG = ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/menu/menubig.png");
     private static final ResourceLocation BUTTONS = ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/buttons/characterbuttons.png");
+    private static final ResourceLocation AURA_PREVIEW = ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID,
+            "textures/entity/races/aura/kakarot_aura.png");
+    private static final int AURA_FRAME_SIZE = 1024;
+    private static final int AURA_SHEET_WIDTH = AURA_FRAME_SIZE * 4;
     private static final String PREVIEW_GROUP = "unofficialdmzaddon_custom_form_preview";
     private static final String PREVIEW_FORM = "preview";
     private static final String[] HAIR_TYPES = {"base", "ssj", "ssj2", "ssj3"};
@@ -492,17 +494,12 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         player.xRotO = playerPitch;
         player.yHeadRot = playerRotation;
         player.yHeadRotO = playerRotation;
-        Matrix4f projection = new Matrix4f().ortho(0, mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), 0, -10000, 10000);
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, 320);
         DMZSkinLayer.PREVIEW_MODE = true;
         try {
+            if (editing && page == 3) renderAuraPreview(graphics, player, preview, centerX, baseY, scale, partialTick);
             InventoryScreen.renderEntityInInventory(graphics, centerX, baseY, scale, pose, camera, player);
-            // Aura rendering uses its own shader and buffered render types. Flush it while the
-            // preview form is still active so its state can never tint DMZ's menu textures.
-            if (editing && page == 3) {
-                AuraRenderer.renderGuiAura(player, graphics.pose(), projection, centerX, baseY, scale, partialTick, true);
-            }
             graphics.flush();
         } finally {
             DMZSkinLayer.PREVIEW_MODE = false;
@@ -519,6 +516,44 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             player.yHeadRotO = headOld;
             resetGuiRenderState(graphics);
         }
+    }
+
+    /**
+     * Draws an animated aura frame with additive blending. The source spritesheet has an opaque
+     * black background, so additive blending keeps black pixels invisible and avoids the solid
+     * rectangle produced when the world aura shader is used in some scaled menu configurations.
+     */
+    private void renderAuraPreview(GuiGraphics graphics, Player player, CustomFormDefinition preview,
+                                   int centerX, int baseY, int modelScale, float partialTick) {
+        float animation = (player.tickCount + partialTick) * 0.5F;
+        int frame = Math.floorMod((int) Math.floor(animation), 4);
+        int nextFrame = (frame + 1) % 4;
+        float frameBlend = animation - (float) Math.floor(animation);
+
+        // The creator renders its character at roughly twice the visual scale of DMZ's regular
+        // GUI aura target. Keep the aura proportional to that preview rather than torso-sized.
+        int width = Math.round(modelScale * 4.5F);
+        int height = Math.round(modelScale * 4.5F);
+        int x = centerX - width / 2;
+        int y = baseY - height + Math.round(modelScale * 0.45F);
+        float[] rgb = ColorUtils.hexToRgb(preview.auraColor());
+
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, frame, 0.82F * (1.0F - frameBlend));
+        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, nextFrame, 0.82F * frameBlend);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.defaultBlendFunc();
+    }
+
+    private void drawAuraPreviewFrame(GuiGraphics graphics, float[] rgb, int x, int y,
+                                      int width, int height, int frame, float alpha) {
+        if (alpha <= 0.001F) return;
+        RenderSystem.setShaderColor(rgb[0], rgb[1], rgb[2], alpha);
+        graphics.blit(AURA_PREVIEW, x, y, width, height,
+                frame * AURA_FRAME_SIZE, 0.0F, AURA_FRAME_SIZE, AURA_FRAME_SIZE,
+                AURA_SHEET_WIDTH, AURA_FRAME_SIZE);
     }
 
     private void resetGuiRenderState(GuiGraphics graphics) {

@@ -46,7 +46,7 @@ public final class SpaceEnvironmentHandler {
 
     private final Set<UUID> weightlessPlayers = new HashSet<>();
     private final Map<UUID, FlightAbilities> previousFlightAbilities = new HashMap<>();
-    private final Map<UUID, long[]> destroyedPlanets = new HashMap<>();
+    private static final Map<UUID, long[]> DESTROYED_PLANETS = new HashMap<>();
     private final Map<UUID, Long> lastTravel = new HashMap<>();
     private final Map<UUID, SpaceEntry> pendingSpaceEntries = new HashMap<>();
     private final Map<UUID, ResourceLocation> pendingPlanetEntries = new HashMap<>();
@@ -352,7 +352,7 @@ public final class SpaceEnvironmentHandler {
     private void processPlanets(ServerLevel space, ServerPlayer player, List<AbstractKiProjectile> projectiles,
                                 long gameTime) {
         UUID playerId = player.getUUID();
-        long[] destroyed = destroyedPlanets.computeIfAbsent(playerId, ignored -> freshDestroyedArray());
+        long[] destroyed = DESTROYED_PLANETS.computeIfAbsent(playerId, ignored -> freshDestroyedArray());
         Vec3 travelPosition = player.getVehicle() instanceof SpacePodEntity pod ? pod.position() : player.position();
         Vec3 previousTravelPosition = previousTravelPositions.getOrDefault(playerId, travelPosition);
         if (processCelestialTravel(space, player, previousTravelPosition, travelPosition, gameTime)) return;
@@ -441,6 +441,23 @@ public final class SpaceEnvironmentHandler {
                 .findFirst()
                 .map(destination -> destination.unlockRules().test(player))
                 .orElse(true);
+    }
+
+    /** Server-authoritative destination guard shared with the native space-pod packet handler. */
+    public static boolean isPlanetDestroyed(ServerPlayer player, ResourceLocation dimension) {
+        long[] destroyed = DESTROYED_PLANETS.get(player.getUUID());
+        if (destroyed == null) return false;
+        long gameTime = player.server.overworld().getGameTime();
+        for (int index = 0; index < SpacePlanetSystem.PLANETS.size(); index++) {
+            if (!SpacePlanetSystem.PLANETS.get(index).dimension().equals(dimension)) continue;
+            if (destroyed[index] >= 0L
+                    && gameTime - destroyed[index] >= SpacePlanetSystem.RESPAWN_TICKS) {
+                destroyed[index] = -1L;
+                return false;
+            }
+            return SpacePlanetSystem.isDestroyed(gameTime, destroyed[index]);
+        }
+        return false;
     }
 
     private static void putOnEvilPath(ServerPlayer player) {
@@ -566,7 +583,7 @@ public final class SpaceEnvironmentHandler {
     public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         UUID playerId = event.getEntity().getUUID();
         if (weightlessPlayers.remove(playerId)) restorePlayer(event.getEntity());
-        destroyedPlanets.remove(playerId);
+        DESTROYED_PLANETS.remove(playerId);
         lastTravel.remove(playerId);
         pendingSpaceEntries.remove(playerId);
         pendingPlanetEntries.remove(playerId);
