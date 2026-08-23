@@ -1,0 +1,12 @@
+Unofficial DMZ Addon 10.4.0
+
+- Ki techniques use DragonMineZ's native charge/release lifecycle and native Ki entities/particles for compatibility and canon behavior.
+- Planet Burst uses a dedicated right-arm charging animation.
+- Tri-Beam fires a true triangular Ki beam volume, detects targets against their real dimensions, and creates a Ki explosion on impact.
+- Hellzone Grenade progressively creates Ki spheres around the aimed point while charging, holds them in formation, then converges and explodes them on release.
+- The addon remains Ki-technique focused; removed custom strike attacks stay removed.
+- Custom Forms Creator previews enabled outlines through Minecraft's real entity-outline pass with live outline-color changes.
+- Alien Full Power combat multipliers are balanced above Ultra Instinct Sign and below Mastered Ultra Instinct across superform skill levels.
+- Custom-form creation and upgrade TP pricing is substantially higher while still rewarding forms that accept meaningful Ki drain.
+- Updated the mod description to: "Unofficial DMZ Addon is an addon for our beloved DragonMine Z that adds new features and mechanics."
+- Build and development runs now use DragonMineZ 2.1.3 as an external mod dependency, preferring libs/dragonminez-2.1.3.jar locally and using the matching Curse Maven artifact when the local JAR is absent.
