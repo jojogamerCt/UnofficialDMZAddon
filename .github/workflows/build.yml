@@ -27,6 +27,72 @@ jobs:
           git add .build-run-id
           git commit -m "Record build run"
           git push origin HEAD:master
+      - name: Align source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/main/java/org/unofficial/unofficialdmzaddon/client/CustomFormsScreen.java')
+          s = p.read_text()
+          if 'import net.minecraft.client.renderer.OutlineBufferSource;' not in s:
+              replacements = [
+                  ('import com.mojang.blaze3d.systems.RenderSystem;\n', 'import com.mojang.blaze3d.platform.Lighting;\nimport com.mojang.blaze3d.systems.RenderSystem;\n'),
+                  ('import net.minecraft.client.renderer.GameRenderer;\n', 'import net.minecraft.client.renderer.GameRenderer;\nimport net.minecraft.client.renderer.OutlineBufferSource;\nimport net.minecraft.client.renderer.entity.EntityRenderDispatcher;\n'),
+                  ('import org.joml.Quaternionf;\n', 'import org.joml.Quaternionf;\nimport org.joml.Matrix4f;\n'),
+                  ('renderOutlinePreview(graphics, player, preview, centerX, baseY, scale, partialTick);', 'renderOutlinePreview(graphics, player, preview, centerX, baseY, scale, pose, camera);'),
+              ]
+              for old, new in replacements:
+                  if s.count(old) != 1:
+                      raise SystemExit(f'Expected one occurrence: {old!r}; found {s.count(old)}')
+                  s = s.replace(old, new, 1)
+              start = s.index('    /**\n     * The world outline is a post-process applied to the main framebuffer')
+              end = s.index('    private void resetGuiRenderState', start)
+              method = '''    /** Renders the preview model through Minecraft's real entity-outline buffer. */
+    private void renderOutlinePreview(GuiGraphics graphics, Player player, CustomFormDefinition preview,
+                                      int centerX, int baseY, int modelScale,
+                                      Quaternionf pose, Quaternionf camera) {
+        float[] rgb = ColorUtils.hexToRgb(preview.auraOutlineColor());
+        Minecraft minecraft = Minecraft.getInstance();
+        EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
+        OutlineBufferSource outlines = minecraft.renderBuffers().outlineBufferSource();
+
+        graphics.flush();
+        graphics.pose().pushPose();
+        graphics.pose().translate(centerX, baseY, 50.0D);
+        graphics.pose().mulPoseMatrix(new Matrix4f().scaling(modelScale, modelScale, -modelScale));
+        graphics.pose().mulPose(new Quaternionf(pose));
+        Lighting.setupForEntityInInventory();
+        dispatcher.overrideCameraOrientation(new Quaternionf(camera).conjugate());
+        dispatcher.setRenderShadow(false);
+        outlines.setColor(
+                Mth.clamp(Math.round(rgb[0] * 255.0F), 0, 255),
+                Mth.clamp(Math.round(rgb[1] * 255.0F), 0, 255),
+                Mth.clamp(Math.round(rgb[2] * 255.0F), 0, 255),
+                255);
+        try {
+            dispatcher.render(player, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F,
+                    graphics.pose(), outlines, 0xF000F0);
+            // The preview mixin composites this mask through Minecraft's actual entity-outline
+            // post pass at the end of this batch, preserving the same silhouette and live color.
+            outlines.endOutlineBatch();
+        } finally {
+            dispatcher.setRenderShadow(true);
+            graphics.pose().popPose();
+            Lighting.setupFor3DItems();
+        }
+    }
+
+'''
+              s = s[:start] + method + s[end:]
+              p.write_text(s)
+          PY
+          git rm -f dragonminez 2>/dev/null || true
+          git add src/main/java/org/unofficial/unofficialdmzaddon/client/CustomFormsScreen.java
+          if ! git diff --cached --quiet; then
+            git commit -m "Align 10.4.0 source tree"
+            git push origin HEAD:master
+          fi
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
