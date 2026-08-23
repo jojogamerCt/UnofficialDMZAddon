@@ -13,7 +13,9 @@ import java.util.Arrays;
 
 @Mixin(value = DMZPlayerModel.class, remap = false)
 public abstract class DMZPlayerModelAnimationMixin {
-    private static final ResourceLocation ADDON_ANIMATIONS = new ResourceLocation(UnofficialDMZAddon.MODID, "animations/player/canon_techniques.animation.json");
+    private static final ResourceLocation ADDON_ANIMATIONS =
+            new ResourceLocation(UnofficialDMZAddon.MODID, "animations/player/canon_techniques.animation.json");
+
     @Inject(method = "getAnimationResourceFallbacks", at = @At("RETURN"), cancellable = true)
     private void unofficial$appendAnimations(AbstractClientPlayer player, CallbackInfoReturnable<ResourceLocation[]> cir) {
         ResourceLocation[] existing = cir.getReturnValue();
