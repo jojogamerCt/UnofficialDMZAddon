@@ -12,18 +12,22 @@ import com.dragonminez.common.config.ConfigManager;
 import com.dragonminez.common.config.FormConfig;
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.OutlineBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Player;
 import org.joml.Quaternionf;
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZConfig;
 import org.unofficial.unofficialdmzaddon.dmz.CustomFormDefinition;
@@ -538,7 +542,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             }
             if (editing && page == 4 && preview.auraOutlineEnabled()
                     && UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) {
-                renderOutlinePreview(graphics, player, preview, centerX, baseY, scale, partialTick);
+                renderOutlinePreview(graphics, player, preview, centerX, baseY, scale, pose, camera);
             }
             InventoryScreen.renderEntityInInventory(graphics, centerX, baseY, scale, pose, camera, player);
             graphics.flush();
@@ -614,30 +618,37 @@ public final class CustomFormsScreen extends BaseMenuScreen {
                 AURA_SHEET_WIDTH, AURA_FRAME_SIZE);
     }
 
-    /**
-     * The world outline is a post-process applied to the main framebuffer, so it cannot surround
-     * InventoryScreen's separate GUI entity render. A tight, additive pass from the same clean DMZ
-     * aura mask provides the creator with an immediate and color-accurate preview of that border.
-     */
+    /** Renders the preview model through Minecraft's real entity-outline buffer. */
     private void renderOutlinePreview(GuiGraphics graphics, Player player, CustomFormDefinition preview,
-                                      int centerX, int baseY, int modelScale, float partialTick) {
-        float animation = (player.tickCount + partialTick) * 0.7F;
-        int frame = Math.floorMod((int) Math.floor(animation), 4);
-        int nextFrame = (frame + 1) % 4;
-        float blend = animation - (float) Math.floor(animation);
-        int width = Math.round(modelScale * 2.35F);
-        int height = Math.round(modelScale * 3.2F);
-        int x = centerX - width / 2;
-        int y = baseY - height + Math.round(modelScale * 0.25F);
+                                      int centerX, int baseY, int modelScale,
+                                      Quaternionf pose, Quaternionf camera) {
         float[] rgb = ColorUtils.hexToRgb(preview.auraOutlineColor());
+        Minecraft minecraft = Minecraft.getInstance();
+        EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
+        OutlineBufferSource outlines = minecraft.renderBuffers().outlineBufferSource();
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, frame, 0.95F * (1.0F - blend));
-        drawAuraPreviewFrame(graphics, rgb, x, y, width, height, nextFrame, 0.95F * blend);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.defaultBlendFunc();
+        graphics.flush();
+        graphics.pose().pushPose();
+        graphics.pose().translate(centerX, baseY, 50.0D);
+        graphics.pose().mulPoseMatrix(new Matrix4f().scaling(modelScale, modelScale, -modelScale));
+        graphics.pose().mulPose(new Quaternionf(pose));
+        Lighting.setupForEntityInInventory();
+        dispatcher.overrideCameraOrientation(new Quaternionf(camera).conjugate());
+        dispatcher.setRenderShadow(false);
+        outlines.setColor(
+                Mth.clamp(Math.round(rgb[0] * 255.0F), 0, 255),
+                Mth.clamp(Math.round(rgb[1] * 255.0F), 0, 255),
+                Mth.clamp(Math.round(rgb[2] * 255.0F), 0, 255),
+                255);
+        try {
+            dispatcher.render(player, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F,
+                    graphics.pose(), outlines, 0xF000F0);
+            outlines.endOutlineBatch();
+        } finally {
+            dispatcher.setRenderShadow(true);
+            graphics.pose().popPose();
+            Lighting.setupFor3DItems();
+        }
     }
 
     private void resetGuiRenderState(GuiGraphics graphics) {
