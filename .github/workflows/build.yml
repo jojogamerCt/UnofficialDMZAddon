@@ -3,6 +3,7 @@ name: Build
 on:
   push:
     branches: [ master ]
+    paths: [ '.build-trigger' ]
   workflow_dispatch:
 
 permissions:
