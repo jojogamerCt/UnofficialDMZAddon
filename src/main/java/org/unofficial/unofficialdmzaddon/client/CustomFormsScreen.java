@@ -15,8 +15,14 @@ import com.dragonminez.common.config.ConfigManager;
 import com.dragonminez.common.config.FormConfig;
 import com.dragonminez.common.stats.StatsCapability;
 import com.dragonminez.common.stats.StatsProvider;
+import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -94,6 +100,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
     private double lastMouseX;
     private double lastMouseY;
     private PostChain outlinePreviewChain;
+    private TextureTarget outlinePreviewTarget;
     private int outlinePreviewWidth = -1;
     private int outlinePreviewHeight = -1;
 
@@ -628,8 +635,10 @@ public final class CustomFormsScreen extends BaseMenuScreen {
     }
 
     /**
-     * Renders the creator preview through DragonMineZ's transformation-mask post shader, the
-     * same outline path used by Ikari and by saved custom forms in normal gameplay.
+     * Renders the creator preview through DragonMineZ's transformation-mask post shader without
+     * ever running that post-chain against Minecraft's real main framebuffer. The chain renders
+     * into a private black target and only its additive RGB result is composited back into the GUI.
+     * This preserves DMZ's Ikari/custom-form outline while keeping the creator UI and model intact.
      */
     private void renderOutlinePreview(GuiGraphics graphics, Player player, CustomFormDefinition preview,
                                       int centerX, int baseY, int modelScale,
@@ -640,7 +649,7 @@ public final class CustomFormsScreen extends BaseMenuScreen {
 
         Minecraft minecraft = Minecraft.getInstance();
         PostChain chain = outlinePreviewChain(minecraft);
-        if (chain == null) return;
+        if (chain == null || outlinePreviewTarget == null) return;
         var maskTarget = chain.getTempTarget("entity_mask");
         if (maskTarget == null) return;
 
@@ -669,34 +678,38 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             Lighting.setupFor3DItems();
         }
 
+        outlinePreviewTarget.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+        outlinePreviewTarget.clear(Minecraft.ON_OSX);
         try {
+            maskTarget.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
             maskTarget.clear(Minecraft.ON_OSX);
-            maskTarget.copyDepthFrom(minecraft.getMainRenderTarget());
+            maskTarget.copyDepthFrom(outlinePreviewTarget);
             TransformationMaskRenderState.setCurrentTargets(maskTarget);
             maskSource.endMaskBatch();
         } finally {
             TransformationMaskRenderState.setCurrentTargets(null);
-            minecraft.getMainRenderTarget().bindWrite(false);
         }
 
         configureOutlinePreviewUniforms(chain, outline, player.tickCount + partialTick);
         chain.process(partialTick);
         minecraft.getMainRenderTarget().bindWrite(false);
+        compositeOutlinePreview(minecraft);
         resetRawRenderState();
     }
 
     private PostChain outlinePreviewChain(Minecraft minecraft) {
-        int width = minecraft.getWindow().getWidth();
-        int height = minecraft.getWindow().getHeight();
-        if (outlinePreviewChain != null && (outlinePreviewWidth != width || outlinePreviewHeight != height)) {
-            outlinePreviewChain.resize(width, height);
-            outlinePreviewWidth = width;
-            outlinePreviewHeight = height;
+        int width = minecraft.getMainRenderTarget().width;
+        int height = minecraft.getMainRenderTarget().height;
+        if (outlinePreviewChain != null && outlinePreviewTarget != null
+                && outlinePreviewWidth == width && outlinePreviewHeight == height) {
+            return outlinePreviewChain;
         }
-        if (outlinePreviewChain != null) return outlinePreviewChain;
+        closeOutlinePreviewChain();
         try {
+            outlinePreviewTarget = new TextureTarget(width, height, true, Minecraft.ON_OSX);
+            outlinePreviewTarget.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
             outlinePreviewChain = new PostChain(minecraft.getTextureManager(), minecraft.getResourceManager(),
-                    minecraft.getMainRenderTarget(),
+                    outlinePreviewTarget,
                     ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "shaders/post/transformation_outline.json"));
             outlinePreviewChain.resize(width, height);
             outlinePreviewWidth = width;
@@ -706,6 +719,33 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             closeOutlinePreviewChain();
             return null;
         }
+    }
+
+    private void compositeOutlinePreview(Minecraft minecraft) {
+        if (outlinePreviewTarget == null) return;
+        int width = minecraft.getWindow().getGuiScaledWidth();
+        int height = minecraft.getWindow().getGuiScaledHeight();
+
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GL11.GL_ONE, GL11.GL_ONE);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, outlinePreviewTarget.getColorTextureId());
+
+        Matrix4f identity = new Matrix4f();
+        BufferBuilder builder = Tesselator.getInstance().getBuilder();
+        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        builder.vertex(identity, 0.0F, height, 0.0F).uv(0.0F, 0.0F).endVertex();
+        builder.vertex(identity, width, height, 0.0F).uv(1.0F, 0.0F).endVertex();
+        builder.vertex(identity, width, 0.0F, 0.0F).uv(1.0F, 1.0F).endVertex();
+        builder.vertex(identity, 0.0F, 0.0F, 0.0F).uv(0.0F, 1.0F).endVertex();
+        BufferUploader.drawWithShader(builder.end());
+
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
     }
 
     private void configureOutlinePreviewUniforms(PostChain chain,
@@ -737,6 +777,10 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         if (outlinePreviewChain != null) {
             outlinePreviewChain.close();
             outlinePreviewChain = null;
+        }
+        if (outlinePreviewTarget != null) {
+            outlinePreviewTarget.destroyBuffers();
+            outlinePreviewTarget = null;
         }
         outlinePreviewWidth = -1;
         outlinePreviewHeight = -1;
