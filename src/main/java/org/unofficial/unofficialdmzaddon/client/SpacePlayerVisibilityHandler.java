@@ -9,7 +9,6 @@ import net.minecraftforge.fml.common.Mod;
 import org.unofficial.unofficialdmzaddon.UnofficialDMZAddon;
 import org.unofficial.unofficialdmzaddon.space.SpaceDimension;
 
-/** Prevents forced space flight from making the local DMZ race model disappear. */
 @Mod.EventBusSubscriber(modid = UnofficialDMZAddon.MODID, value = Dist.CLIENT)
 public final class SpacePlayerVisibilityHandler {
     private SpacePlayerVisibilityHandler() {}
