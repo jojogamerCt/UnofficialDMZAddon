@@ -8,9 +8,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = OutlineBufferSource.class, remap = false)
+/** Composites the Custom Forms Creator mask with Minecraft's real entity-outline pass. */
+@Mixin(OutlineBufferSource.class)
 public abstract class CustomFormOutlinePreviewMixin {
-    @Inject(method = "m_109928_", at = @At("TAIL"), remap = false)
+    @Inject(method = "endOutlineBatch", at = @At("TAIL"))
     private void unofficialdmzaddon$renderLiveCustomFormOutline(CallbackInfo ci) {
         if (!DMZSkinLayer.PREVIEW_MODE) return;
         Minecraft minecraft = Minecraft.getInstance();
