@@ -14,6 +14,16 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: Record run
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$GITHUB_RUN_ID" > .build-run-id
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .build-run-id
+          git commit -m "Record build run"
+          git push origin HEAD:master
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -38,13 +48,3 @@ jobs:
           path: UnofficialDMZAddon-10.4.0.jar
           if-no-files-found: error
           compression-level: 0
-      - name: Record run
-        shell: bash
-        run: |
-          set -euo pipefail
-          printf '%s\n' "$GITHUB_RUN_ID" > .build-run-id
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .build-run-id
-          git commit -m "Record build run"
-          git push origin HEAD:master
