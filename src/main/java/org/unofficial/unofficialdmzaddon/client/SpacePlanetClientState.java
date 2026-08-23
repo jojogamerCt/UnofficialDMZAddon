@@ -16,7 +16,6 @@ import org.unofficial.unofficialdmzaddon.space.SpacePlanetSystem;
 import java.util.Arrays;
 import java.util.List;
 
-/** Client mirror for smooth destruction, explosion, fade-out, and five-minute respawn visuals. */
 @Mod.EventBusSubscriber(modid = UnofficialDMZAddon.MODID, value = Dist.CLIENT)
 public final class SpacePlanetClientState {
     private static final long[] DESTROYED_AT = new long[SpacePlanetSystem.PLANETS.size()];
@@ -25,8 +24,7 @@ public final class SpacePlanetClientState {
         Arrays.fill(DESTROYED_AT, -1L);
     }
 
-    private SpacePlanetClientState() {
-    }
+    private SpacePlanetClientState() {}
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
@@ -42,8 +40,7 @@ public final class SpacePlanetClientState {
 
         for (SpacePlanetSystem.PlanetPlacement placement : placements) {
             int index = placement.index();
-            if (DESTROYED_AT[index] >= 0L
-                    && gameTime - DESTROYED_AT[index] >= SpacePlanetSystem.RESPAWN_TICKS) {
+            if (DESTROYED_AT[index] >= 0L && gameTime - DESTROYED_AT[index] >= SpacePlanetSystem.RESPAWN_TICKS) {
                 DESTROYED_AT[index] = -1L;
             }
             if (!isUnlocked(player, placement)) continue;
