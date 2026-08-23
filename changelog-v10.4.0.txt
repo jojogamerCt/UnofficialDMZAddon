@@ -5,7 +5,7 @@ Unofficial DMZ Addon 10.4.0
 - Tri-Beam fires a true triangular Ki beam volume, detects targets against their real dimensions, and creates a Ki explosion on impact.
 - Hellzone Grenade progressively creates Ki spheres around the aimed point while charging, holds them in formation, then converges and explodes them on release.
 - The addon remains Ki-technique focused; removed custom strike attacks stay removed.
-- Custom Forms Creator previews use DragonMineZ's native transformation outline shader, matching Ikari and saved custom forms without affecting the creator UI.
+- Custom Forms Creator outline previews run DragonMineZ's Ikari/custom-form transformation shader in a private off-screen framebuffer and add only its glow result back to the preview, leaving the player model and creator UI untouched.
 - Alien Full Power combat multipliers are balanced above Ultra Instinct Sign and below Mastered Ultra Instinct across superform skill levels.
 - Custom-form creation and upgrade TP pricing is substantially higher while still rewarding forms that accept meaningful Ki drain.
 - Updated the mod description to: "Unofficial DMZ Addon is an addon for our beloved DragonMine Z that adds new features and mechanics."
