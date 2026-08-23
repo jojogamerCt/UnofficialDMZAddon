@@ -15,8 +15,7 @@
     "GeneralUserConfigMixin",
     "TrainingRewardSnakeMixin",
     "CustomFormOwnershipMixin",
-    "TechniqueDispatcherMixin",
-    "StrikeAttackHandlerMixin"
+    "TechniqueDispatcherMixin"
   ],
   "client": [
     "AlienBuffedModelMixin",
@@ -38,7 +37,8 @@
     "LanguageMixin",
     "MinigamesScreenMixin",
     "BaseMenuCustomFormsMixin",
-    "DMZPlayerModelAnimationMixin"
+    "DMZPlayerModelAnimationMixin",
+    "CustomFormOutlinePreviewMixin"
   ],
   "injectors": {
     "defaultRequire": 1
