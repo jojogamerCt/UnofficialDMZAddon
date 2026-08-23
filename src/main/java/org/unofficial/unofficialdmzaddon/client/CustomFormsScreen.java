@@ -6,6 +6,9 @@ import com.dragonminez.client.gui.buttons.CustomTextureButton;
 import com.dragonminez.client.gui.buttons.TexturedTextButton;
 import com.dragonminez.client.gui.character.util.BaseMenuScreen;
 import com.dragonminez.client.render.layer.DMZSkinLayer;
+import com.dragonminez.client.render.shader.TransformationMaskBufferSource;
+import com.dragonminez.client.render.shader.TransformationMaskRenderState;
+import com.dragonminez.mixin.client.PostChainAccessor;
 import com.dragonminez.client.util.ColorUtils;
 import com.dragonminez.client.util.TextUtil;
 import com.dragonminez.common.config.ConfigManager;
@@ -18,8 +21,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.renderer.EffectInstance;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.OutlineBufferSource;
+import net.minecraft.client.renderer.PostChain;
+import net.minecraft.client.renderer.PostPass;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -37,6 +42,7 @@ import org.unofficial.unofficialdmzaddon.network.DeleteCustomFormC2S;
 import org.unofficial.unofficialdmzaddon.network.SaveCustomFormC2S;
 import org.unofficial.unofficialdmzaddon.network.SelectCustomFormC2S;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -87,6 +93,9 @@ public final class CustomFormsScreen extends BaseMenuScreen {
     private boolean draggingModel;
     private double lastMouseX;
     private double lastMouseY;
+    private PostChain outlinePreviewChain;
+    private int outlinePreviewWidth = -1;
+    private int outlinePreviewHeight = -1;
 
     public CustomFormsScreen() { super(Component.translatable("gui.unofficialdmzaddon.custom_forms")); }
 
@@ -540,12 +549,12 @@ public final class CustomFormsScreen extends BaseMenuScreen {
             if (editing && (page == 3 || page == 4)) {
                 renderAuraPreview(graphics, player, preview, centerX, baseY, scale, partialTick);
             }
-            if (editing && page == 4 && preview.auraOutlineEnabled()
-                    && UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) {
-                renderOutlinePreview(graphics, player, preview, centerX, baseY, scale, pose, camera);
-            }
             InventoryScreen.renderEntityInInventory(graphics, centerX, baseY, scale, pose, camera, player);
             graphics.flush();
+            if (editing && page == 4 && preview.auraOutlineEnabled()
+                    && UnofficialDMZConfig.CUSTOM_FORMS_ALLOW_AURA_OUTLINE.get()) {
+                renderOutlinePreview(graphics, player, preview, centerX, baseY, scale, pose, camera, partialTick);
+            }
         } finally {
             DMZSkinLayer.PREVIEW_MODE = false;
             graphics.pose().popPose();
@@ -618,15 +627,31 @@ public final class CustomFormsScreen extends BaseMenuScreen {
                 AURA_SHEET_WIDTH, AURA_FRAME_SIZE);
     }
 
-    /** Renders the preview model through Minecraft's real entity-outline buffer. */
+    /**
+     * Renders the creator preview through DragonMineZ's transformation-mask post shader, the
+     * same outline path used by Ikari and by saved custom forms in normal gameplay.
+     */
     private void renderOutlinePreview(GuiGraphics graphics, Player player, CustomFormDefinition preview,
                                       int centerX, int baseY, int modelScale,
-                                      Quaternionf pose, Quaternionf camera) {
-        float[] rgb = ColorUtils.hexToRgb(preview.auraOutlineColor());
-        Minecraft minecraft = Minecraft.getInstance();
-        EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
-        OutlineBufferSource outlines = minecraft.renderBuffers().outlineBufferSource();
+                                      Quaternionf pose, Quaternionf camera, float partialTick) {
+        FormConfig.FormData formData = preview.toFormData();
+        FormConfig.FormData.OutlineShaderConfig outline = formData.getOutlineShader();
+        if (outline == null || !outline.isEnabled()) return;
 
+        Minecraft minecraft = Minecraft.getInstance();
+        PostChain chain = outlinePreviewChain(minecraft);
+        if (chain == null) return;
+        var maskTarget = chain.getTempTarget("entity_mask");
+        if (maskTarget == null) return;
+
+        float[] primary = ColorUtils.hexToRgb(outline.getPrimaryColor());
+        float[] secondary = ColorUtils.hexToRgb(outline.getSecondaryColor());
+        TransformationMaskBufferSource maskSource = new TransformationMaskBufferSource();
+        maskSource.setIncludeOriginal(false);
+        maskSource.setEntityColors(primary[0], primary[1], primary[2],
+                secondary[0], secondary[1], secondary[2]);
+
+        EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
         graphics.flush();
         graphics.pose().pushPose();
         graphics.pose().translate(centerX, baseY, 50.0D);
@@ -635,20 +660,86 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         Lighting.setupForEntityInInventory();
         dispatcher.overrideCameraOrientation(new Quaternionf(camera).conjugate());
         dispatcher.setRenderShadow(false);
-        outlines.setColor(
-                Mth.clamp(Math.round(rgb[0] * 255.0F), 0, 255),
-                Mth.clamp(Math.round(rgb[1] * 255.0F), 0, 255),
-                Mth.clamp(Math.round(rgb[2] * 255.0F), 0, 255),
-                255);
         try {
             dispatcher.render(player, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F,
-                    graphics.pose(), outlines, 0xF000F0);
-            outlines.endOutlineBatch();
+                    graphics.pose(), maskSource, 0xF000F0);
         } finally {
             dispatcher.setRenderShadow(true);
             graphics.pose().popPose();
             Lighting.setupFor3DItems();
         }
+
+        try {
+            maskTarget.clear(Minecraft.ON_OSX);
+            maskTarget.copyDepthFrom(minecraft.getMainRenderTarget());
+            TransformationMaskRenderState.setCurrentTargets(maskTarget);
+            maskSource.endMaskBatch();
+        } finally {
+            TransformationMaskRenderState.setCurrentTargets(null);
+            minecraft.getMainRenderTarget().bindWrite(false);
+        }
+
+        configureOutlinePreviewUniforms(chain, outline, player.tickCount + partialTick);
+        chain.process(partialTick);
+        minecraft.getMainRenderTarget().bindWrite(false);
+        resetRawRenderState();
+    }
+
+    private PostChain outlinePreviewChain(Minecraft minecraft) {
+        int width = minecraft.getWindow().getWidth();
+        int height = minecraft.getWindow().getHeight();
+        if (outlinePreviewChain != null && (outlinePreviewWidth != width || outlinePreviewHeight != height)) {
+            outlinePreviewChain.resize(width, height);
+            outlinePreviewWidth = width;
+            outlinePreviewHeight = height;
+        }
+        if (outlinePreviewChain != null) return outlinePreviewChain;
+        try {
+            outlinePreviewChain = new PostChain(minecraft.getTextureManager(), minecraft.getResourceManager(),
+                    minecraft.getMainRenderTarget(),
+                    ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "shaders/post/transformation_outline.json"));
+            outlinePreviewChain.resize(width, height);
+            outlinePreviewWidth = width;
+            outlinePreviewHeight = height;
+            return outlinePreviewChain;
+        } catch (IOException | RuntimeException ignored) {
+            closeOutlinePreviewChain();
+            return null;
+        }
+    }
+
+    private void configureOutlinePreviewUniforms(PostChain chain,
+                                                 FormConfig.FormData.OutlineShaderConfig outline,
+                                                 float animationTicks) {
+        float animationTime = animationTicks / 20.0F;
+        float blurRadius = Mth.clamp((float) outline.getOutlineThickness() * 3.0F, 2.0F, 14.0F);
+        for (PostPass pass : ((PostChainAccessor) chain).dragonminez$getPasses()) {
+            EffectInstance effect = pass.getEffect();
+            String name = pass.getName();
+            if ("dragonminez:transformation_unpack".equals(name)) {
+                setUniform(effect, "AnimationTime", animationTime);
+            } else if ("dragonminez:transformation_blur_h".equals(name)
+                    || "dragonminez:transformation_blur_v".equals(name)) {
+                setUniform(effect, "BloomRadius", blurRadius);
+            } else if ("dragonminez:transformation_composite".equals(name)) {
+                setUniform(effect, "BloomStrength", 0.95F);
+                setUniform(effect, "GlowStrength", 1.35F);
+            }
+        }
+    }
+
+    private void setUniform(EffectInstance effect, String name, float value) {
+        var uniform = effect.getUniform(name);
+        if (uniform != null) uniform.set(value);
+    }
+
+    private void closeOutlinePreviewChain() {
+        if (outlinePreviewChain != null) {
+            outlinePreviewChain.close();
+            outlinePreviewChain = null;
+        }
+        outlinePreviewWidth = -1;
+        outlinePreviewHeight = -1;
     }
 
     private void resetGuiRenderState(GuiGraphics graphics) {
@@ -690,6 +781,12 @@ public final class CustomFormsScreen extends BaseMenuScreen {
         for (int i = 0; i < lines.size(); i++) {
             TextUtil.drawCenteredStringWithBorder(graphics, font, lines.get(i), centerX, y + i * (font.lineHeight + 1), color);
         }
+    }
+
+    @Override
+    public void removed() {
+        closeOutlinePreviewChain();
+        super.removed();
     }
 
     @Override

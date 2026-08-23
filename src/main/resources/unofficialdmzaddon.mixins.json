@@ -37,8 +37,7 @@
     "LanguageMixin",
     "MinigamesScreenMixin",
     "BaseMenuCustomFormsMixin",
-    "DMZPlayerModelAnimationMixin",
-    "CustomFormOutlinePreviewMixin"
+    "DMZPlayerModelAnimationMixin"
   ],
   "injectors": {
     "defaultRequire": 1
