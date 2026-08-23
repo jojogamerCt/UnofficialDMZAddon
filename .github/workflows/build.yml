@@ -27,18 +27,6 @@ jobs:
           git add .build-run-id
           git commit -m "Record build run"
           git push origin HEAD:master
-      - name: Align source tree
-        shell: bash
-        run: |
-          set -euo pipefail
-          python .github/scripts/align_preview.py
-          git rm -f dragonminez 2>/dev/null || true
-          git rm -f .github/scripts/align_preview.py
-          git add src/main/java/org/unofficial/unofficialdmzaddon/client/CustomFormsScreen.java
-          if ! git diff --cached --quiet; then
-            git commit -m "Align 10.4.0 source tree"
-            git push origin HEAD:master
-          fi
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
