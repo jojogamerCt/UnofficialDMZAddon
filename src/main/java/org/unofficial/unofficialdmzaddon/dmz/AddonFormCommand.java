@@ -86,7 +86,6 @@ public final class AddonFormCommand {
         return result;
     }
 
-
     private static String canonicalAlias(String value) {
         return switch (value) {
             case "god", "ssjg", "super_saiyan_god" -> "super_saiyan_god";
@@ -97,6 +96,7 @@ public final class AddonFormCommand {
             default -> value;
         };
     }
+
     private static String normalize(String value) {
         return value == null ? "" : value.toLowerCase(Locale.ROOT).replace("-", "_").replace(" ", "_");
     }
