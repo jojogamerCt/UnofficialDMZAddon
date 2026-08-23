@@ -14,6 +14,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
       - name: Record run
         shell: bash
         run: |
@@ -30,7 +32,11 @@ jobs:
           java-version: '17'
           cache: gradle
       - name: Build
-        run: ./gradlew clean build --no-daemon --stacktrace
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew clean build --no-daemon --stacktrace
       - name: Verify artifact
         shell: bash
         run: |
