@@ -2,7 +2,6 @@ package org.unofficial.unofficialdmzaddon.dmz;
 
 import com.dragonminez.common.stats.StatsData;
 import com.dragonminez.common.util.TransformationsHelper;
-import org.unofficial.unofficialdmzaddon.dmz.UltraInstinctDefinitions;
 
 public final class DivineAuraHelper {
     private DivineAuraHelper() {}
@@ -11,7 +10,6 @@ public final class DivineAuraHelper {
         return hasPersistentGodAura(data) || isTrueUltraInstinct(data);
     }
 
-    /** Only God Forms own DragonMineZ's Aura Status; UI and UE render their signatures independently. */
     public static boolean hasPersistentGodAura(StatsData data) {
         return org.unofficial.unofficialdmzaddon.UnofficialDMZConfig.PERSISTENT_GOD_AURAS.get()
                 && TransformationsHelper.hasGodFormActive(data);
@@ -27,8 +25,7 @@ public final class DivineAuraHelper {
     }
 
     public static boolean isTrueUltraInstinct(StatsData data) {
-        return isUltraInstinct(data) && UltraInstinctDefinitions.FORM_TRUE.equalsIgnoreCase(
-                data.getCharacter().getActiveForm());
+        return isUltraInstinct(data) && UltraInstinctDefinitions.FORM_TRUE.equalsIgnoreCase(data.getCharacter().getActiveForm());
     }
 
     public static boolean isUltraEgo(StatsData data) {
