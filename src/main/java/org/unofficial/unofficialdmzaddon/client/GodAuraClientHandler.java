@@ -36,7 +36,6 @@ public final class GodAuraClientHandler {
         }));
     }
 
-    /** Sparse, pale rising motes simulate the refractive heat shimmer seen around UI and MUI. */
     private static void spawnUltraInstinctHeatHaze(Player player, StatsData data) {
         if (player.getRandom().nextFloat() > 0.58F) return;
         boolean mastered = data.getCharacter().getActiveForm() != null
