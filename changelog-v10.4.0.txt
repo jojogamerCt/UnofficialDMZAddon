@@ -10,3 +10,4 @@ Unofficial DMZ Addon 10.4.0
 - Custom-form creation and upgrade TP pricing is substantially higher while still rewarding forms that accept meaningful Ki drain.
 - Updated the mod description to: "Unofficial DMZ Addon is an addon for our beloved DragonMine Z that adds new features and mechanics."
 - Build and development runs now use DragonMineZ 2.1.3 as an external mod dependency, preferring libs/dragonminez-2.1.3.jar locally and using the matching Curse Maven artifact when the local JAR is absent.
+- Custom Forms Creator outline preview targets Minecraft's mapped endOutlineBatch method so the live entity-outline pass works in both development and production environments.
